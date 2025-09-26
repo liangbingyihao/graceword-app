@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/replyText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="8dp"
+        android:layout_gravity="right"
+        android:maxWidth="264dp"
+        android:gravity="left"
+        android:lineSpacingMultiplier="1"
+        android:stateListAnimator="@null"
+        android:textColor="@color/text_prompt"
+        android:textSize="12sp"
+        app:backgroundTint="@color/bg_gray_button"
+        app:cornerRadius="8dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp" />
+
+    <FrameLayout
+        android:id="@id/bubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:background="@drawable/shape_outgoing_message"
+        android:paddingLeft="22dp"
+        android:paddingTop="12dp"
+        android:paddingRight="22dp"
+        android:paddingBottom="12dp">
+        <!-- 聊天文本 -->
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="8dp"
+            android:lineSpacingMultiplier="1"
+            android:maxWidth="264dp"
+            android:textColor="@color/black"
+            android:textIsSelectable="true"
+            android:textSize="17sp" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/send_error_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_click_shadow"
+        android:text="@string/msg_failed"
+        android:textColor="@color/item_text_selected"
+        android:textSize="17sp"
+        android:layout_gravity="right"
+        android:drawablePadding="4dp"
+        app:drawableLeftCompat="@mipmap/ic_redo_red" />
+
+    <LinearLayout
+        android:id="@+id/user_text_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        app:alignItems="flex_end"
+        app:flexDirection="row"
+        app:justifyContent="flex_end"
+        app:layout_alignSelf="flex_end">
+
+        <ImageView
+            android:id="@+id/btn_copy_user_text"
+            style="@style/FeedOperatorRight"
+            android:layout_marginStart="0dp"
+            android:src="@mipmap/ic_copy_black" />
+
+        <ImageView
+            android:id="@+id/btn_like_user_text"
+            style="@style/FeedOperatorRight"
+            android:src="@mipmap/ic_like_black" />
+
+        <ImageView
+            android:id="@+id/btn_share_user_text"
+            style="@style/FeedOperatorRight"
+            android:src="@mipmap/ic_share_black" />
+
+        <ImageView
+            android:id="@+id/btn_del_user_text"
+            style="@style/FeedOperatorRight"
+            android:src="@mipmap/ic_del_black" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/session_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="14dp"
+        android:orientation="horizontal"
+        app:layout_alignSelf="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/added_to_timeline"
+            android:layout_marginRight="2dp"
+            android:textColor="@color/text_gray"
+            android:textSize="14sp"
+            tools:text="session_name" />
+
+        <TextView
+            android:id="@+id/session_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/item_text_selected"
+            android:textSize="14sp"
+            tools:text="session_name" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/process_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_alignSelf="flex_start">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/loading_animation" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:text="@string/loading"
+            android:textColor="@color/text_gray2"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            app:layout_alignSelf="flex_start" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/reply_error_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_click_shadow"
+        android:text="@string/ai_failed"
+        android:textColor="@color/item_text_selected"
+        android:textSize="17sp"
+        android:layout_gravity="left"
+        android:drawablePadding="4dp"
+        app:drawableLeftCompat="@mipmap/ic_redo_red" />
+
+    <TextView
+        android:id="@+id/feedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:lineSpacingExtra="8dp"
+        android:lineSpacingMultiplier="1"
+        android:textColor="@color/item_text_normal"
+        android:textIsSelectable="true"
+        android:textSize="17sp"
+        app:layout_alignSelf="flex_start" />
+
+    <!-- 底部行（时间 + 操作菜单） -->
+    <LinearLayout
+        android:id="@+id/feedback_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:alignItems="flex_start"
+        app:flexDirection="row"
+        app:justifyContent="flex_start"
+        app:layout_alignSelf="flex_start">
+
+        <ImageView
+            android:id="@+id/btn_pic"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_pic_black" />
+
+        <ImageView
+            android:id="@+id/btn_pray"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_pray" />
+
+        <ImageView
+            android:id="@+id/btn_share_text"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_share_black" />
+
+        <ImageView
+            android:id="@+id/btn_like_ai"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_like_black" />
+
+        <ImageView
+            android:id="@+id/btn_play"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_play_black" />
+
+        <ImageView
+            android:id="@+id/btn_del"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_del_black" />
+
+        <ImageView
+            android:id="@+id/btn_redo"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_redo_black" />
+    </LinearLayout>
+
+</merge>

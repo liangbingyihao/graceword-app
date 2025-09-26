@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 定义渐变背景属性 -->
+    <attr name="gradientPrimary" format="reference"/>
+
+    <!-- 如果需要，可以同时定义其他渐变属性 -->
+    <attr name="gradientStartColor" format="color"/>
+    <attr name="gradientEndColor" format="color"/>
+    <attr name="gradientAngle" format="integer"/>
+
+    <declare-styleable name="CircleOverlayView">
+
+        <attr name="ringColor" format="color" />
+        <attr name="ringWidth" format="dimension" />
+        <attr name="circleColor" format="color" />
+
+    </declare-styleable>
+
+    <declare-styleable name="VerticalDashedLineView">
+        <attr name="lineColor" format="color" />
+        <attr name="lineWidth" format="dimension" />
+        <attr name="dashLength" format="dimension" />
+        <attr name="gapLength" format="dimension" />
+    </declare-styleable>
+</resources>

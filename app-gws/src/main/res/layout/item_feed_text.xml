@@ -1,0 +1,87 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="26dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="26dp"
+    android:layout_marginBottom="8dp"
+    android:orientation="vertical"
+    app:alignItems="flex_end"
+    app:flexDirection="column"
+    app:flexWrap="wrap">
+
+    <include layout="@layout/item_feed_text_body" />
+
+    <FrameLayout
+        android:id="@+id/image_container"
+        android:layout_width="185dp"
+        android:layout_height="246dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bubble_bible_image"
+        android:orientation="vertical"
+        app:layout_alignSelf="flex_start">
+        <!--        android:background="@drawable/bubble_bible_image"-->
+
+        <siyamed.shapeimageview.PorterShapeImageView
+            android:id="@id/image"
+            android:layout_width="185dp"
+            android:layout_height="104dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            app:siShape="@drawable/shape_half_image_bubble"
+            app:siSquare="false" />
+        <!--        app:siShape="?outcomingBubbleDrawable"-->
+        <!--        app:siShape="@drawable/shape_incoming_image_bubble"-->
+        <!--        <siyamed.shapeimageview.PorterShapeImageView-->
+
+        <TextView
+            android:id="@+id/bible"
+            android:layout_width="185dp"
+            android:layout_height="142dp"
+            android:layout_gravity="bottom"
+            android:ellipsize="end"
+            android:gravity="start"
+            android:lineSpacingExtra="6dp"
+            android:maxLines="6"
+            android:padding="8dp"
+            android:textColor="@color/gray"
+            android:textSize="12sp" />
+    </FrameLayout>
+
+    <!-- 底部行（时间 + 操作菜单） -->
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/image_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:alignItems="center"
+        app:flexDirection="row"
+        app:justifyContent="flex_start"
+        app:layout_alignSelf="flex_start">
+
+        <ImageView
+            android:id="@+id/btn_download"
+            style="@style/FeedOperator"
+            android:layout_marginStart="0dp"
+            android:src="@mipmap/ic_download_black" />
+
+        <ImageView
+            android:id="@+id/btn_edit"
+            style="@style/FeedOperator"
+            android:visibility="gone"
+            android:src="@mipmap/ic_edit_black" />
+
+        <ImageView
+            android:id="@+id/btn_share_image"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_share_black" />
+
+    </com.google.android.flexbox.FlexboxLayout>
+
+
+<!--    <include layout="@layout/item_feed_explore" />-->
+
+</LinearLayout>

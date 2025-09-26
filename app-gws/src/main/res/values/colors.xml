@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="selected_color">#E3F2FD</color>
+    <color name="primary">@android:color/white</color>
+    <color name="primary_dark">@android:color/holo_blue_dark</color>
+    <color name="accent">@android:color/holo_blue_light</color>
+    <color name="text_primary">@android:color/black</color>
+    <color name="app_bar_icon_color">#FFC107</color>
+    <color name="textColorPrimary">#DE000000</color>
+    <color name="bubble_color">#FFF0F0</color>
+    <color name="item_text_selected">#FFCF4B40</color>
+    <color name="gray_divider">#F7F7F7</color>
+    <color name="item_text_normal">#333333</color>
+    <color name="bg_popup_blank">#80000000</color>
+    <color name="bg_special">#FFF8F7</color>
+    <color name="text_gray">#B1B1B1</color>
+    <color name="text_gray2">#919191</color>
+    <color name="button_pink">#FBEBEB</color>
+    <color name="bg_gray_button">#F5F5F5</color>
+    <color name="text_prompt">#69000000</color>
+</resources>

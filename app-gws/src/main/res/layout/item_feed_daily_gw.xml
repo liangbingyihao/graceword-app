@@ -1,0 +1,182 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="8dp"
+    android:orientation="vertical"
+    app:alignItems="flex_end"
+    app:flexDirection="column"
+    app:flexWrap="wrap">
+
+    <FrameLayout
+        android:id="@+id/image_container"
+        android:layout_width="185dp"
+        android:layout_height="246dp"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bubble_bible_image"
+        android:orientation="vertical"
+        app:layout_alignSelf="flex_start">
+        <!--        android:background="@drawable/bubble_bible_image"-->
+
+        <siyamed.shapeimageview.PorterShapeImageView
+            android:id="@id/image"
+            android:layout_width="185dp"
+            android:layout_height="246dp"
+            android:layout_gravity="center|start"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            app:siShape="@drawable/shape_image_bubble"
+            app:siSquare="false" />
+
+        <!--        android:background="@drawable/gradient_bible_image"-->
+
+        <LinearLayout
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:background="@drawable/gradient_bible_image"
+            android:gravity="start"
+            android:layout_gravity="bottom"
+            android:padding="10dp"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="2025-05"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/bible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="神爱世人，甚至将他的独生子赐给他们，叫一切信他的，不至灭亡，反得永生。"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/reference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginTop="1dp"
+                android:text="约翰福音 3:16"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- 底部行（时间 + 操作菜单） -->
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:alignItems="center"
+        app:flexDirection="row"
+        app:justifyContent="flex_start"
+        app:layout_alignSelf="flex_start">
+
+        <ImageView
+            android:id="@+id/btn_pray"
+            style="@style/FeedOperator"
+            android:layout_marginStart="0dp"
+            android:src="@mipmap/ic_pray" />
+
+        <ImageView
+            android:id="@+id/btn_download"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_download_black" />
+
+        <ImageView
+            android:id="@+id/btn_share_image"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_share_black" />
+    </com.google.android.flexbox.FlexboxLayout>
+
+
+<!--    <com.google.android.material.button.MaterialButton-->
+<!--        android:id="@+id/explore1"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:gravity="start"-->
+<!--        android:lineSpacingExtra="8dp"-->
+<!--        android:padding="8dp"-->
+<!--        android:stateListAnimator="@null"-->
+<!--        android:textColor="@color/item_text_normal"-->
+<!--        android:textSize="17sp"-->
+<!--        app:backgroundTint="@color/white"-->
+<!--        app:cornerRadius="10dp"-->
+<!--        app:elevation="0dp"-->
+<!--        app:layout_alignSelf="flex_start"-->
+<!--        app:rippleColor="#20000000"-->
+<!--        app:strokeColor="#E7E7E7"-->
+<!--        app:strokeWidth="1dp" />-->
+
+<!--    <com.google.android.material.button.MaterialButton-->
+<!--        android:id="@+id/explore2"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        android:gravity="start"-->
+<!--        android:lineSpacingExtra="8dp"-->
+<!--        android:padding="8dp"-->
+<!--        android:stateListAnimator="@null"-->
+<!--        android:textColor="@color/item_text_normal"-->
+<!--        android:textSize="17sp"-->
+<!--        app:backgroundTint="@color/white"-->
+<!--        app:cornerRadius="10dp"-->
+<!--        app:elevation="0dp"-->
+<!--        app:layout_alignSelf="flex_start"-->
+<!--        app:rippleColor="#20000000"-->
+<!--        app:strokeColor="#E7E7E7"-->
+<!--        app:strokeWidth="1dp" />-->
+
+<!--    <com.google.android.material.button.MaterialButton-->
+<!--        android:id="@+id/explore3"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        android:gravity="start"-->
+<!--        android:lineSpacingExtra="8dp"-->
+<!--        android:padding="8dp"-->
+<!--        android:stateListAnimator="@null"-->
+<!--        android:textColor="@color/item_text_normal"-->
+<!--        android:textSize="17sp"-->
+<!--        app:backgroundTint="@color/white"-->
+<!--        app:cornerRadius="10dp"-->
+<!--        app:elevation="0dp"-->
+<!--        app:layout_alignSelf="flex_start"-->
+<!--        app:rippleColor="#20000000"-->
+<!--        app:strokeColor="#E7E7E7"-->
+<!--        app:strokeWidth="1dp" />-->
+
+</LinearLayout>

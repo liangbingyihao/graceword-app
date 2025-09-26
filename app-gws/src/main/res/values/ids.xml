@@ -1,0 +1,7 @@
+<resources>
+
+    <!-- MESSAGE LIST ITEM -->
+    <item name="like" type="id" />
+    <item name="remove" type="id" />
+
+</resources>

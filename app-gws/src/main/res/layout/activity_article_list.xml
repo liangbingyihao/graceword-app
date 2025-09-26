@@ -1,0 +1,200 @@
+<!--<androidx.coordinatorlayout.widget.CoordinatorLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:background="@drawable/gradient_primary">-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+    <!--    @drawable/gradient_primary-->
+    <FrameLayout
+        android:id="@+id/home"
+        android:layout_width="60dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_back" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/more_menus"
+        android:layout_width="wrap_content"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="right"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:src="@drawable/ic_three_dots" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center|top"
+        android:drawablePadding="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLength="10"
+        android:singleLine="true"
+        android:textColor="@color/item_text_normal"
+        android:textSize="16sp"
+        app:drawableEndCompat="@drawable/ic_down">
+
+    </TextView>
+
+    <!--    <View-->
+    <!--        android:id="@+id/dash_line"-->
+    <!--        android:layout_width="1dp"-->
+    <!--        android:layout_height="match_parent"-->
+    <!--        android:layout_marginStart="64dp"-->
+    <!--        android:layout_marginTop="?attr/actionBarSize"-->
+    <!--        android:background="@drawable/dashed_line_vertical"-->
+    <!--        android:layerType="software" />-->
+
+    <sdk.chat.demo.robot.ui.LoadMoreSwipeRefreshLayout
+        android:id="@+id/swiperefreshlayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </sdk.chat.demo.robot.ui.LoadMoreSwipeRefreshLayout>
+
+    <LinearLayout
+        android:id="@+id/empty_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="194dp"
+            android:src="@mipmap/ic_empty" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/hint_no_record"
+            android:textColor="@color/item_text_normal" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/conversations1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:stateListAnimator="@null"
+            android:textAllCaps="false"
+            android:text="@string/go_to_record"
+            android:textColor="@color/item_text_selected"
+            android:textSize="14sp"
+            app:backgroundTint="@color/white"
+            app:cornerRadius="24dp"
+            app:elevation="0dp"
+            app:strokeColor="@color/item_text_selected"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:background="@color/white"
+        android:paddingTop="26dp"
+        android:paddingBottom="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/conversations"
+            android:layout_width="316dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:backgroundTint="@color/white"
+            android:stateListAnimator="@null"
+            android:text="@string/conversations"
+            android:textColor="@color/item_text_selected"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            app:cornerRadius="21dp"
+            app:elevation="0dp"
+            app:strokeColor="@color/item_text_selected"
+            app:strokeWidth="1dp" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/scrollTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_marginRight="28dp"
+        android:layout_marginBottom="76dp"
+        android:src="@mipmap/ic_load_top" />
+
+    <LinearLayout
+        android:id="@+id/edSummaryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:id="@+id/edSummaryExit"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/bg_popup_blank">
+
+        </View>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                android:background="@drawable/edittext_rounded_bg"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:maxLength="8"
+                    android:padding="12dp" />
+
+                <TextView
+                    android:id="@+id/edSummaryConfirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="18dp"
+                    android:text="@string/confirm"
+                    android:textColor="@color/item_text_selected" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+</FrameLayout>
+
+
+    <!--    android:background="@drawable/gradient_primary"-->

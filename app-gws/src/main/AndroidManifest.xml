@@ -1,0 +1,105 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-sdk android:targetSdkVersion="33" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
+    <application
+        android:name="sdk.chat.demo.MainApp"
+        android:allowBackup="false"
+        android:resizeableActivity="true"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/GGTheme"
+        tools:replace="allowBackup, icon">
+
+        <!--        <activity android:name="sdk.chat.demo.DemoActivity">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.intent.action.MAIN" />-->
+        <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+        <!--            </intent-filter>-->
+        <!--        </activity>-->
+
+        <!--适配华为（huawei）刘海屏-->
+        <meta-data
+            android:name="android.notch_support"
+            android:value="true"/>
+        <!--适配小米（xiaomi）刘海屏-->
+        <meta-data
+            android:name="notch.config"
+            android:value="portrait|landscape" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_test_notification" />
+        <!-- 声明语音识别服务 -->
+        <meta-data
+            android:name="android.speech.RecognitionService"
+            android:resource="@xml/speech_recognition_service" />
+
+        <activity
+            android:name="sdk.chat.demo.robot.activities.SplashScreenActivity"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.MainDrawerActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.SettingsActivity" />
+
+        <activity android:name="sdk.chat.demo.examples.helper.CustomPostRegistrationActivity" />
+
+
+        <activity android:name="sdk.chat.demo.robot.activities.GuideActivity" />
+
+        <activity android:name="sdk.chat.demo.robot.activities.SettingPromptActivity" />
+
+        <activity android:name="sdk.chat.demo.robot.activities.SettingLangsActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.ArticleListActivity" />
+
+        <activity android:name="sdk.chat.demo.robot.activities.FavoriteListActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.ImageViewerActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.SearchActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.TaskActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.TaskCalendarActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.ComplaintActivity" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            tools:replace="android:authorities"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />  <!-- 确保此文件存在 -->
+        </provider>
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+    </application>
+
+</manifest>

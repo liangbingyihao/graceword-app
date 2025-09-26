@@ -1,0 +1,93 @@
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:id="@+id/root"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:layout_marginStart="16dp"-->
+<!--    android:layout_marginTop="4dp"-->
+<!--    android:layout_marginEnd="16dp"-->
+<!--    android:layout_marginBottom="4dp">-->
+
+<!--    <LinearLayout-->
+<!--        android:id="@id/bubble"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:layout_marginTop="3dp"-->
+<!--        android:layout_marginEnd="30dp"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+
+
+<!--        <TextView-->
+<!--            android:id="@id/messageText"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:autoLink="all"-->
+<!--            android:linksClickable="true"-->
+<!--            android:textColorLink="?incomingTextLinkColor" />-->
+
+<!--    </LinearLayout>-->
+
+<!--    <TextView-->
+<!--        android:id="@id/messageTime"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="0dp"-->
+<!--        app:layout_constraintStart_toStartOf="@id/bubble"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/bubble" />-->
+
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<com.google.android.flexbox.FlexboxLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="8dp"
+    app:alignItems="flex_start"
+    app:flexDirection="column"
+    app:flexWrap="wrap">
+
+    <FrameLayout
+        android:id="@id/bubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <!-- 聊天文本 -->
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            tools:text="111这是聊天气泡的文本内容1" />
+    </FrameLayout>
+
+
+    <!-- 底部行（时间 + 操作菜单） -->
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:alignItems="center"
+        app:flexDirection="row"
+        app:justifyContent="flex_start">
+
+        <!-- 时间 -->
+        <TextView
+            android:id="@+id/messageTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textColor="@color/gray"
+            android:textSize="12sp"
+            tools:text="10:20" />
+    </com.google.android.flexbox.FlexboxLayout>
+</com.google.android.flexbox.FlexboxLayout>
