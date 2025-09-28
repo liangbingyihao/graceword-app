@@ -1,7 +1,17 @@
 <resources
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <style name="GGTheme" parent="ChatSDKTheme">
+    <style name="GGTheme" parent="Theme.MaterialComponents.Light.Bridge">
+        <item name= "android:windowIsTranslucent">true</item>
+
+        <!--    <item name="android:windowBackground">@color/white</item>-->
+
+        <!--    Important for keyboard overlay -->
+        <item name="android:windowFullscreen">false</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
 <!--        <item name="android:background">@color/white</item>-->
 <!--        <item name="gradientPrimary">@drawable/gradient_primary</item>-->
 <!--        <item name="gradientStartColor">#99ffe8e8</item>-->
@@ -180,7 +190,7 @@
         <!-- 按钮颜色配置 -->
         <item name="colorPrimary">@color/item_text_selected</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="colorSecondary">@color/white</item>
         <item name="colorOnSecondary">@color/white</item>
 
 <!--        &lt;!&ndash; 取消按钮颜色 &ndash;&gt;-->

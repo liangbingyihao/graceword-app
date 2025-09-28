@@ -16,9 +16,16 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+        maven {url = uri("https://artifact.bytedance.com/repository/Volcengine/")}
     }
 }
 
 rootProject.name = "GraceWord"
-include(":app",":chat-sdk-vendor",":sdk-guru-common","chat-sdk-core")
+include(":app-gw",
+    ":chat-sdk-vendor",
+    ":sdk-guru-common",
+    ":vendor-chatkit",
+    ":chat-sdk-firebase-push",
+    "chat-sdk-core")
  

@@ -11,7 +11,7 @@ import sdk.chat.core.interfaces.ChatOption
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.ui.AbstractKeyboardOverlayFragment
 import sdk.chat.core.ui.Sendable
-import sdk.chat.ui.R
+import sdk.chat.demo.pre.R
 import smartadapter.SmartRecyclerAdapter
 import smartadapter.viewevent.listener.OnClickEventListener
 

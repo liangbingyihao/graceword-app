@@ -26,10 +26,10 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.manager.DownloadablePayload
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.utils.CurrentLocale
+import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.handlers.GWThreadHandler
-import sdk.chat.ui.R
 import java.text.SimpleDateFormat
 //import sdk.chat.ui.module.UIModule
 //import sdk.chat.ui.utils.DrawableUtil
@@ -53,23 +53,11 @@ open class ChatImageViewHolder<T : ImageHolder>(
     open var bubble: ViewGroup? = itemView.findViewById(R.id.bubble)
     open var image: ImageView? = itemView.findViewById(R.id.image)
 
-    open var messageIcon: ImageView? = itemView.findViewById(R.id.messageIcon)
-
-    open var imageOverlay: ImageView? = itemView.findViewById(R.id.imageOverlay)
 
     open var text: TextView? = itemView.findViewById(R.id.messageText)
     open var feedback: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.feedback)
     open var time: TextView? = itemView.findViewById(R.id.messageTime)
 
-    open var readStatus: ImageView? = itemView.findViewById(R.id.readStatus)
-//    open var replyView: View? = itemView.findViewById(R.id.replyView)
-//    open var replyImageView: ImageView? = itemView.findViewById(R.id.replyImageView)
-//    open var replyTextView: TextView? = itemView.findViewById(R.id.replyTextView)
-
-//    open var progressView: ProgressView? = itemView.findViewById(R.id.progressView)
-    open var bubbleOverlay: View? = itemView.findViewById(R.id.bubbleOverlay)
-
-    open var resendContainer: ConstraintLayout? = itemView.findViewById(R.id.resendContainer)
     open var sessionContainer: View? =
         itemView.findViewById(sdk.chat.demo.pre.R.id.session_container)
     open var sessionName: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.session_name)
@@ -200,13 +188,13 @@ open class ChatImageViewHolder<T : ImageHolder>(
 //    }
 
     open fun bindResend(holder: T) {
-        resendContainer?.let {
-            if (holder.canResend()) {
-                it.visibility = View.VISIBLE
-            } else {
-                it.visibility = View.GONE
-            }
-        }
+//        resendContainer?.let {
+//            if (holder.canResend()) {
+//                it.visibility = View.VISIBLE
+//            } else {
+//                it.visibility = View.GONE
+//            }
+//        }
     }
 
     open fun bindProgress(t: T) {
@@ -415,8 +403,8 @@ open class ChatImageViewHolder<T : ImageHolder>(
         Glide.with(image!!)
             .load(imageDaily.backgroundUrl)
             .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .placeholder(sdk.chat.demo.pre.R.drawable.icn_200_image_message_placeholder) // 占位图
-            .error(sdk.chat.demo.pre.R.drawable.icn_200_image_message_error) // 错误图
+            .placeholder(R.drawable.icn_200_image_message_placeholder) // 占位图
+            .error(R.drawable.icn_200_image_message_error) // 错误图
             .addListener(object : RequestListener<Drawable> {
                 override fun onResourceReady(
                     resource: Drawable,

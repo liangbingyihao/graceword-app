@@ -1,10 +1,13 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
+//    repositories {
+//        google()
+////        jcenter()
+//        mavenCentral()
+//        maven { url = uri("https://jitpack.io") }
+//        maven {url = uri("https://artifact.bytedance.com/repository/Volcengine/")}
+//
+//    }
     dependencies {
         classpath("com.android.tools.build:gradle:7.3.1")
         classpath("com.google.gms:google-services:4.3.14")

@@ -130,13 +130,13 @@ android {
 //    }}
 
 
-repositories {
-    // 默认会继承项目级的仓库配置
-    // 添加模块特有的仓库
-    maven {
-        url "https://artifact.bytedance.com/repository/Volcengine/"
-    }
-}
+//repositories {
+//    // 默认会继承项目级的仓库配置
+//    // 添加模块特有的仓库
+//    maven {
+//        url "https://artifact.bytedance.com/repository/Volcengine/"
+//    }
+//}
 
 dependencies {
 //    implementation project(':chat-sdk-demo')

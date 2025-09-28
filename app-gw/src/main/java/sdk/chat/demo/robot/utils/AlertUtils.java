@@ -12,7 +12,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import io.reactivex.functions.Consumer;
 import sdk.chat.core.session.ChatSDK;
-import sdk.chat.ui.R;
+import sdk.chat.demo.pre.R;
 
 public class AlertUtils implements Consumer<Throwable> {
 

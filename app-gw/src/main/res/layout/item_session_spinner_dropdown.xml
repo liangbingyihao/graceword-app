@@ -8,7 +8,7 @@
         android:id="@+id/spinner_dropdown_item_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/gray_1"
+        android:textColor="#7E7D7D"
         android:layout_marginStart="48dp"
         android:layout_gravity="center|left"
         android:text="1234"

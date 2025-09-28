@@ -44,11 +44,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     MessageHolders.BaseMessageViewHolder<T>(itemView, null),
     MessageHolders.DefaultMessageViewHolder,
     Consumer<Throwable> {
-    open var root: View? = itemView.findViewById(sdk.chat.ui.R.id.root)
+    open var root: View? = itemView.findViewById(R.id.root)
     open var bubble: ViewGroup? = itemView.findViewById(R.id.bubble)
-
-    open var messageIcon: ImageView? = itemView.findViewById(R.id.messageIcon)
-
 
     open var replyText: MaterialButton? = itemView.findViewById(R.id.replyText)
     open var text: TextView? = itemView.findViewById(R.id.messageText)
@@ -57,17 +54,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     open var replyErrorHint: TextView? = itemView.findViewById(R.id.reply_error_hint)
     open var processContainer: View? = itemView.findViewById(R.id.process_container)
     open var time: TextView? = itemView.findViewById(R.id.messageTime)
-
-    open var readStatus: ImageView? = itemView.findViewById(R.id.readStatus)
-//    open var replyView: View? = itemView.findViewById(R.id.replyView)
-//    open var replyImageView: ImageView? = itemView.findViewById(R.id.replyImageView)
-//    open var replyTextView: TextView? = itemView.findViewById(R.id.replyTextView)
-
-//    open var progressView: ProgressView? = itemView.findViewById(R.id.progressView)
-    open var bubbleOverlay: View? = itemView.findViewById(R.id.bubbleOverlay)
-
-    open var resendTextView: TextView? = itemView.findViewById(R.id.resendTextView)
-    open var resendContainer: ConstraintLayout? = itemView.findViewById(R.id.resendContainer)
     open var sessionContainer: View? =
         itemView.findViewById(R.id.session_container)
     open var sessionName: TextView? = itemView.findViewById(R.id.session_name)
@@ -378,13 +364,13 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     }
 
     open fun bindResend(holder: T) {
-        resendContainer?.let {
-            if (holder.canResend()) {
-                it.visibility = View.VISIBLE
-            } else {
-                it.visibility = View.GONE
-            }
-        }
+//        resendContainer?.let {
+//            if (holder.canResend()) {
+//                it.visibility = View.VISIBLE
+//            } else {
+//                it.visibility = View.GONE
+//            }
+//        }
     }
 
     open fun bindProgress(t: T) {
