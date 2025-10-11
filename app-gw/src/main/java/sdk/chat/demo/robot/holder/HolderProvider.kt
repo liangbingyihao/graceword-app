@@ -11,16 +11,27 @@ object HolderProvider {
     fun getMessageHolder(message: Message?): MessageHolder? {
         if (message == null) return null
 
-        return messageHolders.getOrPut(message) {
-            if (message.typeIs(MessageType.Text)) {
-                return TextHolder(message)
-            }else if (message.typeIs(MessageType.Image)|| message.typeIs(GWMessageType)) {
-                return ImageHolder(message)
-            }else{
-                return null
-            }
-//            ChatSDKUI.shared().messageRegistrationManager.onNewMessageHolder(message)
+        messageHolders[message]?.let { return it }
+
+        val holder = when {
+            message.typeIs(MessageType.Text) -> TextHolder(message)
+            message.typeIs(MessageType.Image) || message.typeIs(GWMessageType) -> ImageHolder(message)
+            else -> null
         }
+
+        holder?.let { messageHolders[message] = it }
+        return holder
+
+//        return messageHolders.getOrPut(message) {
+//            if (message.typeIs(MessageType.Text)) {
+//                return TextHolder(message)
+//            }else if (message.typeIs(MessageType.Image)|| message.typeIs(GWMessageType)) {
+//                return ImageHolder(message)
+//            }else{
+//                return null
+//            }
+////            ChatSDKUI.shared().messageRegistrationManager.onNewMessageHolder(message)
+//        }
     }
 
     fun getExitsMessageHolder(message: Message?): MessageHolder? {

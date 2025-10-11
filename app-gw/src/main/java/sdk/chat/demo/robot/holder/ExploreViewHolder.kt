@@ -101,7 +101,7 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     }
 
     fun filterById(id: Long?): Predicate<NetworkEvent?> {
-        Log.e("AIExplore", "ExploreViewHolder.MessageUpdated:" + id)
+//        Log.e("AIExplore", "ExploreViewHolder.MessageUpdated:" + id)
         return Predicate { networkEvent: NetworkEvent? -> networkEvent?.message?.id == id }
     }
 
@@ -112,7 +112,7 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                 .filter(NetworkEvent.filterType(EventType.MessageUpdated))
                 .filter(filterById(t.message.id))
                 .subscribe {
-                    Log.e("AIExplore", "ExploreViewHolder.MessageUpdated:" + t.message.id)
+//                    Log.e("AIExplore", "ExploreViewHolder.MessageUpdated:" + t.message.id)
                     RX.main().scheduleDirect {
                         t.aiExplore = null
                         bind(this.loading,t)

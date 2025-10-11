@@ -2,11 +2,12 @@ package sdk.chat.demo.robot.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
+import androidx.annotation.NonNull
 import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import org.pmw.tinylog.Logger
 
 class LoadMoreSwipeRefreshLayout @JvmOverloads constructor(
     context: Context,
@@ -16,6 +17,7 @@ class LoadMoreSwipeRefreshLayout @JvmOverloads constructor(
     // 回调接口
     interface OnLoadMoreListener {
         fun onLoadMore()
+        fun onLoadLatestActive()
     }
 
     private var loadMoreListener: OnLoadMoreListener? = null
@@ -43,6 +45,27 @@ class LoadMoreSwipeRefreshLayout @JvmOverloads constructor(
     fun setupWithRecyclerView(recyclerView: RecyclerView) {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             private var lastDy = 0
+            private var currentState = RecyclerView.SCROLL_STATE_IDLE
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                currentState = newState
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_IDLE -> {
+                        Log.d("Scroll", "滑动停止")
+                        // 滑动停止时的业务逻辑
+                        loadMoreListener?.onLoadLatestActive()
+                    }
+                    RecyclerView.SCROLL_STATE_DRAGGING -> {
+                        Log.d("Scroll", "开始拖动")
+                        // 用户开始拖动时的逻辑
+                    }
+                    RecyclerView.SCROLL_STATE_SETTLING -> {
+                        Log.d("Scroll", "惯性滑动中")
+                        // 惯性滑动时的逻辑
+                    }
+                }
+            }
+
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 lastDy = dy
@@ -50,6 +73,7 @@ class LoadMoreSwipeRefreshLayout @JvmOverloads constructor(
                     checkLoadMore(recyclerView)
                 }
             }
+
         })
     }
 

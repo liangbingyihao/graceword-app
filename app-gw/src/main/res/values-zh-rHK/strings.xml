@@ -100,4 +100,7 @@
     <string name="network_error_and_retry">網絡不可用，請檢查網絡狀況，正在為您重試</string>
     <string name="get_my_userid">複製遷移ID</string>
     <string name="my_version">目前版本: %s</string>
+    <string name="image_saved">圖片已成功儲存</string>
+    <string name="image_save_failed">圖片儲存失敗</string>
+    <string name="asr_error">語音繁忙，請嘗試其他輸入方式</string>
 </resources>

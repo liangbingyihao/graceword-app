@@ -62,6 +62,7 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
         void onLongClick(Message message);
 
         String getMessageId();
+        void onLoadLatestActive();
     }
 
     protected ChatAdapter messagesListAdapter;
@@ -97,13 +98,13 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
 
         messagesList = findViewById(R.id.recyclerview);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),
-                LinearLayoutManager.VERTICAL, true);
+                LinearLayoutManager.VERTICAL, false);
         messagesList.setLayoutManager(layoutManager);
 
 
         root = findViewById(R.id.root);
 
-        final MessageHolders holders = new MessageHolders();
+//        final MessageHolders holders = new MessageHolders();
         //FIXME
 //        ChatSDKUI.shared().getMessageRegistrationManager().onBindMessageHolders(getContext(), holders);
 
@@ -147,6 +148,11 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
         // 上拉加载监听
         swipeRefreshLayout.setOnLoadMoreListener(new LoadMoreSwipeRefreshLayout.OnLoadMoreListener() {
             @Override
+            public void onLoadLatestActive() {
+                delegate.onLoadLatestActive();
+            }
+
+            @Override
             public void onLoadMore() {
                 if (!messagesListAdapter.getHeader()) {
                     messagesListAdapter.setHeader(true);
@@ -188,6 +194,14 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
                 .subscribe(networkEvent -> {
                     messagesList.post(() -> {
                         removeMessage(networkEvent.getMessage());
+                    });
+                }));
+
+        dm.add(ChatSDK.events().sourceOnSingle()
+                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
+                .subscribe(networkEvent -> {
+                    messagesList.post(() -> {
+                        updateMessage(networkEvent.getMessage());
                     });
                 }));
     }
@@ -327,6 +341,14 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
 //            scroll = true;
 //        }
 
+
+        // Save current scroll position
+        LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
+        int firstVisiblePosition = layoutManager.findFirstVisibleItemPosition();
+        View firstVisibleView = layoutManager.findViewByPosition(firstVisiblePosition);
+        int offset = (firstVisibleView != null) ?
+                (firstVisibleView.getTop() - messagesList.getPaddingTop()) : 0;
+
         MessageHolder holder = HolderProvider.INSTANCE.getMessageHolder(message);
         if (holder!=null&&!messageHolders.contains(holder)) {
 
@@ -335,7 +357,8 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
 //            updatePreviousMessage(holder);
             holder.updateReadStatus();
             messagesListAdapter.addNewMessage(holder, () -> {
-                messagesList.scrollToPosition(0);
+//                messagesList.scrollToPosition(0);
+                layoutManager.scrollToPositionWithOffset(firstVisiblePosition, offset);
                 return Unit.INSTANCE;
             });
 //            messagesListAdapter.addToStart(holder, scroll, true);
@@ -403,6 +426,31 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
         HolderProvider.INSTANCE.removeMessageHolder(message);
     }
 
+
+    protected void updateMessage(Message message) {
+        MessageHolder holder = HolderProvider.INSTANCE.getExitsMessageHolder(message);
+        if(holder!=null){
+//            messageHolders.remove(holder);
+            LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
+//            int firstVisiblePosition = layoutManager.findFirstVisibleItemPosition();
+//            View firstVisibleView = layoutManager.findViewByPosition(firstVisiblePosition);
+////            int offset = (firstVisibleView != null) ?
+////                    (firstVisibleView.getTop() - messagesList.getPaddingTop()) : 0;
+//            int offset = (firstVisibleView != null) ?firstVisibleView.getTop() : 0;
+
+            messagesListAdapter.updateMessage(holder, (p) -> {
+//                messagesList.scrollToPosition(0);
+//                Log.e("AIExplore", "updateMessage scrollToPositionWithOffset:"+firstVisiblePosition+","+offset);
+                View firstVisibleView = layoutManager.findViewByPosition(p);
+//            int offset = (firstVisibleView != null) ?
+//                    (firstVisibleView.getTop() - messagesList.getPaddingTop()) : 0;
+                int offset = (firstVisibleView != null) ?firstVisibleView.getTop() : 0;
+                layoutManager.scrollToPositionWithOffset(p,300);
+                return Unit.INSTANCE;
+            });
+        }
+//        HolderProvider.INSTANCE.removeMessageHolder(message);
+    }
 
     /**
      * End means historic messages to top of screen

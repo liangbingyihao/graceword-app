@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.audio
 
+import android.os.Bundle
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
@@ -18,6 +19,7 @@ import com.bytedance.speech.speechengine.SpeechEngine
 import com.bytedance.speech.speechengine.SpeechEngine.SpeechListener
 import com.bytedance.speech.speechengine.SpeechEngineDefines
 import com.bytedance.speech.speechengine.SpeechEngineGenerator
+import com.google.firebase.analytics.FirebaseAnalytics
 import org.json.JSONException
 import org.json.JSONObject
 import org.tinylog.Logger
@@ -151,6 +153,11 @@ object TTSHelper {
             textToSpeech?.speak(mCurTtsText, TextToSpeech.QUEUE_FLUSH, null, msgId)
         } else {
 //            mCurTtsText = mCurTtsText.take(20)
+            FirebaseAnalytics.getInstance(MainApp.getContext()).logEvent("tts", Bundle().apply {
+                putString("voice", voiceType)
+                val lengthBucket = (text.length + 9) / 10
+                putString("len", lengthBucket.toString())
+            });
             mCurTtsText = text
             setVoiceTypeByText(text)
             startEngine()

@@ -2,6 +2,7 @@ package sdk.chat.demo.robot.activities
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -67,9 +68,11 @@ class TaskActivity : BaseActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(layout)
-        ImmersionBar.with(this)
-            .titleBar(findViewById<View>(R.id.title_bar))
-            .init()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ImmersionBar.with(this)
+                .titleBar(findViewById<View>(R.id.title_bar))
+                .init()
+        }
         findViewById<View>(R.id.back).setOnClickListener(this)
         pieContainer = findViewById<LinearLayout>(R.id.pieContainer)
         loading = findViewById<View>(R.id.loading)

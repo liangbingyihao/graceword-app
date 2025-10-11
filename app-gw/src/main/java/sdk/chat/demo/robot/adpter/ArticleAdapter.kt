@@ -92,6 +92,7 @@ class ArticleAdapter(
             // 提交完成后的回调
             val payload = SummaryUpdatePayload(newSummary)
             notifyItemChanged(position, payload)
+            notifyItemRangeChanged(position, 1)
         }
 
         return true
@@ -125,6 +126,7 @@ class ArticleAdapter(
             itemView.setOnClickListener { onItemClick(article) }
             itemView.setOnLongClickListener { v -> _selectId = article;onLongClick(v, article) }
             editTitle.setOnClickListener { _selectId = article;onEditClick(article) }
+            tvTitle.setOnClickListener { _selectId = article;onEditClick(article) }
 
             if (!article.showDay) {
                 tvDay.visibility = View.INVISIBLE

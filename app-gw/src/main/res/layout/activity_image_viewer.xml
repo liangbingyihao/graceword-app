@@ -19,42 +19,50 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
         app:tabGravity="fill"
+        android:visibility="gone"
         app:tabIndicatorGravity="bottom"
         app:tabTextColor="@color/white" />
 
 
     <FrameLayout
-        android:id="@+id/title_bar"
+        android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent">
 
-        <ImageView
-            android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left|center_vertical"
-            android:layout_marginLeft="16dp"
-            android:padding="16dp"
-            android:src="@mipmap/ic_back_white" />
+        <FrameLayout
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true">
 
-        <ImageView
-            android:id="@+id/btn_download"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_marginRight="88dp"
-            android:src="@mipmap/ic_download_white" />
+            <ImageView
+                android:id="@+id/back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginLeft="16dp"
+                android:padding="16dp"
+                android:src="@mipmap/ic_back_white" />
 
-        <ImageView
-            android:id="@+id/btn_share_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_marginRight="38dp"
-            android:src="@mipmap/ic_share_white" />
+            <ImageView
+                android:id="@+id/btn_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="88dp"
+                android:src="@mipmap/ic_download_white" />
+
+            <ImageView
+                android:id="@+id/btn_share_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="38dp"
+                android:src="@mipmap/ic_share_white" />
+        </FrameLayout>
     </FrameLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -63,9 +71,9 @@
         android:layout_height="42dp"
         android:layout_gravity="center|bottom"
         android:layout_marginBottom="64dp"
-        android:textAllCaps="false"
         android:backgroundTint="@android:color/transparent"
         android:text="@string/conversations"
+        android:textAllCaps="false"
         android:textSize="14sp"
         app:cornerRadius="21dp"
         app:strokeColor="#FFFFFF"

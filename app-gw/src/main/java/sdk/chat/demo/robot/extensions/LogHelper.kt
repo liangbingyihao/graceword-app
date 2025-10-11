@@ -1,11 +1,11 @@
 package sdk.chat.demo.robot.extensions
 
-import android.util.Log
+import android.R.id
+import android.os.Bundle
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import org.tinylog.Logger;
+import sdk.chat.core.utils.Device.name
+
 
 object LogHelper {
 //    private const val LOG_CLEAR_INTERVAL = 120_000L // 2分钟（毫秒）
@@ -57,6 +57,15 @@ object LogHelper {
         }
 
     }
+
+    fun logEvent(firebaseAnalytics: FirebaseAnalytics?) {
+        firebaseAnalytics?.logEvent(FirebaseAnalytics.Event.SELECT_ITEM, Bundle().apply {
+            putString(FirebaseAnalytics.Param.ITEM_ID, "item_id")
+            putString(FirebaseAnalytics.Param.ITEM_NAME, "item_name")
+            putString(FirebaseAnalytics.Param.CONTENT_TYPE, "content_type")
+        })
+    }
+
 
 //    // 记录错误（会同时记录到 error.log 和 app.log）
 //    fun error(message: String?, throwable: Throwable?) {

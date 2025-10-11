@@ -92,6 +92,9 @@ class FavoriteListActivity : BaseActivity(), View.OnClickListener {
                         listFavorite(currentPage)
                     }
                 }
+
+                override fun onLoadLatestActive() {
+                }
             })
         }
     }

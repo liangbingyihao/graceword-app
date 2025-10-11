@@ -2,6 +2,7 @@ package sdk.chat.demo.robot.activities
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.lifecycleScope
@@ -53,10 +54,14 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(layout)
         dateStr = intent.getStringExtra(EXTRA_INITIAL_DATA)
-//        hideSystemBars() // 启动时立即隐藏
-        ImmersionBar.with(this)
-            .titleBar(findViewById<View>(R.id.title_bar))
-            .init()
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ImmersionBar.with(this)
+                .titleBar(findViewById<View>(R.id.title_bar))
+                .init()
+        }else{
+            ImmersionBar.with(this).init()
+        }
         findViewById<View>(R.id.back).setOnClickListener(this)
         findViewById<View>(R.id.btn_download).setOnClickListener(this)
         findViewById<View>(R.id.btn_share_image).setOnClickListener(this)

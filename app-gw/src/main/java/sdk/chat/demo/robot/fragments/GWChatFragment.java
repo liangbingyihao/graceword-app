@@ -144,6 +144,20 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //        return 0L;
     }
 
+    private final Runnable hideLoadLatestRunnable = new Runnable() {
+        @Override
+        public void run() {
+            scrollBottom.setVisibility(View.GONE);
+        }
+    };
+
+    @Override
+    public void onLoadLatestActive() {
+        scrollBottom.setVisibility(View.VISIBLE);
+        handler.removeCallbacks(hideLoadLatestRunnable);
+        handler.postDelayed(hideLoadLatestRunnable,4000);
+    }
+
 
     public void setThread(Thread thread) {
         if (true) {
@@ -496,7 +510,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                     String msg = (String) params.getOrDefault("msg", "");
                     if ("asr".equals(errType)) {
                         if (msg != null && !msg.isEmpty()) {
-                            ToastHelper.show(getActivity(), msg);
+                            ToastHelper.show(getActivity(), getString(R.string.asr_error));
                         }
                         input.onAsrStop(true);
                         if ("ERR_REC_CHECK_ENVIRONMENT_FAILED".equals(msg)) {

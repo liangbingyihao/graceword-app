@@ -20,10 +20,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.transition.Explode;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -34,6 +36,14 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
 
@@ -67,6 +77,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
     protected Drawable windowBackground = null;
 
     protected AlertUtils alert;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
 //    protected ImagePickerUploader.Contract contract = makeContract();
 
@@ -76,6 +87,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
             public Context getContext() {
                 return BaseActivity.this;
             }
+
             @Override
             public View getRootView() {
                 return getContentView();
@@ -95,7 +107,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
             setContentView(getLayout());
         }
 
-        Logger.debug("onCreate: " + this);
+//        Logger.debug("onCreate: " + this);
 
 //        updateExtras(getIntent().getExtras());
 
@@ -105,8 +117,47 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
         }, throwable -> {
             // No Problem!
         }));
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
     }
 
+    protected  View getRootView() {
+        return findViewById(R.id.main);
+    }
+
+
+    private void fixAndroid15FullscreenIssue() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+//            // Android 15+ 强制禁用沉浸式
+//            WindowManager.LayoutParams params = getWindow().getAttributes();
+//            params.layoutInDisplayCutoutMode =
+//                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+//            getWindow().setAttributes(params);
+//
+//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            View main = getRootView();
+            if (main != null) {
+                Log.d("onApplyWindowInsets", "set callback");
+                ViewCompat.setOnApplyWindowInsetsListener(main, new OnApplyWindowInsetsListener() {
+                    @Override
+                    public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                        Log.d("onApplyWindowInsets", "callback");
+                        Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                        v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                        return insets;
+                    }
+                });
+                ViewCompat.requestApplyInsets(main);
+            }
+        }
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (windowInsetsController != null) {
+            windowInsetsController.setAppearanceLightStatusBars(true);
+        }
+    }
 
     @Override
     public void onAttachedToWindow() {
@@ -212,18 +263,18 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
         });
     }
 
-    protected int getTaskDescriptionColor(){
+    protected int getTaskDescriptionColor() {
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = getTheme();
         theme.resolveAttribute(R.attr.colorPrimary, typedValue, true);
         return typedValue.data;
     }
 
-    protected String getTaskDescriptionLabel(){
+    protected String getTaskDescriptionLabel() {
         return (String) getTitle();
     }
-    
-    protected void setTaskDescription(Bitmap bm, String label, int color){
+
+    protected void setTaskDescription(Bitmap bm, String label, int color) {
         // Color the app topbar label and icon in the overview screen
         //http://www.bignerdranch.com/blog/polishing-your-Android-overview-screen-entry/
         // Placed in the post create so it would be called after the action bar is initialized and we have a title.
@@ -262,6 +313,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
     @Override
     protected void onStart() {
         super.onStart();
+        fixAndroid15FullscreenIssue();
     }
 
     @Override
@@ -303,7 +355,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
     /**
      * Set up the ui so every view and nested view that is not EditText will listen to touch event and dismiss the keyboard if touched.
      * http://stackoverflow.com/questions/4165414/how-to-hide-soft-keyboard-on-android-after-clicking-outside-edittext
-     * */
+     */
     public void setupTouchUIToDismissKeyboard(View view) {
         setupTouchUIToDismissKeyboard(view, (v, event) -> {
             hideKeyboard();
@@ -317,10 +369,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
             ids = Arrays.asList(exceptIDs);
 
         //Set up touch listener for non-text box views to hideName keyboard.
-        if(!(view instanceof EditText)) {
+        if (!(view instanceof EditText)) {
 
-            if (!ids.isEmpty() && ids.contains(view.getId()))
-            {
+            if (!ids.isEmpty() && ids.contains(view.getId())) {
                 return;
             }
 
@@ -352,6 +403,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
     public static void hideKeyboard(@Nullable Activity activity) {
         hideKeyboard(activity, null);
     }
+
     public static void hideKeyboard(@Nullable Activity activity, View focus) {
         if (activity != null) {
             if (focus == null) {
@@ -367,14 +419,14 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
     }
 
     public void showKeyboard() {
-        if(!KeyboardVisibilityEvent.INSTANCE.isKeyboardVisible(this)) {
+        if (!KeyboardVisibilityEvent.INSTANCE.isKeyboardVisible(this)) {
             BaseActivity.showKeyboard(this);
         }
     }
 
     public static void showKeyboard(@Nullable Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
     }
 
     /**
@@ -410,36 +462,38 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
         alert.onError(e);
     }
 
-    /** Show a SuperToast with the given text. */
-    public void showToast(@StringRes int textResourceId){
+    /**
+     * Show a SuperToast with the given text.
+     */
+    public void showToast(@StringRes int textResourceId) {
         alert.showToast(textResourceId);
     }
 
-    public void showToast(String text){
+    public void showToast(String text) {
         alert.showToast(text);
     }
 
-    public void showSnackbar(int textResourceId, int duration){
+    public void showSnackbar(int textResourceId, int duration) {
         alert.showSnackbar(textResourceId, duration);
     }
 
-    public void showSnackbar(int textResourceId){
+    public void showSnackbar(int textResourceId) {
         alert.showSnackbar(textResourceId);
     }
 
-    public void showSnackbar (String text) {
+    public void showSnackbar(String text) {
         alert.showSnackbar(text);
     }
 
-    public void showSnackbar (String text, int duration) {
+    public void showSnackbar(String text, int duration) {
         alert.showSnackbar(text, duration);
     }
 
-    protected Consumer<? super Throwable> toastOnErrorConsumer () {
+    protected Consumer<? super Throwable> toastOnErrorConsumer() {
         return alert.toastOnErrorConsumer();
     }
 
-    protected Consumer<? super Throwable> snackbarOnErrorConsumer () {
+    protected Consumer<? super Throwable> snackbarOnErrorConsumer() {
         return alert.snackbarOnErrorConsumer();
     }
 

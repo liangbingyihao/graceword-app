@@ -14,6 +14,7 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
+    <string name="unsave">Unfavorite</string>
     <string name="remove_topic">Delete Journey</string>
     <string name="change_topic">Change Topic</string>
     <string name="rename_topic">Rename Journal</string>
@@ -30,7 +31,6 @@
     <string name="pending_image">Processing image...</string>
     <string name="copied">Copied to clipboard.</string>
     <string name="save">Favorites</string>
-    <string name="unsave">Unsave</string>
     <string name="saved">Added to saved items</string>
     <string name="unsaved">Removed from saved items</string>
     <string name="delete_confirm">Confirm to delete?</string>
@@ -103,4 +103,5 @@
     <string name="my_version">Current Version: %s</string>
     <string name="image_save_failed">Image save failed</string>
     <string name="image_saved">Image saved successfully</string>
+    <string name="asr_error">Voice recognition is busy, please try alternative input methods</string>
 </resources>

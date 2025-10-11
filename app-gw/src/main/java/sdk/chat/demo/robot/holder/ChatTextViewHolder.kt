@@ -428,17 +428,17 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
                     }
                 })
 
-        dm.add(
-            ChatSDK.events().sourceOnSingle()
-                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
-                .filter(filterById(t.message.id))
-                .doOnError(this)
-                .subscribe {
-                    RX.main().scheduleDirect {
-                        (t as? TextHolder)?.aiFeedback = null
-                        bind(t)
-                    }
-                })
+//        dm.add(
+//            ChatSDK.events().sourceOnSingle()
+//                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
+//                .filter(filterById(t.message.id))
+//                .doOnError(this)
+//                .subscribe {
+//                    RX.main().scheduleDirect {
+//                        (t as? TextHolder)?.aiFeedback = null
+//                        bind(t)
+//                    }
+//                })
 
 
     }

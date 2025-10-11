@@ -10,21 +10,28 @@
         android:overScrollMode="never" />
 
     <FrameLayout
-        android:id="@+id/title_bar"
+        android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_height="200dp"
+        android:background="@android:color/transparent">
 
-        <ImageView
-            android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left|center_vertical"
-            android:layout_marginLeft="16dp"
-            android:padding="16dp"
-            android:src="@mipmap/ic_back_white" />
+        <FrameLayout
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginLeft="16dp"
+                android:padding="16dp"
+                android:src="@mipmap/ic_back_white" />
+        </FrameLayout>
     </FrameLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -156,5 +163,5 @@
         android:clickable="true"
         android:text="loading..."
         android:textColor="@color/white"
-        android:textSize="16sp"/>
+        android:textSize="16sp" />
 </FrameLayout>

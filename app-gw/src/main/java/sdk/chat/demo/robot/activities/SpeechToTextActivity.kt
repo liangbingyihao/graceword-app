@@ -13,6 +13,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
@@ -121,7 +125,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             }
         }
 
-        setVoiceTypeSpinner()
+//        setVoiceTypeSpinner()
 
 
 
@@ -146,6 +150,23 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
         )
 
         Log.d("LanguageTag","lang:"+Locale.getDefault().toLanguageTag()+","+getString(R.string.questions));
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+//        val wic: WindowInsetsControllerCompat? =
+//            ViewCompat.getWindowInsetsController(getWindow().getDecorView())
+//        if (wic != null) {
+//            // true表示Light Mode，状态栏字体呈黑色，反之呈白色
+//            wic.setAppearanceLightStatusBars(true)
+//        }
+        val windowInsetsController: WindowInsetsControllerCompat? =
+            WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+        if (windowInsetsController != null) {
+            windowInsetsController.setAppearanceLightStatusBars(false) // 白色文字
+        }
     }
 
     fun setVoiceTypeSpinner() {

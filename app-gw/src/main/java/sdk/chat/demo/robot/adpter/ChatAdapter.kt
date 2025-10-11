@@ -351,20 +351,42 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyItemRemoved(deletePos)
         onComplete?.invoke()
 
-//        if (delExplore) {
-//            items.removeAt(deletePos)
-//            items.removeAt(0)
-//            notifyItemChanged(0)      // 头部内容变化
-//            notifyItemRangeInserted(1, newMessages.size)     // 新项插入
-//        } else {
-//            notifyItemRangeInserted(0, newMessages.size + 1)  // 两个新项插入
+    }
+
+
+    fun updateMessage(item: IMessage, onComplete: ((Int) -> Unit)? = null) {
+        // Create new list with items removed
+        val matchPos = items.indexOfFirst { it.id == item.id }
+
+        if (matchPos == -1) {
+//            Log.e("delmsg", "message.id:${message.id},del:-1,size:${items.size}")
+            onComplete?.invoke(matchPos)
+            return
+        }
+
+        Log.e("AIExplore", "updateMessage:${item.id},updatePos:${matchPos}")
+        items[matchPos] = item
+//        var newExploreHolder: ExploreHolder? = null
+//        if (itemCount > deletePos) {
+//            var msg = (items[deletePos + 1] as? MessageHolder)?.message
+//            newExploreHolder = ExploreHolder(msg)
 //        }
-//
-//        notifyItemRemoved(deletePos)
-//        onComplete?.invoke()
-//        val newList = ArrayList(items).apply { removeAt(deletePos) }
-//        //status: 0: pending,1:idle
-//        submitList(newList, onComplete)
+
+//        var msg = (item as? MessageHolder)?.message
+//        items.removeAt(matchPos)
+//        if (matchPos == 1) {
+//            val oldExploreMsg = (items[0] as? ExploreHolder)?.message
+//            if (oldExploreMsg != null && oldExploreMsg.entityID == item.id) {
+//                Log.e("AIExplore", "delMessage:${item.id},deletePos:${matchPos}, and del explore")
+//                items.removeAt(0)
+//                notifyItemRangeRemoved(0,2)
+//                onComplete?.invoke()
+//                return
+//            }
+//        }
+        notifyItemChanged(matchPos)
+        onComplete?.invoke(matchPos)
+
     }
 
     override fun getItemViewType(position: Int): Int {

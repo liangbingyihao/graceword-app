@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
@@ -21,7 +23,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
 import sdk.chat.core.dao.Message
-import sdk.chat.core.dao.Thread
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
@@ -55,6 +56,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     private lateinit var bConversations: View
     private lateinit var vEdSummary: EditText
     private lateinit var vEmptyContainer: View
+    private lateinit var vScrollTop: View
 
     //    private lateinit var vLineDash: View
     private lateinit var recyclerView: RecyclerView
@@ -62,6 +64,8 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     private var editingMode = 0
     private val EDIT_SUMMARY = 1
     private val EDIT_TOPIC_NAME = 2
+
+    private val handler = Handler(Looper.getMainLooper())
 
     companion object {
         private const val EXTRA_INITIAL_DATA = "initial_data"
@@ -94,7 +98,8 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
         tvTitle.setOnClickListener(this)
         findViewById<View>(R.id.edSummaryExit).setOnClickListener(this)
         findViewById<View>(R.id.edSummaryConfirm).setOnClickListener(this)
-        findViewById<View>(R.id.scrollTop).setOnClickListener(this)
+        vScrollTop = findViewById<View>(R.id.scrollTop)
+        vScrollTop.setOnClickListener(this)
         vMoreMenus = findViewById<View>(R.id.more_menus)
         vMoreMenus.setOnClickListener(this)
         bConversations = findViewById<View>(R.id.conversations)
@@ -111,6 +116,10 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     finish()
                 })
         )
+    }
+
+    override fun getRootView(): View? {
+        return findViewById<View>(R.id.main)
     }
 
     override fun onResume() {
@@ -144,6 +153,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
+    private val hideLoadLatestRunnable: Runnable = object : Runnable {
+        override fun run() {
+            vScrollTop.visibility = View.GONE
+        }
+    }
+
     private fun setupRefreshLayout() {
         swipeRefreshLayout = findViewById<LoadMoreSwipeRefreshLayout?>(R.id.swiperefreshlayout)
         swipeRefreshLayout.apply {
@@ -158,15 +173,21 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             setupWithRecyclerView(recyclerView)
 
 //            // 上拉加载监听
-//            setOnLoadMoreListener(object : LoadMoreSwipeRefreshLayout.OnLoadMoreListener {
-//                override fun onLoadMore() {
+            setOnLoadMoreListener(object : LoadMoreSwipeRefreshLayout.OnLoadMoreListener {
+                override fun onLoadMore() {
 //                    if (!articleAdapter.isLoading) {
 //                        articleAdapter.isLoading = true
 //                        setLoadingMore(true)
 //                        loadArticles(++currentPage)
 //                    }
-//                }
-//            })
+                }
+
+                override fun onLoadLatestActive() {
+                    vScrollTop.visibility = View.VISIBLE
+                    handler.removeCallbacks(hideLoadLatestRunnable)
+                    handler.postDelayed(hideLoadLatestRunnable, 4000)
+                }
+            })
             setCanLoadMore(false)
         }
 

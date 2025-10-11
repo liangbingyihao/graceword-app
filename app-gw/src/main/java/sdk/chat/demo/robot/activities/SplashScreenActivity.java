@@ -136,7 +136,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private void proceedToMain() {
         // 确保主界面启动前所有服务就绪
-        User me = null;
+        User me;
         try {
             me = ChatSDK.currentUser();
         } catch (Exception e) {
@@ -154,6 +154,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         } else {
             ToastHelper.show(this, R.string.network_error);
             hasShownGuide = false;
+            handler.postDelayed(this::checkInitializationStatus, 200);
         }
     }
 

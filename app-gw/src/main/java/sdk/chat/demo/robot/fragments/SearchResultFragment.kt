@@ -121,6 +121,9 @@ class SearchResultFragment : BaseFragment() {
                         searchMessage(currentPage)
                     }
                 }
+
+                override fun onLoadLatestActive() {
+                }
             })
         }
     }

@@ -8,6 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/main"
     android:background="@color/white">
     <!--    @drawable/gradient_primary-->
     <FrameLayout
@@ -116,7 +117,8 @@
         android:layout_gravity="center|bottom"
         android:background="@color/white"
         android:paddingTop="26dp"
-        android:paddingBottom="12dp">
+        android:paddingBottom="12dp"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/conversations"
@@ -140,6 +142,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
+        android:visibility="gone"
         android:layout_marginRight="28dp"
         android:layout_marginBottom="76dp"
         android:src="@mipmap/ic_load_top" />
@@ -179,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
-                    android:maxLength="8"
+                    android:maxLength="120"
                     android:padding="12dp" />
 
                 <TextView

@@ -3,14 +3,13 @@ package sdk.chat.demo;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
 //import sdk.chat.contact.ContactBookModule;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.utils.Device;
-import sdk.chat.demo.robot.ChatSDKCoze;
+import sdk.chat.demo.robot.ChatSDKGW;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.chat.demo.robot.extensions.TinyLoggerManager;
@@ -91,7 +90,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         try {
             // Setup Chat SDK
             boolean drawerEnabled = !Device.honor();
-            ChatSDKCoze.quickStartWithEmail(this, drawerEnabled, "");
+            ChatSDKGW.quickStartWithEmail(this, drawerEnabled, "");
 //            ContactBookModule.shared()
 
             chatSDK = ChatSDK.shared();
@@ -115,6 +114,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         }
         setupEnhancedCrashReporting();
         LanguageUtils.INSTANCE.initAppLanguage(this);
+//        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(true);
     }
 
     private void setupEnhancedCrashReporting() {

@@ -42,9 +42,9 @@ android {
         }
         official {
             dimension "version"
-            applicationId "com.chuanxiang.graceword"
-            versionName "1.0.0"
-            versionCode 1 as int
+            applicationId "app.graceword.android"
+            versionName "1.0.1"
+            versionCode 5 as int
         }
     }
 
@@ -71,10 +71,19 @@ android {
 //            storePassword project.property("signing.password")
         }
         release {
-            keyAlias project.property("signing.keyId")
-            keyPassword project.property("signing.password")
-            storeFile file('d:\\graceword.jks')
-            storePassword project.property("signing.password")
+//            keyAlias project.property("signing.keyId")
+//            keyPassword project.property("signing.password")
+//            storeFile file('d:\\graceword.jks')
+//            storePassword project.property("signing.password")
+
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            def keystoreProperties = new Properties()
+            keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
         }
     }
 
@@ -146,6 +155,7 @@ dependencies {
     implementation("com.google.firebase:firebase-inappmessaging-display")
     implementation "com.google.firebase:firebase-perf"
     implementation "com.google.firebase:firebase-messaging"
+    implementation("com.google.firebase:firebase-analytics")
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation "com.google.code.gson:gson:$gsonVersion"
 //    api project(':chat-sdk-core-ui')

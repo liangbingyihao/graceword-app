@@ -159,7 +159,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public Single<Boolean> setSummary(String msgId, String summary) {
-        if (summary == null || summary.isEmpty() || summary.length() > 8) {
+        if (summary == null || summary.isEmpty() || summary.length() > 120) {
             return Single.just(Boolean.FALSE);
         }
         if (msgId == null || msgId.isEmpty()) {

@@ -12,6 +12,12 @@
         <item name="android:windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- 设置窗口背景为白色 -->
+        <item name="android:windowBackground">@color/white</item>
+        <!-- 关键：强制导航栏为白色 -->
+        <item name="android:navigationBarColor">@color/white</item>
+        <!-- 可选：状态栏也设为白色 -->
+        <item name="android:statusBarColor">@color/white</item>
 <!--        <item name="android:background">@color/white</item>-->
 <!--        <item name="gradientPrimary">@drawable/gradient_primary</item>-->
 <!--        <item name="gradientStartColor">#99ffe8e8</item>-->

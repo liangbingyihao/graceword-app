@@ -49,7 +49,7 @@
             <TextView
                 android:id="@+id/del"
                 style="@style/PopupmenuText"
-                android:text="@string/remove"
+                android:text="@string/unsave"
                 app:drawableEndCompat="@mipmap/ic_del" />
 
         </LinearLayout>
