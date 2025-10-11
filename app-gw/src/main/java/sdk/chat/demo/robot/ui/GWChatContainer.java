@@ -98,7 +98,7 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
 
         messagesList = findViewById(R.id.recyclerview);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),
-                LinearLayoutManager.VERTICAL, false);
+                LinearLayoutManager.VERTICAL, true);
         messagesList.setLayoutManager(layoutManager);
 
 
@@ -445,7 +445,8 @@ public class GWChatContainer extends LinearLayout implements MessagesListAdapter
 //            int offset = (firstVisibleView != null) ?
 //                    (firstVisibleView.getTop() - messagesList.getPaddingTop()) : 0;
                 int offset = (firstVisibleView != null) ?firstVisibleView.getTop() : 0;
-                layoutManager.scrollToPositionWithOffset(p,300);
+                scrollToPositionTop(p,300);
+//                layoutManager.scrollToPositionWithOffset(p,300);
                 return Unit.INSTANCE;
             });
         }
