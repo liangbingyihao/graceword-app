@@ -123,8 +123,8 @@ class ArticleAdapter(
             tvTitle.text = article.title
             tvContent.text = article.content
 //            tvCardView.setBackgroundColor(article.colorTag)
-            itemView.setOnClickListener { onItemClick(article) }
-            itemView.setOnLongClickListener { v -> _selectId = article;onLongClick(v, article) }
+            tvCardView.setOnClickListener { onItemClick(article) }
+            tvCardView.setOnLongClickListener { v -> _selectId = article;onLongClick(v, article) }
             editTitle.setOnClickListener { _selectId = article;onEditClick(article) }
             tvTitle.setOnClickListener { _selectId = article;onEditClick(article) }
 

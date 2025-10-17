@@ -46,6 +46,8 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="top|left"
+                android:hint="@string/msg_input_hint"
+                android:textColorHint="@color/text_gray"
                 android:background="@color/transparent"
                 android:inputType="textAutoCorrect|textAutoComplete|textMultiLine|textCapSentences"
                 android:maxLines="6"

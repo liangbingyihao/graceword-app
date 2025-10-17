@@ -101,4 +101,5 @@
     <string name="get_my_userid">复制迁移id</string>
     <string name="my_version">当前版本:%s</string>
     <string name="asr_error">语音繁忙，请尝试其他录入方式</string>
+    <string name="msg_input_hint">记录生活点滴或探讨信仰问题</string>
 </resources>

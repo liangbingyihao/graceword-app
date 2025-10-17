@@ -98,9 +98,9 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
     private String messageId;
 
-    public interface DataCallback {
-        Long getMessageId();
-    }
+//    public interface DataCallback {
+//        Long getMessageId();
+//    }
 
     @Override
     protected int getLayout() {
@@ -153,9 +153,11 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
     @Override
     public void onLoadLatestActive() {
-        scrollBottom.setVisibility(View.VISIBLE);
-        handler.removeCallbacks(hideLoadLatestRunnable);
-        handler.postDelayed(hideLoadLatestRunnable,4000);
+        if (!chatView.isLatestVisible()) {
+            scrollBottom.setVisibility(View.VISIBLE);
+            handler.removeCallbacks(hideLoadLatestRunnable);
+            handler.postDelayed(hideLoadLatestRunnable,2000);
+        }
     }
 
 
@@ -378,6 +380,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         scrollBottom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                scrollBottom.setVisibility(View.GONE);
                 if (messageId != null && !messageId.isEmpty()) {
                     messageId = null;
                     chatView.clear();
@@ -399,8 +402,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
         getKeyboardAwareView().keyboardHiddenListeners.add(() -> {
             input.updateInputHeight();
-            if (!input.isFullScreen()) {
+            if (!input.isFullScreen()&&!chatView.isLatestVisible()) {
                 scrollBottom.setVisibility(View.VISIBLE);
+                handler.removeCallbacks(hideLoadLatestRunnable);
+                handler.postDelayed(hideLoadLatestRunnable,2000);
             }
         });
 

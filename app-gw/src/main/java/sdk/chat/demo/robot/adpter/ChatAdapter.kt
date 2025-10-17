@@ -192,27 +192,29 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 //        submitList(newList, onComplete)
         Log.e("AIExplore", "addNewMessage:${item.id}")
         var msg = (item as? MessageHolder)?.message
-        val oldHeader = if (itemCount > 0) {
-            getItemViewType(0) == TYPE_HEADER
+        var oldSize = items.size
+        val oldHeader = if (oldSize > 0) {
+            getItemViewType(oldSize - 1) == TYPE_HEADER
         } else {
             false // 如果 itemCount 为 0，直接返回 false
         }
 
         if (oldHeader) {
-            items[0] = ExploreHolder(msg)
+            items[oldSize - 1] = item
         } else {
-            items.add(0, ExploreHolder(msg))
+            items.add(item)
         }
 
-        items.add(1, item)
+        items.add(ExploreHolder(msg))
+        notifyItemRangeChanged(oldSize, 2)
 
-        // 批量通知
-        if (oldHeader) {
-            notifyItemChanged(0)      // 头部内容变化
-            notifyItemInserted(1)     // 新项插入
-        } else {
-            notifyItemRangeInserted(0, 2)  // 两个新项插入
-        }
+//        // 批量通知
+//        if (oldHeader) {
+//            notifyItemInserted(oldSize)     // 新项插入
+//            notifyItemChanged(oldSize - 1)      // 头部内容变化
+//        } else {
+//            notifyItemRangeInserted(oldSize, 2)  // 两个新项插入
+//        }
         onComplete?.invoke()
     }
 
@@ -240,81 +242,58 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         Log.e("AIExplore", "addNewMessage List")
 
         var msg = (newMessages[newMessages.lastIndex] as? MessageHolder)?.message
-        val oldHeader = if (itemCount > 0) {
-            getItemViewType(0) == TYPE_HEADER
+        var oldSize = items.size
+        val oldHeader = if (oldSize > 0) {
+            getItemViewType(oldSize - 1) == TYPE_HEADER
         } else {
             false // 如果 itemCount 为 0，直接返回 false
         }
 
         if (oldHeader) {
-            items[0] = ExploreHolder(msg)
+            items.addAll(oldSize - 1, newMessages)
+            items[oldSize + newMessages.size - 1] = ExploreHolder(msg)
         } else {
-            items.add(0, ExploreHolder(msg))
+            items.addAll(newMessages)
+            items.add(ExploreHolder(msg))
         }
+        notifyItemRangeChanged(oldSize, newMessages.size)
 
-        items.addAll(1, newMessages)
+//        items.addAll(1, newMessages)
 //        notifyDataSetChanged()
 
-        // 批量通知
-        if (oldHeader) {
-            notifyItemChanged(0)      // 头部内容变化
-            notifyItemRangeInserted(1, newMessages.size)     // 新项插入
-        } else {
-            notifyItemRangeInserted(0, newMessages.size + 1)  // 两个新项插入
-        }
+//        // 批量通知
+//        if (oldHeader) {
+//            notifyItemChanged(0)      // 头部内容变化
+//            notifyItemRangeInserted(1, newMessages.size)     // 新项插入
+//        } else {
+//            notifyItemRangeInserted(0, newMessages.size + 1)  // 两个新项插入
+//        }
         onComplete?.invoke()
 
 
-//        if (itemCount == 0 && newMessages.isNotEmpty()) {
-//            (newMessages[0] as? MessageHolder)?.message?.let { items.add(ExploreHolder(it)) }
-//        }
-//        items.addAll(newMessages)
-//        notifyItemRangeInserted(0, newMessages.size)
-//        items.apply {
-//            if (size >= 2) {
-//                val tail = subList(2, size)
-//                subList(1, size).clear()
-//                addAll(1, newMessages)
-//                addAll(tail)
-//            } else if (size == 1) {
-//                addAll(1, newMessages)
-//            } else {
-//                items.add(ExploreHolder())
-//                addAll(0, newMessages)
-//            }
-//        }
-//        notifyDataSetChanged()
-
-//        val newList = ArrayList<IMessage>(items.size + newMessages.size).apply {
-//            // 1. 添加旧数据的第一条（如果存在,这是探索...）
-//            if (items.isNotEmpty()) {
-//                add(items[0])
-//            }
-//
-//            // 2. 追加所有新消息
-//            addAll(newMessages)
-//
-//            // 3. 追加旧数据第二条及之后的数据（如果存在）
-//            if (items.size > 1) {
-//                addAll(items.subList(1, items.size))
-//            }
-//        }
-//
-//        submitList(newList, onComplete)
-
     }
 
-    // 批量添加历史消息（追加到尾部）
+    // 批量添加历史消息
     fun addHistoryMessages(newItems: List<IMessage>, onComplete: (() -> Unit)? = null) {
         Log.e("AIExplore", "addHistoryMessages:${newItems.size}")
 //        val newList = items.toMutableList().apply { addAll(newItems) }
 //        submitList(newList, onComplete)
         var s = itemCount
-        if (itemCount == 0 && newItems.isNotEmpty()) {
-            (newItems[0] as? MessageHolder)?.message?.let { items.add(ExploreHolder(it)) }
+//        if (itemCount == 0 && newItems.isNotEmpty()) {
+//            (newItems[0] as? MessageHolder)?.message?.let { items.add(ExploreHolder(it)) }
+//        }
+        items.addAll(0, newItems)
+        notifyItemRangeInserted(0, newItems.size)
+        if (s == 0 && newItems.isNotEmpty()) {
+            (newItems[newItems.lastIndex] as? MessageHolder)?.message?.let {
+                items.add(
+                    ExploreHolder(
+                        it
+                    )
+                )
+            }
+            notifyItemInserted(itemCount)
         }
-        items.addAll(newItems)
-        notifyItemRangeInserted(s, newItems.size + 1)
         onComplete?.invoke()
     }
 
@@ -343,7 +322,7 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             if (oldExploreMsg != null && oldExploreMsg.entityID == item.id) {
                 Log.e("AIExplore", "delMessage:${item.id},deletePos:${deletePos}, and del explore")
                 items.removeAt(0)
-                notifyItemRangeRemoved(0,2)
+                notifyItemRangeRemoved(0, 2)
                 onComplete?.invoke()
                 return
             }
@@ -536,5 +515,19 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private fun formatTime(timestamp: Long): String {
         return SimpleDateFormat("HH:mm", Locale.getDefault())
             .format(Date(timestamp))
+    }
+
+    override fun getItemId(position: Int): Long {
+        if (position < 0 || position >= items.size) {
+            return RecyclerView.NO_ID
+        }
+        val item = getItem(position)
+        return when {
+            else -> when (item) {
+                is TextHolder -> item.message.id
+                is ImageHolder -> item.message.id
+                else -> RecyclerView.NO_ID
+            }
+        }
     }
 }

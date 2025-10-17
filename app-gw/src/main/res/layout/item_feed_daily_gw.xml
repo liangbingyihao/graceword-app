@@ -107,12 +107,13 @@
         <ImageView
             android:id="@+id/btn_pray"
             style="@style/FeedOperator"
-            android:layout_marginStart="0dp"
+            android:visibility="gone"
             android:src="@mipmap/ic_pray" />
 
         <ImageView
             android:id="@+id/btn_download"
             style="@style/FeedOperator"
+            android:layout_marginStart="0dp"
             android:src="@mipmap/ic_download_black" />
 
         <ImageView

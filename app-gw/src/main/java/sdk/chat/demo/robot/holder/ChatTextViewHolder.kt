@@ -255,7 +255,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if(bibleText!=null&&bibleText.isNotEmpty()){
             bibleVisible = View.VISIBLE
         }
-        val id2s: IntArray = intArrayOf(R.id.btn_pic, R.id.btn_pray)
+        //, R.id.btn_pray
+        val id2s: IntArray = intArrayOf(R.id.btn_pic)
         for (i in id2s) {
             var sv = v.findViewById<View>(i)
             if (sv != null && sv.visibility != bibleVisible) {
@@ -428,17 +429,17 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
                     }
                 })
 
-//        dm.add(
-//            ChatSDK.events().sourceOnSingle()
-//                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
-//                .filter(filterById(t.message.id))
-//                .doOnError(this)
-//                .subscribe {
-//                    RX.main().scheduleDirect {
-//                        (t as? TextHolder)?.aiFeedback = null
-//                        bind(t)
-//                    }
-//                })
+        dm.add(
+            ChatSDK.events().sourceOnSingle()
+                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
+                .filter(filterById(t.message.id))
+                .doOnError(this)
+                .subscribe {
+                    RX.main().scheduleDirect {
+                        (t as? TextHolder)?.aiFeedback = null
+                        bind(t)
+                    }
+                })
 
 
     }

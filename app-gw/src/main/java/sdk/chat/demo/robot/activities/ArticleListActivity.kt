@@ -41,6 +41,7 @@ import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.ui.LoadMoreSwipeRefreshLayout
 import sdk.chat.demo.robot.ui.PopupMenuHelper
+import sdk.chat.demo.robot.utils.SoftHideKeyBoardUtil
 import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.guru.common.RX
 
@@ -65,7 +66,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     private val EDIT_SUMMARY = 1
     private val EDIT_TOPIC_NAME = 2
 
-    private val handler = Handler(Looper.getMainLooper())
+//    private val handler = Handler(Looper.getMainLooper())
 
     companion object {
         private const val EXTRA_INITIAL_DATA = "initial_data"
@@ -116,11 +117,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     finish()
                 })
         )
+        SoftHideKeyBoardUtil.assistActivity(findViewById<View>(R.id.main))
     }
 
-    override fun getRootView(): View? {
-        return findViewById<View>(R.id.main)
-    }
+//    override fun getRootView(): View? {
+//        return findViewById<View>(R.id.main)
+//    }
 
     override fun onResume() {
         super.onResume()

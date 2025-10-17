@@ -74,6 +74,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     //    private Message playingMsg;
     private Boolean isCustomPrompt = null;
     private SystemConf serverPrompt = null;
+    private int batchSize = 30;
     private final static Gson gson = new Gson();
     public final static String KEY_AI_FEEDBACK = "ai_feedback";
     public final static String headTopic = "信仰问答";
@@ -274,13 +275,14 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
 
     public Single<List<Message>> loadMessagesEarlier(@Nullable Long startId, boolean loadFromServer) {
+        Log.d("loadmsg","loadMessagesEarlier:" + startId);
         return Single.defer(() -> {
             DaoCore daoCore = ChatSDK.db().getDaoCore();
             QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
             if (startId != null && startId > 0) {
                 qb.where(MessageDao.Properties.Id.lt(startId));
             }
-            qb.orderDesc(MessageDao.Properties.Date).limit(20);
+            qb.orderDesc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
             int i = 0;
             while (aiExplore == null && i < messages.size()) {
@@ -300,13 +302,14 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public Single<List<Message>> loadMessagesLater(@Nullable Long startId, boolean loadFromServer) {
+        Log.d("loadmsg","loadMessagesLater:" + startId);
         return Single.defer(() -> {
             DaoCore daoCore = ChatSDK.db().getDaoCore();
             QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
             if (startId != null && startId > 0) {
                 qb.where(MessageDao.Properties.Id.gt(startId));
             }
-            qb.orderAsc(MessageDao.Properties.Date).limit(20);
+            qb.orderAsc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
 //            int i = messages.size() - 1;
 //            if (i >= 0) {

@@ -560,8 +560,7 @@ public class GWMsgInput extends RelativeLayout
             params.bottomMargin = messageSendButton.getHeight();
             messageInput.setMaxLines(Integer.MAX_VALUE);
             editModeButton.setImageResource(R.mipmap.ic_contract);
-            //FIXME
-//            inputContainer.setBackgroundResource(R.drawable.edittext_rounded_white_bg);
+            inputContainer.setBackgroundResource(R.drawable.edittext_rounded_white_bg);
         }
 // 应用新的布局参数
         inputContainer.setLayoutParams(params);

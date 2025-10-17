@@ -192,6 +192,7 @@
         <ImageView
             android:id="@+id/btn_pray"
             style="@style/FeedOperator"
+            android:visibility="gone"
             android:src="@mipmap/ic_pray" />
 
         <ImageView
