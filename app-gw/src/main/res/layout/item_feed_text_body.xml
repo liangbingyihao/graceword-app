@@ -8,53 +8,72 @@
         android:id="@+id/replyText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:lineSpacingExtra="8dp"
         android:layout_gravity="right"
-        android:maxWidth="264dp"
         android:gravity="left"
+        android:lineSpacingExtra="8dp"
         android:lineSpacingMultiplier="1"
+        android:maxWidth="264dp"
         android:stateListAnimator="@null"
         android:textColor="@color/text_prompt"
         android:textSize="12sp"
         app:backgroundTint="@color/bg_gray_button"
-        app:cornerRadius="8dp"
         app:cardElevation="0dp"
+        app:cornerRadius="8dp"
         app:strokeWidth="0dp" />
 
-    <FrameLayout
-        android:id="@id/bubble"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/user_text_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:background="@drawable/shape_outgoing_message"
-        android:paddingLeft="22dp"
-        android:paddingTop="12dp"
-        android:paddingRight="22dp"
-        android:paddingBottom="12dp">
-        <!-- 聊天文本 -->
-        <TextView
-            android:id="@+id/messageText"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/cb_user_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:lineSpacingExtra="8dp"
-            android:lineSpacingMultiplier="1"
-            android:maxWidth="264dp"
-            android:textColor="@color/black"
-            android:textIsSelectable="true"
-            android:textSize="17sp" />
-    </FrameLayout>
+            android:button="@drawable/custom_checkbox"
+            android:layout_gravity="bottom"
+            android:layout_marginEnd="8dp" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
+
+        <FrameLayout
+            android:id="@id/bubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="@drawable/shape_outgoing_message"
+            android:paddingLeft="22dp"
+            android:paddingTop="12dp"
+            android:paddingRight="22dp"
+            android:paddingBottom="12dp">
+            <!-- 聊天文本 -->
+            <TextView
+                android:id="@+id/messageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="8dp"
+                android:lineSpacingMultiplier="1"
+                android:maxWidth="264dp"
+                android:textColor="@color/black"
+                android:textIsSelectable="true"
+                android:textSize="17sp" />
+        </FrameLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/send_error_hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="right"
         android:layout_marginTop="10dp"
         android:background="@drawable/bg_click_shadow"
+        android:drawablePadding="4dp"
         android:text="@string/msg_failed"
         android:textColor="@color/item_text_selected"
         android:textSize="17sp"
-        android:layout_gravity="right"
-        android:drawablePadding="4dp"
         app:drawableLeftCompat="@mipmap/ic_redo_red" />
 
     <LinearLayout
@@ -63,11 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:layout_marginTop="10dp"
-        android:orientation="horizontal"
-        app:alignItems="flex_end"
-        app:flexDirection="row"
-        app:justifyContent="flex_end"
-        app:layout_alignSelf="flex_end">
+        android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/btn_copy_user_text"
@@ -103,8 +118,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/added_to_timeline"
             android:layout_marginRight="2dp"
+            android:text="@string/added_to_timeline"
             android:textColor="@color/text_gray"
             android:textSize="14sp"
             tools:text="session_name" />
@@ -123,12 +138,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:clickable="true"
         android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
         app:layout_alignSelf="flex_start">
 
         <ImageView
@@ -151,26 +166,41 @@
         android:id="@+id/reply_error_hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="left"
         android:layout_marginTop="10dp"
         android:background="@drawable/bg_click_shadow"
+        android:drawablePadding="4dp"
         android:text="@string/ai_failed"
         android:textColor="@color/item_text_selected"
         android:textSize="17sp"
-        android:layout_gravity="left"
-        android:drawablePadding="4dp"
         app:drawableLeftCompat="@mipmap/ic_redo_red" />
 
-    <TextView
-        android:id="@+id/feedback"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/ai_text_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:lineSpacingExtra="8dp"
-        android:lineSpacingMultiplier="1"
-        android:textColor="@color/item_text_normal"
-        android:textIsSelectable="true"
-        android:textSize="17sp"
-        app:layout_alignSelf="flex_start" />
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/cb_ai_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@drawable/custom_checkbox"
+            android:layout_gravity="bottom"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/feedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:lineSpacingExtra="8dp"
+            android:lineSpacingMultiplier="1"
+            android:textColor="@color/item_text_normal"
+            android:textIsSelectable="true"
+            android:textSize="17sp"
+            app:layout_alignSelf="flex_start" />
+    </LinearLayout>
 
     <!-- 底部行（时间 + 操作菜单） -->
     <LinearLayout
@@ -192,8 +222,8 @@
         <ImageView
             android:id="@+id/btn_pray"
             style="@style/FeedOperator"
-            android:visibility="gone"
-            android:src="@mipmap/ic_pray" />
+            android:src="@mipmap/ic_pray"
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/btn_share_text"

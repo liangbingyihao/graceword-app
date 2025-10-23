@@ -67,7 +67,7 @@ import sdk.chat.demo.robot.utils.ToastHelper;
 import sdk.guru.common.DisposableMap;
 import sdk.guru.common.RX;
 
-public class GWChatFragment extends BaseFragment implements GWChatContainer.Delegate, GWMsgInput.TextInputDelegate, ChatOptionsDelegate, KeyboardOverlayHandler {
+public class GWChatFragment extends BaseFragment implements GWChatContainer.Delegate, GWMsgInput.TextInputDelegate, ChatOptionsDelegate, KeyboardOverlayHandler, View.OnClickListener {
 
     protected View rootView;
 
@@ -86,6 +86,8 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected CoordinatorLayout listContainer;
     protected KeyboardAwareFrameLayout root;
     protected LinearLayout messageInputLinearLayout;
+    protected View shareMenu1;
+    protected View shareMenu2;
     protected FragmentContainerView keyboardOverlay;
 
     protected ActivityResultLauncher<Intent> launcher;
@@ -97,6 +99,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected View scrollBottom;
 
     private String messageId;
+    private TextView vErrorHint;
 
 //    public interface DataCallback {
 //        Long getMessageId();
@@ -130,12 +133,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //            ChatSDKUI.shared().getMessageRegistrationManager().onClick(getActivity(), root, message);
         }
     }
-//
+
+    //
     @Override
     public void onLongClick(Message message) {
-        if (getActivity() != null) {
+//        if (getActivity() != null) {
 //            ChatSDKUI.shared().getMessageRegistrationManager().onLongClick(getActivity(), root, message);
-        }
+//        }
     }
 
     @Override
@@ -156,8 +160,33 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         if (!chatView.isLatestVisible()) {
             scrollBottom.setVisibility(View.VISIBLE);
             handler.removeCallbacks(hideLoadLatestRunnable);
-            handler.postDelayed(hideLoadLatestRunnable,2000);
+            handler.postDelayed(hideLoadLatestRunnable, 2000);
         }
+    }
+
+    @Override
+    public void onSocialShare(boolean active) {
+        if (active) {
+            hideKeyboard();
+            shareMenu1.setVisibility(View.VISIBLE);
+            shareMenu2.setVisibility(View.VISIBLE);
+            messageInputLinearLayout.setVisibility(View.GONE);
+            updateChatViewMargins(true);
+//            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chatView.getLayoutParams();
+//            params.topMargin = 0;
+//            chatView.setLayoutParams(params);
+        } else {
+            root.setFitsSystemWindows(true);
+            shareMenu1.setVisibility(View.GONE);
+            shareMenu2.setVisibility(View.GONE);
+            messageInputLinearLayout.setVisibility(View.VISIBLE);
+            updateChatViewMargins(true);
+//            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chatView.getLayoutParams();
+//            params.topMargin = getResources().getDimensionPixelSize(R.dimen.chat_list_margin_top);
+//            chatView.setLayoutParams(params);
+//            chatView.requestLayout();
+        }
+
     }
 
 
@@ -255,31 +284,14 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                     params.rightMargin,
                     bottomMargin
             );
+
+            Log.d("marginUpdateRunnable", params.topMargin + "," + params.bottomMargin);
             chatView.setLayoutParams(params);
         }
     };
 
 
     public void updateChatViewMargins(boolean post) {
-//        Runnable runnable = () -> {
-//            int bottomMargin = bottomMargin();
-//
-//            if (koh.keyboardOverlayVisible()) {
-//                bottomMargin += getKeyboardAwareView().getKeyboardHeight();
-//            }
-//
-//            // TODO: Margins
-//            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) chatView.getLayoutParams();
-//            params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottomMargin);
-//            chatView.setLayoutParams(params);
-//        };
-//
-//        if (post) {
-//            input.post(runnable);
-//        } else {
-//            runnable.run();
-//        }
-
         // 移除之前未执行的更新
         handler.removeCallbacks(marginUpdateRunnable);
 
@@ -297,8 +309,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //        if (replyView.getVisibility() == View.VISIBLE) {
 //            bottomMargin += replyView.getHeight();
 //        }
-        if (input.getVisibility() != View.GONE) {
+        if (messageInputLinearLayout.getVisibility() != View.GONE && input.getVisibility() != View.GONE) {
             bottomMargin += input.getHeight();
+        }else{
+            bottomMargin+=shareMenu1.getHeight();
         }
         return bottomMargin;
     }
@@ -322,8 +336,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         listContainer = rootView.findViewById(R.id.listContainer);
         root = rootView.findViewById(R.id.root);
         messageInputLinearLayout = rootView.findViewById(R.id.messageInputLinearLayout);
+        shareMenu1 = rootView.findViewById(R.id.shareMenu1);
+        shareMenu2 = rootView.findViewById(R.id.shareMenu2);
         keyboardOverlay = rootView.findViewById(R.id.keyboardOverlay);
-
+        vErrorHint = rootView.findViewById(R.id.error_hint);
         chatView.setDelegate(this);
         chatView.initViews();
 
@@ -351,16 +367,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
 
         GWClickListener.registerListener((BaseActivity) getActivity(), chatView.getMessagesListAdapter());
-//
-//        if (UIModule.config().messageSelectionEnabled) {
-//            chatView.enableSelectionMode(count -> {
-//                updateOptionsButton();
-//            });
-//        }
 
-//        if (!hasVoice(ChatSDK.currentUser())) {
-//            hideTextInput();
-//        }
+        rootView.findViewById(R.id.btCancel).setOnClickListener(this);
+        rootView.findViewById(R.id.btConfirm).setOnClickListener(this);
+        rootView.findViewById(R.id.btPreview).setOnClickListener(this);
 
         input.setInputListener(input -> {
             sendMessage(String.valueOf(input));
@@ -402,10 +412,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
         getKeyboardAwareView().keyboardHiddenListeners.add(() -> {
             input.updateInputHeight();
-            if (!input.isFullScreen()&&!chatView.isLatestVisible()) {
+            if (!input.isFullScreen() && !chatView.isLatestVisible()) {
                 scrollBottom.setVisibility(View.VISIBLE);
                 handler.removeCallbacks(hideLoadLatestRunnable);
-                handler.postDelayed(hideLoadLatestRunnable,2000);
+                handler.postDelayed(hideLoadLatestRunnable, 2000);
             }
         });
 
@@ -447,6 +457,22 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //                    Logger.debug(typingText);
 //                }));
 
+        dm.add(
+                ChatSDK.events().sourceOnMain()
+                        .filter(NetworkEvent.filterType(EventType.NetworkStateChanged))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(networkEvent -> {
+                                    if (networkEvent != null) {
+                                        if (!networkEvent.getIsOnline()) {
+                                            vErrorHint.setVisibility(View.VISIBLE);
+                                            vErrorHint.setText(R.string.network_error);
+                                        } else {
+                                            vErrorHint.setVisibility(View.GONE);
+                                        }
+                                    }
+                                }
+                        )
+        );
 
         dm.add(ChatSDK.events().sourceOnSingle()
                 .filter(NetworkEvent.filterType(EventType.MessageAdded))
@@ -612,6 +638,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     public void onResume() {
         super.onResume();
         AsrHelper.INSTANCE.stopAsr();
+
+        if (!ChatSDK.connectionStateMonitor().isOnline()) {
+            vErrorHint.setVisibility(View.VISIBLE);
+            vErrorHint.setText(R.string.network_error);
+        } else {
+            vErrorHint.setVisibility(View.GONE);
+        }
 
         removeUserFromChatOnExit = !ChatSDK.config().publicChatAutoSubscriptionEnabled;
 
@@ -906,7 +939,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
             Intent intent = new Intent(getContext(), SplashScreenActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            if(getActivity()!=null){
+            if (getActivity() != null) {
                 getActivity().finish();
             }
             return;
@@ -954,4 +987,9 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
 
+    @Override
+    public void onClick(View view) {
+        int vid = view.getId();
+        chatView.handleSocialShare(vid);
+    }
 }

@@ -102,4 +102,7 @@
     <string name="my_version">当前版本:%s</string>
     <string name="asr_error">语音繁忙，请尝试其他录入方式</string>
     <string name="msg_input_hint">记录生活点滴或探讨信仰问题</string>
+    <string name="share_preview">分享预览</string>
+    <string name="share_confirm">直接分享</string>
+    <string name="share_total">已选%s条信息</string>
 </resources>

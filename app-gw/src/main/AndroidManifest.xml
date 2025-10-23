@@ -63,6 +63,7 @@
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.MainDrawerActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.SettingsActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.WebViewActivity"/>
 
         <activity android:name="sdk.chat.demo.robot.activities.GuideActivity" />
 

@@ -66,15 +66,15 @@
                 android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-            <TextView
-                android:id="@+id/error_hint"
-                android:layout_width="match_parent"
-                android:layout_height="26dp"
-                android:layout_marginTop="?attr/actionBarSize"
-                android:background="#FCECEC"
-                android:gravity="center"
-                android:textColor="#CF4B40"
-                android:textSize="12sp" />
+<!--            <TextView-->
+<!--                android:id="@+id/error_hint"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="26dp"-->
+<!--                android:layout_marginTop="?attr/actionBarSize"-->
+<!--                android:background="#FCECEC"-->
+<!--                android:gravity="center"-->
+<!--                android:textColor="#CF4B40"-->
+<!--                android:textSize="12sp" />-->
 
         </FrameLayout>
 

@@ -75,7 +75,8 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         adapter.registerViewClickListener(R.id.image_container, listener);
         adapter.registerViewClickListener(R.id.btn_download, listener);
         adapter.registerViewClickListener(R.id.btn_share_image, listener);
-        adapter.registerViewClickListener(R.id.btn_share_text, listener);
+//        adapter.registerViewClickListener(R.id.btn_share_text, listener);
+//        adapter.registerViewClickListener(R.id.btn_share_user_text, listener);
         adapter.registerViewClickListener(R.id.btn_play, listener);
         adapter.registerViewClickListener(R.id.btn_pray, listener);
         adapter.registerViewClickListener(R.id.btn_pic, listener);
@@ -84,7 +85,6 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         adapter.registerViewClickListener(R.id.btn_like_ai, listener);
         adapter.registerViewClickListener(R.id.btn_copy_user_text, listener);
         adapter.registerViewClickListener(R.id.btn_like_user_text, listener);
-        adapter.registerViewClickListener(R.id.btn_share_user_text, listener);
         adapter.registerViewClickListener(R.id.btn_del_user_text, listener);
         adapter.registerViewClickListener(R.id.session_name, listener);
         adapter.registerViewClickListener(R.id.process_container, listener);

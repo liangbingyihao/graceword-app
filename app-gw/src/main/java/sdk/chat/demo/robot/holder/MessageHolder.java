@@ -40,7 +40,8 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
     protected Message nextMessage;
     protected Message previousMessage;
-
+    protected boolean isUserSelected;
+    protected boolean isAiSelected;
     protected boolean isGroup;
     protected boolean previousSenderEqualsSender;
     protected boolean nextSenderEqualsSender;
@@ -54,7 +55,7 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
     protected ReadStatus readStatus = null;
 
-//    protected Date date;
+    //    protected Date date;
     protected MessageSendStatus sendStatus = null;
     protected float transferPercentage = -1;
     protected float fileSize = -1;
@@ -102,6 +103,22 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
         isReply = message.isReply();
 
+    }
+
+    public boolean isUserSelected() {
+        return isUserSelected;
+    }
+
+    public void setUserSelected(boolean userSelected) {
+        isUserSelected = userSelected;
+    }
+
+    public boolean isAiSelected() {
+        return isAiSelected;
+    }
+
+    public void setAiSelected(boolean aiSelected) {
+        isAiSelected = aiSelected;
     }
 
     public void updateNextAndPreviousMessages() {
@@ -182,7 +199,7 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 //        if (typingText != null) {
 //            return typingText;
 //        } else {
-            return payload.getText();
+        return payload.getText();
 //        }
     }
 
@@ -212,7 +229,7 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
     @Override
     public boolean equals(Object object) {
-        return object instanceof MessageHolder && getId().equals(((MessageHolder)object).getId());
+        return object instanceof MessageHolder && getId().equals(((MessageHolder) object).getId());
     }
 
     public Message getMessage() {
@@ -264,7 +281,6 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
     }
 
 
-
     public boolean showDate() {
         return showDate;
     }
@@ -275,7 +291,7 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
     public static List<Message> toMessages(List<MessageHolder> messageHolders) {
         ArrayList<Message> messages = new ArrayList<>();
-        for (MessageHolder mh: messageHolders) {
+        for (MessageHolder mh : messageHolders) {
             messages.add(mh.getMessage());
         }
         return messages;

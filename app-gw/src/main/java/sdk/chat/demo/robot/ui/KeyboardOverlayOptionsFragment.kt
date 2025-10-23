@@ -107,9 +107,7 @@ open class KeyboardOverlayOptionsFragment(): AbstractKeyboardOverlayFragment() {
     override fun setViewSize(width: Int, height: Int, context: Context) {
         screenWidth = width
         screenHeight = height
-//        context.let {
-            updateViewLayout()
-//        }
+        updateViewLayout()
     }
 
     open fun items(): MutableList<Any> {

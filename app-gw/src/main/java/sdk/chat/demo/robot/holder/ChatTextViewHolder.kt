@@ -6,9 +6,11 @@ import android.text.util.Linkify
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -41,8 +43,9 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 
 open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
-    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
-    MessageHolders.DefaultMessageViewHolder,
+    RecyclerView.ViewHolder(itemView),
+//    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
+//    MessageHolders.DefaultMessageViewHolder,
     Consumer<Throwable> {
     open var root: View? = itemView.findViewById(R.id.root)
     open var bubble: ViewGroup? = itemView.findViewById(R.id.bubble)
@@ -76,6 +79,9 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
     open var imageLikeAi: ImageView? = itemView.findViewById(R.id.btn_like_ai)
     open var imageLikeContent: ImageView? = itemView.findViewById(R.id.btn_like_user_text)
+    open var cbUserText: CheckBox? = itemView.findViewById(R.id.cb_user_text)
+    open var cbAiText: CheckBox? = itemView.findViewById(R.id.cb_ai_text)
+    open var isMultiSelectMode: Boolean = false
 
 //    open var userClickListener: MessagesListAdapter.UserClickListener? = null
 
@@ -85,9 +91,9 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        }
     }
 
-    override fun onBind(holder: T) {
+    fun onBind(holder: T, isMultiSelectMode: Boolean) {
+        this.isMultiSelectMode = isMultiSelectMode
         bindListeners(holder)
-//        bindStyle(holder)
         bind(holder)
     }
 
@@ -102,6 +108,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        }
         val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
         replyText?.visibility = View.GONE
+        cbUserText?.visibility = View.GONE
         var action = (t as? TextHolder)?.action
         if (action != AIExplore.ExploreItem.action_daily_pray && t.message.text != null && !t.message.text.isEmpty()) {
             var reply = t.message.stringForKey("reply");
@@ -114,6 +121,10 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //                t.message.id.toString() + "," + t.message.messageStatus.name + ","+ (t as? TextHolder)?.aiFeedback?.status +"," + t.text,
                 t.enableLinkify()
             )
+            if (isMultiSelectMode) {
+                cbUserText?.visibility = View.VISIBLE
+                cbUserText?.isChecked = t.isUserSelected
+            }
             var topic = threadHandler.getSessionName(t.message.threadId)
             if (topic != null) {
                 sessionContainer?.visibility = View.VISIBLE
@@ -146,6 +157,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //            UIModule.shared().iconBinder.bind(it, t)
 //        }
 
+
         if (StateStorage.getStateB(t.message.status)) {
             imageLikeAi?.setImageResource(R.mipmap.ic_dislike_black)
         } else {
@@ -169,8 +181,13 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
 //        t.message.metaValuesAsMap
         var feedbackText = aiFeedback?.feedbackText ?: ""
+        cbAiText?.visibility = View.GONE
 //        feedbackText = aiFeedback?.feedbackText ?: t.message.stringForKey("feedback")
         feedback?.let {
+            if (!feedbackText.isEmpty() && isMultiSelectMode) {
+                cbAiText?.visibility = View.VISIBLE
+                cbAiText?.isChecked = t.isAiSelected
+            }
             it.visibility = View.VISIBLE
             Markwon.create(it.context)
                 .setMarkdown(it, feedbackText)
@@ -185,14 +202,14 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             sessionContainer?.visibility = View.GONE
             processContainer?.visibility = View.GONE
             sendErrorHint?.visibility = View.GONE
-            showFeedbackMenus(feedbackMenu, View.GONE,bibleText)
+            showFeedbackMenus(feedbackMenu, View.GONE, bibleText)
         } else {
-            if (feedbackText.isEmpty()) {
+            if (feedbackText.isEmpty() || isMultiSelectMode) {
                 feedbackMenu?.visibility = View.GONE
-            }else{
-                showFeedbackMenus(feedbackMenu, View.VISIBLE,bibleText)
+            } else {
+                showFeedbackMenus(feedbackMenu, View.VISIBLE, bibleText)
             }
-            if (t.message.text.isEmpty() || action == AIExplore.ExploreItem.action_daily_pray) {
+            if (t.message.text.isEmpty() || action == AIExplore.ExploreItem.action_daily_pray || isMultiSelectMode) {
                 contentMenu?.visibility = View.GONE
             } else {
                 contentMenu?.visibility = View.VISIBLE
@@ -238,8 +255,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
     }
 
-    fun showFeedbackMenus(v: View?, visible: Int,bibleText:String?) {
-        if(v==null){
+    fun showFeedbackMenus(v: View?, visible: Int, bibleText: String?) {
+        if (v == null) {
             return
         }
         val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_play, R.id.btn_del, R.id.btn_redo)
@@ -252,7 +269,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             }
         }
         var bibleVisible = View.GONE
-        if(bibleText!=null&&bibleText.isNotEmpty()){
+        if (bibleText != null && bibleText.isNotEmpty()) {
             bibleVisible = View.VISIBLE
         }
         //, R.id.btn_pray
@@ -448,7 +465,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         return Predicate { networkEvent: NetworkEvent? -> networkEvent?.message?.id == id }
     }
 
-    override fun applyStyle(style: MessagesListStyle) {
+    fun applyStyle(style: MessagesListStyle) {
 ////        this.style = style
 //        if (direction == MessageDirection.Incoming) {
 //            applyIncomingStyle(style)
@@ -472,7 +489,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        }
 //    }
 
-    override fun setAvatarClickListener(l: MessagesListAdapter.UserClickListener?) {
+    fun setAvatarClickListener(l: MessagesListAdapter.UserClickListener?) {
 //        userClickListener = l
     }
 

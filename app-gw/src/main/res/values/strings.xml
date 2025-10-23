@@ -105,4 +105,7 @@
     <string name="image_saved">Image saved successfully</string>
     <string name="asr_error">Voice recognition is busy, please try alternative input methods</string>
     <string name="msg_input_hint">Record daily reflections or discuss faith matters</string>
+    <string name="share_preview">Share Preview</string>
+    <string name="share_confirm">Share Directly</string>
+    <string name="share_total">%s items selected</string>
 </resources>

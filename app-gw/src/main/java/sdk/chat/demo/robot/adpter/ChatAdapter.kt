@@ -1,6 +1,5 @@
 package sdk.chat.demo.robot.adpter
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -10,10 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.util.size
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.stfalcon.chatkit.commons.models.IMessage
-import io.reactivex.Single
 import org.pmw.tinylog.Logger
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
@@ -25,58 +22,58 @@ import sdk.chat.demo.robot.holder.ImageHolder
 import sdk.chat.demo.robot.holder.MessageHolder
 import sdk.chat.demo.robot.holder.TextHolder
 import sdk.chat.demo.robot.holder.TimeHolder
-import sdk.guru.common.RX
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MessageDiffCallback(
-    private val oldList: List<IMessage>,
-    private val newList: List<IMessage>
-) : DiffUtil.Callback() {
-    override fun getOldListSize(): Int = oldList.size
-    override fun getNewListSize(): Int = newList.size
 
-    override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
-        val oldItem = oldList[oldPos]
-        val newItem = newList[newPos]
-
-        return when {
-            // 相同类型的消息才比较ID
-            oldItem is TextHolder && newItem is TextHolder ->
-                oldItem.id == newItem.id
-
-            oldItem is ImageHolder && newItem is ImageHolder ->
-                oldItem.id == newItem.id
-
-            oldItem is TimeHolder && newItem is TimeHolder ->
-                oldItem.createdAt == newItem.createdAt // 时间分隔条用时间戳对比
-            else -> false
-        }
-    }
-
-    override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
-        return oldList[oldPos] == newList[newPos] // 使用data class的equals方法
-    }
-
-//    @Nullable
-//    override fun getChangePayload(oldPos: Int, newPos: Int): Any? {
-//        // 可选：实现精细化的局部更新
+//class MessageDiffCallback(
+//    private val oldList: List<IMessage>,
+//    private val newList: List<IMessage>
+//) : DiffUtil.Callback() {
+//    override fun getOldListSize(): Int = oldList.size
+//    override fun getNewListSize(): Int = newList.size
+//
+//    override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
 //        val oldItem = oldList[oldPos]
 //        val newItem = newList[newPos]
 //
 //        return when {
-//            oldItem is MessageItem.TextMessage && newItem is MessageItem.TextMessage -> {
-//                if (oldItem.content != newItem.content) {
-//                    mapOf("content" to newItem.content) // 只更新文本内容
-//                } else null
-//            }
-//            else -> null
+//            // 相同类型的消息才比较ID
+//            oldItem is TextHolder && newItem is TextHolder ->
+//                oldItem.id == newItem.id
+//
+//            oldItem is ImageHolder && newItem is ImageHolder ->
+//                oldItem.id == newItem.id
+//
+//            oldItem is TimeHolder && newItem is TimeHolder ->
+//                oldItem.createdAt == newItem.createdAt // 时间分隔条用时间戳对比
+//            else -> false
 //        }
 //    }
-}
+//
+//    override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
+//        return oldList[oldPos] == newList[newPos] // 使用data class的equals方法
+//    }
+//
+////    @Nullable
+////    override fun getChangePayload(oldPos: Int, newPos: Int): Any? {
+////        // 可选：实现精细化的局部更新
+////        val oldItem = oldList[oldPos]
+////        val newItem = newList[newPos]
+////
+////        return when {
+////            oldItem is MessageItem.TextMessage && newItem is MessageItem.TextMessage -> {
+////                if (oldItem.content != newItem.content) {
+////                    mapOf("content" to newItem.content) // 只更新文本内容
+////                } else null
+////            }
+////            else -> null
+////        }
+////    }
+//}
 
-class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         private const val TYPE_HEADER = 0
@@ -84,6 +81,20 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private const val TYPE_IMAGE = 2
         private const val TYPE_TIME = 3
         private const val TYPE_FOOTER = 4
+    }
+
+    private var _isMultiSelectMode = false
+    val isMultiSelectMode: Boolean
+        get() = _isMultiSelectMode
+
+    fun setMultiSelectMode(enabled: Boolean) {
+        if (_isMultiSelectMode != enabled) {
+            _isMultiSelectMode = enabled
+            if(!_isMultiSelectMode){
+                clearSelections()
+            }
+            notifyDataSetChanged()
+        }
     }
 
     private val items = mutableListOf<IMessage>()
@@ -156,34 +167,26 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-    @SuppressLint("CheckResult")
-    private fun submitList(newList: List<IMessage>, onComplete: (() -> Unit)? = null) {
-//        val diffResult = DiffUtil.calculateDiff(MessageDiffCallback(items, newList))
-//        items.clear()
-//        items.addAll(newList)
-//        diffResult.dispatchUpdatesTo(this)
-//        onComplete?.invoke()
-        // 切换到后台线程计算Diff
-        Single.fromCallable {
-            DiffUtil.calculateDiff(MessageDiffCallback(items, newList))
-        }.subscribeOn(RX.computation())
-            .observeOn(RX.main())
-            .subscribe({ diffResult ->
-                items.clear()
-//                items.add(exploreHolder);
-                items.addAll(newList)
-                diffResult.dispatchUpdatesTo(this@ChatAdapter)
-//                notifyDataSetChanged()
-                onComplete?.invoke()
-            }, { error ->
-                Log.e("ChatAdapter", "DiffUtil计算失败", error)
-                // 降级方案：普通全量刷新
-                items.clear()
-//                items.add(exploreHolder);
-                items.addAll(newList)
-                notifyDataSetChanged()
-                onComplete?.invoke()
-            })
+    // 清除所有选择
+    fun clearSelections() {
+        for (item in items) {
+            (item as? TextHolder)?.apply {
+                isAiSelected = false
+                isUserSelected = false
+            }
+        }
+    }
+
+
+    // 获取选中的项目
+    fun getSelectedItems(): MutableList<TextHolder?> {
+        val selectedItems: MutableList<TextHolder?> = ArrayList<TextHolder?>()
+        for (item in items) {
+            (item as? TextHolder)?.takeIf { it.isAiSelected || it.isUserSelected }?.run{
+                selectedItems.add(item)
+            }
+        }
+        return selectedItems
     }
 
     // 添加新消息（自动插入到头部）
@@ -332,42 +335,6 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     }
 
-
-    fun updateMessage(item: IMessage, onComplete: ((Int) -> Unit)? = null) {
-        // Create new list with items removed
-        val matchPos = items.indexOfFirst { it.id == item.id }
-
-        if (matchPos == -1) {
-//            Log.e("delmsg", "message.id:${message.id},del:-1,size:${items.size}")
-            onComplete?.invoke(matchPos)
-            return
-        }
-
-        Log.e("AIExplore", "updateMessage:${item.id},updatePos:${matchPos}")
-        items[matchPos] = item
-//        var newExploreHolder: ExploreHolder? = null
-//        if (itemCount > deletePos) {
-//            var msg = (items[deletePos + 1] as? MessageHolder)?.message
-//            newExploreHolder = ExploreHolder(msg)
-//        }
-
-//        var msg = (item as? MessageHolder)?.message
-//        items.removeAt(matchPos)
-//        if (matchPos == 1) {
-//            val oldExploreMsg = (items[0] as? ExploreHolder)?.message
-//            if (oldExploreMsg != null && oldExploreMsg.entityID == item.id) {
-//                Log.e("AIExplore", "delMessage:${item.id},deletePos:${matchPos}, and del explore")
-//                items.removeAt(0)
-//                notifyItemRangeRemoved(0,2)
-//                onComplete?.invoke()
-//                return
-//            }
-//        }
-        notifyItemChanged(matchPos)
-        onComplete?.invoke(matchPos)
-
-    }
-
     override fun getItemViewType(position: Int): Int {
         return when {
             else -> when (getItem(position)) {
@@ -406,22 +373,6 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-//    // 修改onBindViewHolder以支持局部更新
-//    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
-//        if (payloads.isNotEmpty()) {
-//            when (holder) {
-//                is TextViewHolder -> {
-//                    val content = payloads.find { it is Map<*,*> }
-//                        ?.let { (it as Map<*, *>)["content"] as? String }
-//                    content?.let { holder.updateContent(it) }
-//                }
-//                else -> super.onBindViewHolder(holder, position, payloads)
-//            }
-//        } else {
-//            super.onBindViewHolder(holder, position, payloads)
-//        }
-//    }
-
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
@@ -431,7 +382,7 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val item = getItem(position)
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    (holder as ChatTextViewHolder<TextHolder>).onBind(item as TextHolder)
+                    (holder as ChatTextViewHolder<TextHolder>).onBind(item as TextHolder,isMultiSelectMode)
                     bindListeners(holder, item)
                 } catch (e: ClassCastException) {
 //                    holder.onError(e)
@@ -442,7 +393,7 @@ class ChatAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val item = getItem(position)
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    (holder as ChatImageViewHolder<ImageHolder>).onBind(item as ImageHolder)
+                    (holder as ChatImageViewHolder<ImageHolder>).onBind(item as ImageHolder,isMultiSelectMode)
                     bindListeners(holder, item)
                 } catch (e: ClassCastException) {
 //                    holder.onError(e)

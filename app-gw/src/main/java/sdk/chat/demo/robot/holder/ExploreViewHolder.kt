@@ -10,6 +10,7 @@ import io.reactivex.functions.Predicate
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.handlers.GWMsgHandler
@@ -27,6 +28,7 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         "explore1" to itemView.findViewById<TextView>(R.id.explore2),
         "explore2" to itemView.findViewById<TextView>(R.id.explore3)
     )
+    val placeHolderView = itemView.findViewById<View>(R.id.placeholder)
     open val dm = DisposableMap()
     var loading: Boolean = false
 
@@ -42,10 +44,16 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         bindListeners(aiExplore)
         val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
 
-        Log.e("AIExplore", "bindExplore:" + aiExplore.message?.id)
         var i = 0
         var aiExplore: AIExplore? = aiExplore.aiExplore
         val aiFeedback = GWMsgHandler.getAiFeedback(aiExplore?.message)
+        var status = aiExplore?.message?.messageStatus
+        Log.e("AIExplore", "bindExplore:" + aiExplore?.message?.id+",status:"+status)
+        if (status != MessageSendStatus.Sent) {
+            placeHolderView?.visibility = View.VISIBLE
+        } else {
+            placeHolderView?.visibility = View.GONE
+        }
 //        Log.d("sending","threadHandler.isSendingMsg:${threadHandler.pendingMsgId()},aiExplore:${aiExplore?.message?.id},${aiExplore?.itemList?.size}");
         while (i < 3) {
             var v: TextView = exploreView.getValue("explore$i")

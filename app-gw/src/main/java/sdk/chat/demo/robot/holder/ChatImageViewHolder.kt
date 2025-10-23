@@ -1,48 +1,44 @@
 package sdk.chat.demo.robot.holder
 
+//import sdk.chat.ui.module.UIModule
+//import sdk.chat.ui.utils.DrawableUtil
+//import sdk.chat.ui.views.ProgressView
 import android.graphics.drawable.Drawable
 import android.text.util.Linkify
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.ViewCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.stfalcon.chatkit.messages.MessageHolders
-import com.stfalcon.chatkit.messages.MessagesListAdapter
-import com.stfalcon.chatkit.messages.MessagesListStyle
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Predicate
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
-import sdk.chat.core.manager.DownloadablePayload
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.utils.CurrentLocale
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.handlers.GWThreadHandler
-import java.text.SimpleDateFormat
-//import sdk.chat.ui.module.UIModule
-//import sdk.chat.ui.utils.DrawableUtil
-//import sdk.chat.ui.views.ProgressView
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 open class ChatImageViewHolder<T : ImageHolder>(
     itemView: View
 ) :
-    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
-    MessageHolders.DefaultMessageViewHolder,
+    RecyclerView.ViewHolder(itemView),
+//    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
+//    MessageHolders.DefaultMessageViewHolder,
     Consumer<Throwable> {
 
     companion object {
@@ -55,34 +51,34 @@ open class ChatImageViewHolder<T : ImageHolder>(
 
 
     open var text: TextView? = itemView.findViewById(R.id.messageText)
-    open var feedback: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.feedback)
-    open var time: TextView? = itemView.findViewById(R.id.messageTime)
-
+    open var feedback: TextView? = itemView.findViewById(R.id.feedback)
+//    open var time: TextView? = itemView.findViewById(R.id.messageTime)
     open var sessionContainer: View? =
-        itemView.findViewById(sdk.chat.demo.pre.R.id.session_container)
-    open var sessionName: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.session_name)
-
-    open var bible: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.bible)
-    open var reference: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.reference)
-    open var month: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.month)
-    open var day: TextView? = itemView.findViewById(sdk.chat.demo.pre.R.id.day)
-
+        itemView.findViewById(R.id.session_container)
+    open var sessionName: TextView? = itemView.findViewById(R.id.session_name)
+    open var bible: TextView? = itemView.findViewById(R.id.bible)
+    open var reference: TextView? = itemView.findViewById(R.id.reference)
+    open var month: TextView? = itemView.findViewById(R.id.month)
+    open var day: TextView? = itemView.findViewById(R.id.day)
+    open var cbUserImg: View? = itemView.findViewById(R.id.cb_ai_img)
+    open var imageMenu: View? = itemView.findViewById(R.id.image_menu)
+    open var isMultiSelectMode: Boolean = false
     open var format: DateFormat? = null
 
 //    open val btnCopy: ImageView? =
-//        itemView.findViewById(sdk.chat.demo.pre.R.id.btn_pray)
+//        itemView.findViewById(R.id.btn_pray)
 
     open val dm = DisposableMap()
 
 
-    //    open var explore1: View? = itemView.findViewById(sdk.chat.demo.pre.R.id.explore1)
-//    open var explore2: View? = itemView.findViewById(sdk.chat.demo.pre.R.id.explore2)
-//    open var explore3: View? = itemView.findViewById(sdk.chat.demo.pre.R.id.explore3)
-    val exploreView: Map<String, TextView> = mapOf(
-        "explore0" to itemView.findViewById<TextView>(sdk.chat.demo.pre.R.id.explore1),
-        "explore1" to itemView.findViewById<TextView>(sdk.chat.demo.pre.R.id.explore2),
-        "explore2" to itemView.findViewById<TextView>(sdk.chat.demo.pre.R.id.explore3)
-    )
+    //    open var explore1: View? = itemView.findViewById(R.id.explore1)
+//    open var explore2: View? = itemView.findViewById(R.id.explore2)
+//    open var explore3: View? = itemView.findViewById(R.id.explore3)
+//    val exploreView: Map<String, TextView> = mapOf(
+//        "explore0" to itemView.findViewById<TextView>(R.id.explore1),
+//        "explore1" to itemView.findViewById<TextView>(R.id.explore2),
+//        "explore2" to itemView.findViewById<TextView>(R.id.explore3)
+//    )
 
 //    open var userClickListener: MessagesListAdapter.UserClickListener? = null
 
@@ -92,7 +88,8 @@ open class ChatImageViewHolder<T : ImageHolder>(
         }
     }
 
-    override fun onBind(holder: T) {
+    fun onBind(holder: T, isMultiSelectMode: Boolean) {
+        this.isMultiSelectMode = isMultiSelectMode
         bindListeners(holder)
 //        bindStyle(holder)
         bind(holder)
@@ -101,14 +98,21 @@ open class ChatImageViewHolder<T : ImageHolder>(
     open fun bind(t: T) {
         Log.e("bindImage", t.message.id.toString())
         loadImage(t)
+        if(isMultiSelectMode){
+            cbUserImg?.visibility = View.VISIBLE
+            imageMenu?.visibility = View.GONE
+        }else{
+            cbUserImg?.visibility = View.GONE
+            imageMenu?.visibility = View.VISIBLE
+        }
 //        progressView?.actionButton?.setOnClickListener(View.OnClickListener {
 //            actionButtonPressed(t)
 //        })
 //        progressView?.bringToFront()
 
-        bubble?.let {
-            it.isSelected = isSelected
-        }
+//        bubble?.let {
+//            it.isSelected = isSelected
+//        }
 
         setText(t.text, t.enableLinkify())
 
@@ -256,126 +260,6 @@ open class ChatImageViewHolder<T : ImageHolder>(
         return Predicate { networkEvent: NetworkEvent? -> networkEvent?.message?.id == id }
     }
 
-    override fun applyStyle(style: MessagesListStyle) {
-//        this.style = style
-//        if (direction == MessageDirection.Incoming) {
-////            applyIncomingStyle(style)
-//        } else {
-////            applyOutgoingStyle(style)
-//        }
-    }
-
-//    open fun applyIncomingStyle(style: MessagesListStyle) {
-//
-//        progressView?.let {
-//            it.setTintColor(style.incomingTextColor, style.incomingDefaultBubbleColor)
-//        }
-//
-//        bubble?.let {
-//            it.setPadding(
-//                style.incomingDefaultBubblePaddingLeft,
-//                style.incomingDefaultBubblePaddingTop,
-//                style.incomingDefaultBubblePaddingRight,
-//                style.incomingDefaultBubblePaddingBottom
-//            )
-//            ViewCompat.setBackground(it, style.getIncomingBubbleDrawable())
-//
-//            it.background = DrawableUtil.getMessageSelector(
-//                it.context,
-//                R.attr.incomingDefaultBubbleColor,
-//                R.attr.incomingDefaultBubbleSelectedColor,
-//                R.attr.incomingDefaultBubblePressedColor,
-//                R.attr.incomingBubbleDrawable
-//            )
-//        }
-//
-//        text?.let {
-//            it.setTextColor(style.incomingTextColor)
-//            it.setTextSize(0, style.incomingTextSize.toFloat())
-//            it.setTypeface(it.typeface, style.incomingTextStyle)
-//            it.autoLinkMask = style.textAutoLinkMask
-//            it.setLinkTextColor(style.incomingTextLinkColor)
-//            configureLinksBehavior(it)
-//        }
-//
-//        time?.let {
-//            it.setTextColor(style.incomingTimeTextColor)
-//            it.setTextSize(
-//                TypedValue.COMPLEX_UNIT_PX,
-//                style.incomingTimeTextSize.toFloat()
-//            )
-//            it.setTypeface(it.typeface, style.incomingTimeTextStyle)
-//        }
-//
-//        imageOverlay?.let {
-//            ViewCompat.setBackground(it, style.getIncomingImageOverlayDrawable())
-//        }
-//    }
-//
-//    open fun applyOutgoingStyle(style: MessagesListStyle) {
-//
-//        progressView?.let {
-//            it.setTintColor(style.outcomingTextColor, style.outcomingDefaultBubbleColor)
-//        }
-//
-////        bubble?.let {
-////            it.setPadding(
-////                style.outcomingDefaultBubblePaddingLeft,
-////                style.outcomingDefaultBubblePaddingTop,
-////                style.outcomingDefaultBubblePaddingRight,
-////                style.outcomingDefaultBubblePaddingBottom
-////            )
-////            ViewCompat.setBackground(it, style.getOutcomingBubbleDrawable())
-////
-////            it.background = DrawableUtil.getMessageSelector(
-////                it.context,
-////                R.attr.outcomingDefaultBubbleColor,
-////                R.attr.outcomingDefaultBubbleSelectedColor,
-////                R.attr.outcomingDefaultBubblePressedColor,
-////                R.attr.outcomingBubbleDrawable
-////            )
-////        }
-//
-//        text?.let {
-////            it.setTextColor(style.outcomingTextColor)
-////            it.setTextSize(0, style.outcomingTextSize.toFloat())
-//            it.setTypeface(it.typeface, style.outcomingTextStyle)
-//            it.autoLinkMask = style.textAutoLinkMask
-//            it.setLinkTextColor(style.outcomingTextLinkColor)
-//            configureLinksBehavior(it)
-//        }
-//
-//        time?.let {
-//            it.setTextColor(style.outcomingTimeTextColor)
-//            it.setTextSize(
-//                TypedValue.COMPLEX_UNIT_PX,
-//                style.outcomingTimeTextSize.toFloat()
-//            )
-//            it.setTypeface(it.typeface, style.outcomingTimeTextStyle)
-//        }
-//
-//        imageOverlay?.let {
-//            ViewCompat.setBackground(it, style.getOutcomingImageOverlayDrawable())
-//        }
-//    }
-//
-//    open fun actionButtonPressed(holder: T) {
-//        val payload = holder.payload
-//        if (payload is DownloadablePayload) {
-//            progressView?.let { view ->
-//                dm.add(payload.startDownload().observeOn(RX.main()).subscribe({
-//                    view.actionButton?.visibility = View.INVISIBLE
-//                }, {
-//                    it.printStackTrace()
-//                    view.actionButton?.visibility = View.VISIBLE
-//                }))
-//            }
-//        }
-//    }
-
-    override fun setAvatarClickListener(l: MessagesListAdapter.UserClickListener?) {
-//        userClickListener = l
-    }
 
     override fun accept(t: Throwable?) {
         t?.printStackTrace()

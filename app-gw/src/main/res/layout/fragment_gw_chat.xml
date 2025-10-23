@@ -1,83 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
-    <!--    android:background="@color/gray_10"-->
+    android:layout_height="match_parent">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/listContainer"
+    <sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout
+        android:id="@+id/root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true">
+        android:fitsSystemWindows="true">
+        <!--    android:fitsSystemWindows="true"-->
+        <!--    android:background="@color/gray_10"-->
 
-        <!--        <sdk.chat.ui.appbar.ChatActionBar-->
-        <!--            android:id="@+id/chatActionBar"-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="wrap_content" />-->
-
-        <sdk.chat.demo.robot.ui.GWChatContainer
-            android:id="@+id/chatView"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/listContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="?attr/actionBarSize"
-            android:layout_above="@id/messageInputLinearLayout"
-            android:background="@color/white" />
+            android:animateLayoutChanges="true">
 
-        <LinearLayout
-            android:id="@+id/messageInputLinearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@color/white"
-            android:orientation="vertical">
-            <!--            app:layout_behavior="sdk.chat.demo.robot.ui.InputLayoutBehavior"-->
 
-            <include layout="@layout/item_input_prompt" />
+            <!--        <sdk.chat.ui.appbar.ChatActionBar-->
+            <!--            android:id="@+id/chatActionBar" @dimen/chat_list_margin_top-->
+            <!--            android:layout_width="match_parent"-->
+            <!--            android:layout_height="wrap_content" />-->
+            <!--        android:layout_marginTop="@dimen/chat_list_margin_top"-->
 
-            <sdk.chat.demo.robot.ui.GWMsgInput
-                android:id="@+id/input"
+            <sdk.chat.demo.robot.ui.GWChatContainer
+                android:id="@+id/chatView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/messageInputLinearLayout"
+                android:layout_marginTop="@dimen/chat_list_margin_top"
+                android:background="@color/white" />
+
+            <LinearLayout
+                android:id="@+id/messageInputLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:showAttachmentButton="false" />
+                android:layout_gravity="bottom"
+                android:orientation="vertical">
+                <!--            app:layout_behavior="sdk.chat.demo.robot.ui.InputLayoutBehavior"-->
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/keyboardOverlay"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                android:visibility="gone"
+                <include layout="@layout/item_input_prompt" />
 
-                />
-            <!--            android:background="@color/gray_10"-->
+                <sdk.chat.demo.robot.ui.GWMsgInput
+                    android:id="@+id/input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:showAttachmentButton="false" />
+
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/keyboardOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+
+                    />
+
+                <!--            android:background="@color/gray_10"-->
+            </LinearLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <ImageView
+            android:id="@+id/scrollBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|bottom"
+            android:layout_marginRight="28dp"
+            android:layout_marginBottom="76dp"
+            android:src="@mipmap/ic_load_bottom"
+            android:visibility="gone" />
+
+<!--        <materialsearchview.MaterialSearchView-->
+<!--            android:id="@+id/searchView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content" />-->
+
+
+        <TextView
+            android:id="@+id/error_hint"
+            android:layout_width="match_parent"
+            android:layout_height="26dp"
+            android:layout_marginTop="@dimen/chat_list_margin_top"
+            android:background="#FCECEC"
+            android:gravity="center"
+            android:textColor="#CF4B40"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/shareMenu1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="40dp"
+            android:layout_gravity="bottom"
+            android:background="@color/white"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btPreview"
+                android:layout_width="316dp"
+                android:layout_height="42dp"
+                android:layout_gravity="center"
+                android:backgroundTint="@color/white"
+                android:stateListAnimator="@null"
+                android:text="@string/share_preview"
+                android:textColor="@color/item_text_selected"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:cornerRadius="21dp"
+                android:textStyle="bold"
+                app:elevation="0dp"
+                app:strokeColor="@color/item_text_selected"
+                app:strokeWidth="1dp" />
+
+            <TextView
+                android:id="@+id/btConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_margin="16dp"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/item_text_selected"
+                android:text="@string/share_confirm" />
 
         </LinearLayout>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <ImageView
-        android:id="@+id/scrollBottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|bottom"
-        android:layout_marginRight="28dp"
-        android:layout_marginBottom="76dp"
-        android:visibility="gone"
-        android:src="@mipmap/ic_load_bottom" />
 
-    <materialsearchview.MaterialSearchView
-        android:id="@+id/searchView"
+    </sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout>
+
+    <FrameLayout
+        android:id="@+id/shareMenu2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:visibility="gone">
 
-    <!--    <LinearLayout-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="20dp"-->
-    <!--        android:background="@color/red"-->
-    <!--        android:layout_gravity="bottom"-->
-    <!--        />-->
+        <TextView
+            android:id="@+id/btCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/item_text_selected"
+            android:text="@string/cancel" />
 
-</sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout>
+        <TextView
+            android:id="@+id/tvSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="16sp"
+            android:textColor="@color/item_text_normal"
+            android:textStyle="bold"
+            android:text="@string/share_total" />
+    </FrameLayout>
+</FrameLayout>

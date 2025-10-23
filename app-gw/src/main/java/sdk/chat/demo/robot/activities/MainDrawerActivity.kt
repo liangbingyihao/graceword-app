@@ -44,13 +44,12 @@ import java.util.concurrent.TimeUnit
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
     open lateinit var drawerLayout: DrawerLayout
-    open lateinit var searchView: MaterialSearchView
     private lateinit var recyclerView: RecyclerView
     private lateinit var vHomeMenu: View
     private lateinit var vTaskMenu: View
     private lateinit var vRedDotTask: View
     private lateinit var vDgwMenu: TextView
-    private lateinit var vErrorHint: TextView
+//    private lateinit var vErrorHint: TextView
 
     //    private lateinit var sessions: List<Thread>
     private var highlightOverlay: HighlightOverlayView? = null
@@ -64,20 +63,13 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // 加载菜单资源
         menuInflater.inflate(R.menu.nav_menu, menu)
-//        IconicsMenuInflaterUtil.inflate(
-//            menuInflater,
-//            this,
-//            R.menu.menu_main,
-//            menu,
-//            true
-//        )
         return true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(layout)
-        ImmersionBar.with(this).init()
+//        ImmersionBar.with(this).init()
 
         try {
             ChatSDK.currentUser()
@@ -100,7 +92,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         vDgwMenu.setOnClickListener(this)
         findViewById<View>(R.id.menu_search).setOnClickListener(this)
         findViewById<View>(R.id.menu_setting).setOnClickListener(this)
-        vErrorHint = findViewById<View>(R.id.error_hint) as TextView
         vHomeMenu = findViewById<View>(R.id.menu_home)
         vHomeMenu.setOnClickListener(this)
         vTaskMenu = findViewById<View>(R.id.menu_task)
@@ -150,25 +141,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 })
         )
 
-        dm.add(
-            ChatSDK.events().sourceOnMain()
-                .filter(NetworkEvent.filterType(EventType.NetworkStateChanged))
-                .subscribe(Consumer { networkEvent: NetworkEvent? ->
-//                    ToastHelper.show(
-//                        this@MainDrawerActivity,
-//                        "networkEvent:${networkEvent?.isOnline}"
-//                    )
-                    if (networkEvent != null) {
-                        if (!networkEvent.isOnline) {
-                            vErrorHint.visibility = View.VISIBLE
-                            vErrorHint.setText(R.string.network_error)
-                        } else {
-                            vErrorHint.visibility = View.GONE
-                        }
-                    }
-
-                })
-        )
 
         //        dm.add(ChatSDK.events().sourceOnMain()
 //                .filter(NetworkEvent.filterRoleUpdated(thread, ChatSDK.currentUser()))
@@ -209,7 +181,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, GWChatFragment(), chatTag).commit()
 
-//        requestPermissions();
+
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
         checkTaskDetail()
@@ -417,12 +389,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     override fun onResume() {
         super.onResume()
         updateContext(this)
-        if (!ChatSDK.connectionStateMonitor().isOnline()) {
-            vErrorHint.visibility = View.VISIBLE
-            vErrorHint.setText(R.string.network_error)
-        } else {
-            vErrorHint.visibility = View.GONE
-        }
         if (threadHandler.isCustomPrompt) {
             toolbar?.title = "自定义提示语中"
         } else {

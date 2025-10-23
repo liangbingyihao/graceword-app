@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经文分享 - 诗篇34:8</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "SimSun", "宋体", serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-image {
+            width: 100%;
+            height: 200px;
+            background-image: url('https://images.unsplash.com/photo-1542662565-7e4b66bae529?ixlib=rb-4.0.3&w=800&h=400&fit=crop&crop=center');
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .content-section {
+            margin-bottom: 25px;
+        }
+
+        .main-text {
+            font-size: 16px;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .scripture {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000000;
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            border-left: 3px solid #8B4513;
+            background-color: #f9f9f9;
+        }
+
+        .scripture-reference {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .explanation {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.8;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .action-box {
+            background-color: #fff0f5;
+            border: 1px solid #ffb6c1;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .action-text {
+            font-size: 16px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .share-button {
+            display: inline-block;
+            background-color: #8B4513;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .share-button:hover {
+            background-color: #654321;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header-image {
+                height: 150px;
+                margin-bottom: 20px;
+            }
+
+            .main-text {
+                font-size: 15px;
+            }
+
+            .scripture {
+                font-size: 16px;
+                padding: 15px;
+                margin: 20px 0;
+            }
+
+            .explanation {
+                font-size: 13px;
+                padding: 12px;
+            }
+
+            .action-box {
+                padding: 15px;
+                margin: 25px 0;
+            }
+
+            .share-button {
+                padding: 10px 25px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header-image {
+                height: 120px;
+                margin-bottom: 15px;
+            }
+
+            .scripture {
+                font-size: 15px;
+                padding: 12px;
+                margin: 15px 0;
+            }
+
+            .main-text {
+                font-size: 14px;
+            }
+        }
+
+        /* PC端优化 */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 900px;
+                padding: 30px;
+            }
+
+            .header-image {
+                height: 250px;
+            }
+        }
+
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header-image"></div>
+        <!-- 主要内容区域 -->
+        <div class="content-section">
+            <p class="main-text">你的内容我已经帮你记录下来，送你这段经文：</p>
+
+            <div class="scripture">
+                “你们要尝尝主恩的滋味，便知道他是美善；投靠他的人有福了！”
+                <div class="scripture-reference">（诗篇34:8）</div>
+            </div>
+
+        </div>
+
+        <div class="action-box">
+            <p class="action-text">请把上面的经文内容做成一个可以分享的经文图。</p>
+        </div>
+
+    </div>
+    <div class="container">
+        {{shareData}}
+    </div>
+    <script>
+
+        // 响应式字体调整
+        function adjustFontSize() {
+            const width = window.innerWidth;
+            const baseSize = width > 768 ? 16 : width > 480 ? 15 : 14;
+            document.documentElement.style.fontSize = baseSize + 'px';
+        }
+
+        window.addEventListener('resize', adjustFontSize);
+        adjustFontSize(); // 初始化
+
+         window.document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有 main-text 元素
+            const mainTexts = document.querySelectorAll('.main-text');
+
+            // 遍历并修改
+            mainTexts.forEach((element, index) => {
+                const originalText = element.textContent;
+                // 在原内容前添加前缀
+                element.innerHTML = marked.parse(originalText);
+<!--                // 添加样式-->
+<!--                element.style.fontWeight = 'bold';-->
+
+<!--                // 添加类-->
+<!--                element.classList.add('highlighted');-->
+            });
+        });
+    </script>
+</body>
+</html>
