@@ -189,6 +189,18 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return selectedItems
     }
 
+    // 获取选中的项目
+    fun getCntSelected(): Int {
+        var total = 0
+        for (item in items) {
+            (item as? TextHolder)?.let { holder ->
+                if (holder.isAiSelected) total++
+                if (holder.isUserSelected) total++
+            }
+        }
+        return total
+    }
+
     // 添加新消息（自动插入到头部）
     fun addNewMessage(item: IMessage, onComplete: (() -> Unit)? = null) {
 //        val newList = items.toMutableList().apply { add(1, item) }

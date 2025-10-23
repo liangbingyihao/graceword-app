@@ -107,5 +107,5 @@
     <string name="msg_input_hint">Record daily reflections or discuss faith matters</string>
     <string name="share_preview">Share Preview</string>
     <string name="share_confirm">Share Directly</string>
-    <string name="share_total">%s items selected</string>
+    <string name="share_total">%d items selected</string>
 </resources>

@@ -106,5 +106,5 @@
     <string name="msg_input_hint">記錄點滴或探討信仰問題</string>
     <string name="share_preview">分享預覽</string>
     <string name="share_confirm">直接分享</string>
-    <string name="share_total">已選%s條信息</string>
+    <string name="share_total">已選%d條信息</string>
 </resources>

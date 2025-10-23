@@ -88,6 +88,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected LinearLayout messageInputLinearLayout;
     protected View shareMenu1;
     protected View shareMenu2;
+    private TextView tvShareSelected;
     protected FragmentContainerView keyboardOverlay;
 
     protected ActivityResultLauncher<Intent> launcher;
@@ -165,12 +166,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
     @Override
-    public void onSocialShare(boolean active) {
+    public void onSocialShare(boolean active,int total) {
         if (active) {
             hideKeyboard();
             shareMenu1.setVisibility(View.VISIBLE);
             shareMenu2.setVisibility(View.VISIBLE);
             messageInputLinearLayout.setVisibility(View.GONE);
+            tvShareSelected.setText(getResources().getString(R.string.share_total,total));
             updateChatViewMargins(true);
 //            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chatView.getLayoutParams();
 //            params.topMargin = 0;
@@ -247,16 +249,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         return inflater.inflate(getLayout(), container, false);
     }
 
-//    public void setChatViewBottomMargin(int margin) {
-//        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) chatView.getLayoutParams();
-//        params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, margin);
-//        chatView.setLayoutParams(params);
-//    }
-
-//    public void updateOptionsButton() {
-//        input.findViewById(sdk.chat.ui.R.id.attachmentButton).setVisibility(chatView.getSelectedMessages().isEmpty() ? View.VISIBLE : View.GONE);
-//        input.findViewById(sdk.chat.ui.R.id.attachmentButtonSpace).setVisibility(chatView.getSelectedMessages().isEmpty() ? View.VISIBLE : View.GONE);
-//    }
 
 
     public void showTextInput() {
@@ -338,6 +330,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         messageInputLinearLayout = rootView.findViewById(R.id.messageInputLinearLayout);
         shareMenu1 = rootView.findViewById(R.id.shareMenu1);
         shareMenu2 = rootView.findViewById(R.id.shareMenu2);
+        tvShareSelected = rootView.findViewById(R.id.tvSelected);
         keyboardOverlay = rootView.findViewById(R.id.keyboardOverlay);
         vErrorHint = rootView.findViewById(R.id.error_hint);
         chatView.setDelegate(this);

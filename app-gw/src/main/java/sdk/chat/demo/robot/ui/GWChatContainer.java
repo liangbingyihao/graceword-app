@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.ui;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,6 +44,7 @@ import sdk.chat.demo.robot.handlers.GWThreadHandler;
 import sdk.chat.demo.robot.holder.HolderProvider;
 import sdk.chat.demo.robot.holder.MessageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
+import sdk.chat.demo.robot.utils.SocialShareUtils;
 import sdk.chat.demo.robot.utils.TemplateUtils;
 import sdk.guru.common.DisposableMap;
 import sdk.guru.common.RX;
@@ -69,7 +71,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 
         void onLoadLatestActive();
 
-        void onSocialShare(boolean active);
+        void onSocialShare(boolean active,int total);
     }
 
     protected ChatAdapter messagesListAdapter;
@@ -126,7 +128,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 //                }
             }
 //            shareMenu.setVisibility(View.VISIBLE);
-            delegate.onSocialShare(true);
+            delegate.onSocialShare(true,messagesListAdapter.getCntSelected());
 //            tvSelected.setText("已选中1");
         }
     };
@@ -169,11 +171,19 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
         if (vid == R.id.btConfirm) {
             messagesListAdapter.setMultiSelectMode(false);
 //            shareMenu.setVisibility(View.GONE);
-            delegate.onSocialShare(false);
+            delegate.onSocialShare(false,0);
+            Uri imageUri = SocialShareUtils.getDrawableUri(this.getContext(),R.mipmap.ic_launcher);
+
+//            SocialShareUtils.shareHtmlLinkWithPreview(this.getContext(),"testtitle","htmlContent","plainText",imageUri);
+
+            String text = "分享文本内容";
+            String html = "<p>HTML格式内容</p>";
+            String title = "分享标题";
+            SocialShareUtils.showCustomShareDialog(this.getContext(),SocialShareUtils.targetApps,text,html,null,title);
         } else if (vid == R.id.btCancel) {
             messagesListAdapter.setMultiSelectMode(false);
 //            shareMenu.setVisibility(View.GONE);
-            delegate.onSocialShare(false);
+            delegate.onSocialShare(false,0);
         } else if (vid == R.id.btPreview) {
 //            String htmlContent = "<html><body><h1>Hello WebView</h1><p>This is HTML content.</p></body></html>";
             try {
