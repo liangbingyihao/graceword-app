@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.handlers;
 
 import static sdk.chat.demo.robot.api.model.LogRequestKt.createBatchLogsRequest;
+import static sdk.chat.demo.robot.api.model.LogRequestKt.createLogRequest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -28,25 +29,26 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import sdk.chat.core.session.ChatSDK;
+import sdk.chat.demo.MainApp;
 import sdk.chat.demo.robot.api.GWApiManager;
 import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
-import sdk.chat.demo.robot.api.model.LogEntry;
-import sdk.chat.demo.robot.api.model.LogRequest;
+import sdk.chat.demo.robot.utils.DeviceInfoUtils;
 
 public class LogUploader {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private final static String URL_EVENT = ImageApi.URL2_MAIN + "log/event";
+    private static final Gson gson = new Gson();
 
 
     private static long fastParseLogTime(String timeStr) {
         // 直接解析数字，避免 SimpleDateFormat 的开销
-        int year  = Integer.parseInt(timeStr.substring(0, 4));
+        int year = Integer.parseInt(timeStr.substring(0, 4));
         int month = Integer.parseInt(timeStr.substring(5, 7));
-        int day   = Integer.parseInt(timeStr.substring(8, 10));
-        int hour  = Integer.parseInt(timeStr.substring(11, 13));
-        int min   = Integer.parseInt(timeStr.substring(14, 16));
-        int sec   = Integer.parseInt(timeStr.substring(17, 19));
+        int day = Integer.parseInt(timeStr.substring(8, 10));
+        int hour = Integer.parseInt(timeStr.substring(11, 13));
+        int min = Integer.parseInt(timeStr.substring(14, 16));
+        int sec = Integer.parseInt(timeStr.substring(17, 19));
 
         // 转换为时间戳（简化版，不考虑时区和夏令时）
         return (year - 1970) * 31_536_000_000L
@@ -82,8 +84,8 @@ public class LogUploader {
                 try {
                     if (isLogAfterCutoff(line, sinceTime)) {
                         relevantLogs.add(line);
-                    }else{
-                        Log.e("LogManager", logFile.getName()+",skip log.."+line);
+                    } else {
+                        Log.e("LogManager", logFile.getName() + ",skip log.." + line);
                     }
                 } catch (Exception e) {
                     // 解析失败，保守处理为包含该日志
@@ -125,7 +127,7 @@ public class LogUploader {
                 File[] errorLogFiles = logDir.listFiles((dir, name) ->
                         name.matches("error_\\d+\\.log") || name.equals("error.log")
                 );
-                if(errorLogFiles!=null){
+                if (errorLogFiles != null) {
                     Arrays.sort(errorLogFiles, Comparator.comparingLong(File::lastModified));
                     for (File logFile : errorLogFiles) {
                         if (logFile.lastModified() >= cutoffTime) {
@@ -155,7 +157,7 @@ public class LogUploader {
     }
 
 
-    public static Single<Boolean> uploadLogs(Context context, String topic,String desc) {
+    public static Single<Boolean> uploadLogs(Context context, String topic, String desc) {
         return getRecentLogsForUpload(context)
                 .flatMap(logs -> {
                     if (logs.isEmpty()) {
@@ -165,83 +167,76 @@ public class LogUploader {
                     String uid = "";
                     try {
                         uid = ChatSDK.currentUserID();
-                    }catch (Exception ignored){
+                    } catch (Exception ignored) {
 
                     }
-//
-//                    String logData = String.join("\n", logs);
-//                    List<KeyValuePair> kvPairs1 = new ArrayList<>();
-//                    kvPairs1.add(new KeyValuePair("logData", logData));
-//                    logRequest.getLogs().add(new LogEntry(System.currentTimeMillis()/1000, kvPairs1));
 
-                    Gson gson = new Gson();
-                    String json = gson.toJson(createBatchLogsRequest(topic,desc,uid,String.join("\n", logs)));
+                    String json = gson.toJson(createBatchLogsRequest(topic, desc, uid, String.join("\n", logs)));
+                    return reportALI(json);
 
-                    // 创建请求体
-                    RequestBody body = RequestBody.create(json, JSON);
-
-                    // 构建请求
-                    Request request = new Request.Builder()
-                            .url(URL_EVENT)
-                            .post(body)
-                            .header("Content-Type", "application/json")
-                            .build();
-
-                    // 异步执行请求
-                    OkHttpClient client = GWApiManager.shared().getClient().newBuilder()
-                            .writeTimeout(60, TimeUnit.SECONDS)
-                            .build();
-
-                    return Single.create(emitter -> {
-                        try (Response response = client.newCall(request).execute()) {
-                            if (response.isSuccessful()) {
-                                String responseBody = response.body() != null ? response.body().string() : "";
-                                String data = gson.fromJson(responseBody, JsonObject.class).getAsJsonPrimitive("code").getAsString();
-                                if("OK".equals(data)){
-                                    emitter.onSuccess(true);
-                                }else{
-                                    emitter.onError(new Exception(data));
-                                }
-                            } else {
-                                emitter.onSuccess(false);
-                            }
-                        } catch (IOException e) {
-                            emitter.onError(e);
-                        }
-                    });
-
-//                    client.newCall(request).enqueue(new Callback() {
-//                        @Override
-//                        public void onFailure(Call call, IOException e) {
-//                            emitter.onError(e); // 请求失败
-//                        }
-//
-//                        @Override
-//                        public void onResponse(Call call, Response response) throws IOException {
-//                            try {
-//                                String responseBody = response.body() != null ? response.body().string() : "";
-//                                String data = gson.fromJson(responseBody, JsonObject.class).getAsJsonPrimitive("code").getAsString();
-//                                emitter.onSuccess("OK".equals(data) || "DUPLICATE_OPERATION".equals(data)); // 请求成功
-//                            } catch (Exception e) {
-//                                emitter.onError(e);
-//                            } finally {
-//                                response.close(); // 关闭 Response
-//                            }
-//                        }
-//                    });
                 })
                 .subscribeOn(Schedulers.io());
     }
 
+    public static void reportEvent(String topic, List<KeyValuePair> kvs) {
+        List<KeyValuePair> enrichedKvs = new ArrayList<>(kvs);
+        enrichedKvs.addAll(DeviceInfoUtils.getAllDeviceInfoKvs(MainApp.getContext()));
+        String json = gson.toJson(createLogRequest(topic, enrichedKvs));
+        // 创建请求体
+        RequestBody body = RequestBody.create(json, JSON);
 
-    // 简单的 Pair 实现
-    public static class Pair<A, B> {
-        public final A first;
-        public final B second;
+        // 构建请求
+        Request request = new Request.Builder()
+                .url(URL_EVENT)
+                .post(body)
+                .header("Content-Type", "application/json")
+                .build();
 
-        public Pair(A first, B second) {
-            this.first = first;
-            this.second = second;
-        }
+        GWApiManager.shared().getClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                response.close();
+            }
+        });
     }
+
+    private static Single<Boolean> reportALI(String json) {
+        // 创建请求体
+        RequestBody body = RequestBody.create(json, JSON);
+
+        // 构建请求
+        Request request = new Request.Builder()
+                .url(URL_EVENT)
+                .post(body)
+                .header("Content-Type", "application/json")
+                .build();
+
+        // 异步执行请求
+        OkHttpClient client = GWApiManager.shared().getClient().newBuilder()
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        return Single.create(emitter -> {
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    String data = gson.fromJson(responseBody, JsonObject.class).getAsJsonPrimitive("code").getAsString();
+                    if ("OK".equals(data)) {
+                        emitter.onSuccess(true);
+                    } else {
+                        emitter.onError(new Exception(data));
+                    }
+                } else {
+                    emitter.onSuccess(false);
+                }
+            } catch (IOException e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
 }

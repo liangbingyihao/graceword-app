@@ -26,6 +26,7 @@ import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.SessionAdapter
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.audio.AsrHelper
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
@@ -34,10 +35,12 @@ import sdk.chat.demo.robot.extensions.dpToPx
 import sdk.chat.demo.robot.fragments.GWChatFragment
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
+import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.guru.common.RX
 import java.util.concurrent.TimeUnit
 
@@ -84,7 +87,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
 
         var isInitialized = (application as MainApp).isInitialized
-        Logger.error{"MainDrawerActivity.onCreate,isInitialized:${isInitialized}"}
+        Logger.error { "MainDrawerActivity.onCreate,isInitialized:${isInitialized}" }
         drawerLayout = findViewById(R.id.root_container)
         highlightOverlay = findViewById(R.id.overlay)
         findViewById<View>(R.id.menu_favorites).setOnClickListener(this)
@@ -259,6 +262,12 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 //                                toggleDrawer()
 //                                if (changed) {
 //                                    setCurrentSession(clickedItem)
+                                LogUploader.reportEvent(
+                                    "mod_timeline", mutableListOf(
+                                        KeyValuePair("timeline_entrance", "sidebar"),
+                                    )
+                                )
+
                                 ArticleListActivity.start(
                                     this@MainDrawerActivity,
                                     clickedItem.id

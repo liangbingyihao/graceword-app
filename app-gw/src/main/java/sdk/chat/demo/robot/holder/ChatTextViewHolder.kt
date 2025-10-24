@@ -198,7 +198,11 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if (t.message.entityID.equals("welcome")) {
             contentMenu?.visibility = View.GONE
             bubble?.visibility = View.GONE
-            feedbackMenu?.visibility = View.VISIBLE
+            if(isMultiSelectMode){
+                feedbackMenu?.visibility = View.GONE
+            }else{
+                feedbackMenu?.visibility = View.VISIBLE
+            }
             sessionContainer?.visibility = View.GONE
             processContainer?.visibility = View.GONE
             sendErrorHint?.visibility = View.GONE

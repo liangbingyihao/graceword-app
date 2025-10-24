@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.noties.markwon.Markwon;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.SingleSource;
@@ -46,6 +47,7 @@ import sdk.chat.demo.robot.holder.MessageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
 import sdk.chat.demo.robot.utils.SocialShareUtils;
 import sdk.chat.demo.robot.utils.TemplateUtils;
+import sdk.chat.demo.robot.utils.ToastHelper;
 import sdk.guru.common.DisposableMap;
 import sdk.guru.common.RX;
 
@@ -71,7 +73,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 
         void onLoadLatestActive();
 
-        void onSocialShare(boolean active,int total);
+        void onSocialShare(boolean active, int total);
     }
 
     protected ChatAdapter messagesListAdapter;
@@ -114,10 +116,10 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 } else if (id == R.id.btn_share_user_text) {
                     holder.setUserSelected(true);
                     messagesListAdapter.setMultiSelectMode(true);
-                } else if (id == R.id.ai_text_container||id==R.id.cb_ai_text) {
+                } else if (id == R.id.ai_text_container || id == R.id.cb_ai_text) {
                     holder.setAiSelected(!holder.isAiSelected());
                     ((CheckBox) view.findViewById(R.id.cb_ai_text)).setChecked(holder.isAiSelected());
-                } else if (id == R.id.user_text_container||id==R.id.cb_user_text) {
+                } else if (id == R.id.user_text_container || id == R.id.cb_user_text) {
                     holder.setUserSelected(!holder.isUserSelected());
                     ((CheckBox) view.findViewById(R.id.cb_user_text)).setChecked(holder.isUserSelected());
                 } else {
@@ -128,7 +130,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 //                }
             }
 //            shareMenu.setVisibility(View.VISIBLE);
-            delegate.onSocialShare(true,messagesListAdapter.getCntSelected());
+            delegate.onSocialShare(true, messagesListAdapter.getCntSelected());
 //            tvSelected.setText("已选中1");
         }
     };
@@ -169,26 +171,44 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 
     public void handleSocialShare(int vid) {
         if (vid == R.id.btConfirm) {
-            messagesListAdapter.setMultiSelectMode(false);
-//            shareMenu.setVisibility(View.GONE);
-            delegate.onSocialShare(false,0);
-            Uri imageUri = SocialShareUtils.getDrawableUri(this.getContext(),R.mipmap.ic_launcher);
-
+//            Uri imageUri = SocialShareUtils.getDrawableUri(this.getContext(), R.mipmap.ic_launcher);
 //            SocialShareUtils.shareHtmlLinkWithPreview(this.getContext(),"testtitle","htmlContent","plainText",imageUri);
 
-            String text = "分享文本内容";
-            String html = "<p>HTML格式内容</p>";
-            String title = "分享标题";
-            SocialShareUtils.showCustomShareDialog(this.getContext(),SocialShareUtils.targetApps,text,html,null,title);
+            List<TextHolder> selectedItems = messagesListAdapter.getSelectedItems();
+            if (selectedItems.isEmpty()) {
+                ToastHelper.show(getContext(), "Nothing selected...");
+            } else {
+                TextHolder holder = selectedItems.get(0);
+                String dstUrl = "https://grace-word.com/";
+                String text;
+                if (holder.isUserSelected()) {
+                    text = holder.message.getText();
+                } else {
+                    text = holder.getAiFeedback().getFeedbackText();
+                    Markwon md = Markwon.create(getContext());
+                    text = md.render(md.parse(text)).toString();
+                }
+                if (text != null && text.length() > 100) {
+                    text = text.substring(0, 100) + "... 点击链接查看全部:";
+                }
+                SocialShareUtils.showCustomShareDialog(getContext(), SocialShareUtils.targetApps, text, null, dstUrl);
+            }
+            messagesListAdapter.setMultiSelectMode(false);
+            delegate.onSocialShare(false, 0);
         } else if (vid == R.id.btCancel) {
             messagesListAdapter.setMultiSelectMode(false);
 //            shareMenu.setVisibility(View.GONE);
-            delegate.onSocialShare(false,0);
+            delegate.onSocialShare(false, 0);
         } else if (vid == R.id.btPreview) {
 //            String htmlContent = "<html><body><h1>Hello WebView</h1><p>This is HTML content.</p></body></html>";
             try {
-                String htmlContent = TemplateUtils.loadTemplate(getContext(), "templates/template_share.html");
                 List<TextHolder> selectedItems = messagesListAdapter.getSelectedItems();
+                if (selectedItems.isEmpty()) {
+                    ToastHelper.show(getContext(), "Nothing selected...");
+                    return;
+                }
+
+                String htmlContent = TemplateUtils.loadTemplate(getContext(), "templates/template_share.html");
                 String aiTemplate = "        <div class=\"content-section\">\n" +
                         "            <p class=\"main-text\">%s</p>\n" +
                         "        </div>";
@@ -204,7 +224,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                         content.append(String.format(aiTemplate, holder.getAiFeedback().getFeedbackText()));
                     }
                 }
-                htmlContent = htmlContent.replace("{{shareData}}",content);
+                htmlContent = htmlContent.replace("{{shareData}}", content);
                 WebViewActivity.launchWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -530,7 +550,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 messageHolders.add(0, holder);
                 toAdd.add(0, holder);
             } else {
-                Log.e("", "We have a duplicate");
+                Log.e("loadmsg", "We have a duplicate:"+holder.message.getId());
             }
         }
         messagesListAdapter.addHistoryMessages(toAdd, () -> {

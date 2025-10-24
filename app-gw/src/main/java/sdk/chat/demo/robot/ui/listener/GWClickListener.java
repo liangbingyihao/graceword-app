@@ -14,6 +14,7 @@ import android.view.View;
 import com.stfalcon.chatkit.commons.models.IMessage;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import io.noties.markwon.Markwon;
 import io.reactivex.Completable;
@@ -38,12 +39,14 @@ import sdk.chat.demo.robot.adpter.ChatAdapter;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
 import sdk.chat.demo.robot.api.model.AIFeedback;
 import sdk.chat.demo.robot.api.model.ImageDaily;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.MessageDetail;
 import sdk.chat.demo.robot.audio.TTSHelper;
 import sdk.chat.demo.robot.extensions.ActivityExtensionsKt;
 import sdk.chat.demo.robot.extensions.ImageSaveUtils;
 import sdk.chat.demo.robot.handlers.CardGenerator;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.holder.DailyGWHolder;
 import sdk.chat.demo.robot.holder.ImageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
@@ -145,7 +148,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         if (id == R.id.btn_share_text || id == R.id.btn_share_user_text) {
             if (imessage.getClass() == TextHolder.class) {
                 String copyText = id == R.id.btn_share_text && aiFeedback != null ? aiFeedback.getFeedbackText() : message.getText();
-                if(id==R.id.btn_share_text){
+                if (id == R.id.btn_share_text) {
                     Markwon md = Markwon.create(view.getContext());
                     copyText = md.render(md.parse(copyText)).toString();
                 }
@@ -225,7 +228,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 //            ImageHolder imageHolder = (ImageHolder) imessage;
 //            ImageDaily imageDaily = imageHolder.getImageDaily();
             if (resId == R.layout.item_image_gw) {
-                if(imageDaily!=null){
+                if (imageDaily != null) {
                     ImageViewerActivity.Companion.start(this.weakContext.get(), imageDaily.getDate());
                 }
             } else if (imageDaily != null) {
@@ -255,7 +258,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
             if (this.weakContext.get() != null && imessage.getClass() == TextHolder.class) {
                 TextHolder t = (TextHolder) imessage;
                 AIFeedback feedback = t.getAiFeedback().getFeedback();
-                if(feedback==null){
+                if (feedback == null) {
                     ToastHelper.show(
                             weakContext.get(),
                             weakContext.get().getString(R.string.failed_and_retry)
@@ -272,7 +275,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         } else if (id == R.id.btn_del || id == R.id.btn_del_user_text) {
             if (imessage.getClass() == TextHolder.class && message != null) {
                 Context context = this.weakContext.get();
-                ActivityExtensionsKt.showMaterialConfirmationDialog(context,  context.getString(R.string.delete_confirm),null,null, () -> {
+                ActivityExtensionsKt.showMaterialConfirmationDialog(context, context.getString(R.string.delete_confirm), null, null, () -> {
                     Single<Boolean> r = id == R.id.btn_del ? threadHandler.clearFeedbackText(message) : threadHandler.clearUserText(message);
                     weakContext.get().onSubscribe(r.observeOn(AndroidSchedulers.mainThread())
                             .subscribe(result -> {
@@ -328,6 +331,11 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
             }
         } else if (id == R.id.session_name) {
             if (message != null) {
+                LogUploader.reportEvent(
+                        "mod_timeline", List.of(
+                                new KeyValuePair("timeline_entrance", "chat_page_saved")
+                        )
+                );
                 ArticleListActivity.Companion.start(weakContext.get(), message.getThreadId().toString());
             }
         } else if (id == R.id.btn_pray) {

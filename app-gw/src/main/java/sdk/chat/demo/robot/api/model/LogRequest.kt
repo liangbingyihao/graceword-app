@@ -17,17 +17,34 @@ data class LogRequest(
     val logs: List<LogEntry>
 )
 
-fun createBatchLogsRequest(topic:String,description: String,uid:String,logs:String): LogRequest {
+fun createBatchLogsRequest(
+    topic: String,
+    description: String,
+    uid: String,
+    logs: String
+): LogRequest {
     return LogRequest(
         topic = topic,
         logs = mutableListOf(
             LogEntry(
-                timestamp = System.currentTimeMillis()/1000,
+                timestamp = System.currentTimeMillis() / 1000,
                 kv = mutableListOf(
                     KeyValuePair("des", description),
                     KeyValuePair("uid", uid),
                     KeyValuePair("logData", logs)
                 )
+            )
+        )
+    )
+}
+
+fun createLogRequest(topic: String, kvs: List<KeyValuePair>): LogRequest {
+    return LogRequest(
+        topic = topic,
+        logs = mutableListOf(
+            LogEntry(
+                timestamp = System.currentTimeMillis() / 1000,
+                kv = kvs
             )
         )
     )
