@@ -105,4 +105,7 @@
     <string name="share_preview">分享预览</string>
     <string name="share_confirm">直接分享</string>
     <string name="share_total">已选%d条信息</string>
+    <string name="query_hint">请选择以下任意条件或填入关键字，进行查询</string>
+    <string name="read_bible">看圣经</string>
+    <string name="hymns">赞美诗</string>
 </resources>

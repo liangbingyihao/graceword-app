@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Space;
 import android.widget.TextView;
@@ -361,7 +362,6 @@ public class GWMsgInput extends RelativeLayout
         circleOverlayView = findViewById(R.id.circleOverlay);
 //                circleOverlay.startAnimation()
 //        attachmentButtonSpace = findViewById(R.id.attachmentButtonSpace);
-
         messageSendButton.setOnClickListener(this);
         stopSendButton.setOnClickListener(this);
         attachmentButton.setOnClickListener(this);

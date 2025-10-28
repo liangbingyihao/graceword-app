@@ -107,4 +107,7 @@
     <string name="share_preview">分享預覽</string>
     <string name="share_confirm">直接分享</string>
     <string name="share_total">已選%d條信息</string>
+    <string name="query_hint">請選擇以下任意條件或填入關鍵字，進行查詢</string>
+    <string name="read_bible">看聖經</string>
+    <string name="hymns">讚美詩</string>
 </resources>

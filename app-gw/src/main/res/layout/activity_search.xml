@@ -29,6 +29,7 @@
             android:layout_height="42dp"
             android:layout_gravity="center"
             android:layout_marginLeft="6dp"
+            android:paddingLeft="8dp"
             android:layout_weight="1"
             android:background="@drawable/edittext_rounded_bg"
             android:hint="@string/search_keyword_hint"

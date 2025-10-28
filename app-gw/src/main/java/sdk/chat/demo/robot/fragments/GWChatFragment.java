@@ -60,6 +60,7 @@ import sdk.chat.demo.robot.handlers.DailyTaskHandler;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
 import sdk.chat.demo.robot.ui.GWChatContainer;
 import sdk.chat.demo.robot.ui.GWMsgInput;
+import sdk.chat.demo.robot.ui.InputIntentView;
 import sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout;
 import sdk.chat.demo.robot.ui.KeyboardOverlayHelper;
 import sdk.chat.demo.robot.ui.listener.GWClickListener;
@@ -79,8 +80,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected boolean removeUserFromChatOnExit = true;
     protected static boolean enableTrace = false;
     protected GWChatContainer chatView;
-    //    protected View divider;
-//    protected View replyView;
     protected TextView replyText;
     protected GWMsgInput input;
     protected CoordinatorLayout listContainer;
@@ -166,13 +165,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
     @Override
-    public void onSocialShare(boolean active,int total) {
+    public void onSocialShare(boolean active, int total) {
         if (active) {
             hideKeyboard();
             shareMenu1.setVisibility(View.VISIBLE);
             shareMenu2.setVisibility(View.VISIBLE);
             messageInputLinearLayout.setVisibility(View.GONE);
-            tvShareSelected.setText(getResources().getString(R.string.share_total,total));
+            tvShareSelected.setText(getResources().getString(R.string.share_total, total));
             updateChatViewMargins(true);
 //            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) chatView.getLayoutParams();
 //            params.topMargin = 0;
@@ -250,7 +249,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
 
-
     public void showTextInput() {
         input.setVisibility(View.VISIBLE);
 //        divider.setVisibility(View.VISIBLE);
@@ -298,13 +296,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
     public int bottomMargin() {
         int bottomMargin = 0;
-//        if (replyView.getVisibility() == View.VISIBLE) {
-//            bottomMargin += replyView.getHeight();
+//        if (inputIntentView.getVisibility() == View.VISIBLE) {
+//            bottomMargin += inputIntentView.getHeight();
 //        }
         if (messageInputLinearLayout.getVisibility() != View.GONE && input.getVisibility() != View.GONE) {
             bottomMargin += input.getHeight();
-        }else{
-            bottomMargin+=shareMenu1.getHeight();
+        } else {
+            bottomMargin += shareMenu1.getHeight();
         }
         return bottomMargin;
     }
@@ -323,7 +321,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected void initViews() {
         chatView = rootView.findViewById(R.id.chatView);
         replyText = rootView.findViewById(R.id.tvReply);
-//        replyView = rootView.findViewById(sdk.chat.ui.R.id.replyView);
         input = rootView.findViewById(R.id.input);
         listContainer = rootView.findViewById(R.id.listContainer);
         root = rootView.findViewById(R.id.root);

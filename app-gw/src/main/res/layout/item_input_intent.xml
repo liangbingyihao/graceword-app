@@ -1,0 +1,97 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/menus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!--            android:background="#FFEEEB"-->
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/hymns"
+            style="@style/ExploreButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="4dp"
+            android:text="@string/hymns"
+            android:textSize="12sp"
+            app:cornerRadius="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/bible"
+            style="@style/ExploreButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:gravity="center"
+            app:cornerRadius="16dp"
+            android:text="@string/read_bible"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/menuSong"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:visibility="gone">
+
+        <!-- 文本说明 -->
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/query_hint"
+            android:textColor="@color/item_text_normal"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/hideSongMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:padding="8dp"
+            android:src="@mipmap/ic_exit_mini" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/titleText"
+            android:fillViewport="true"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/containerLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/spStyle"
+                    style="@style/SpinnerInputIntent" />
+
+                <Spinner
+                    android:id="@+id/spTheme"
+                    style="@style/SpinnerInputIntent" />
+
+                <Spinner
+                    android:id="@+id/spOccasion"
+                    style="@style/SpinnerInputIntent" />
+
+                <Spinner
+                    android:id="@+id/spOrchestra"
+                    style="@style/SpinnerInputIntent" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </RelativeLayout>
+</FrameLayout>

@@ -108,4 +108,7 @@
     <string name="share_preview">Share Preview</string>
     <string name="share_confirm">Share Directly</string>
     <string name="share_total">%d items selected</string>
+    <string name="query_hint">Please select any of the following criteria or enter keywords to search</string>
+    <string name="read_bible">Read Bible</string>
+    <string name="hymns">Hymns</string>
 </resources>
