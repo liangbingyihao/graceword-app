@@ -1025,6 +1025,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     public boolean updateThread(String threadId, String sessionName, Date updateAt) {
         Thread entity = ChatSDK.db().fetchOrCreateThreadWithEntityID(threadId);
         boolean modified = false;
+        Logger.info("updateThread:"+threadId+","+sessionName);
         if (sessionName != null && !sessionName.isEmpty() && !sessionName.equals(entity.getName())) {
             entity.setName(sessionName);
 //            entity.setType(ThreadType.None);
@@ -1132,6 +1133,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 message.setThreadId(sid);
                 ChatSDK.db().update(message);
                 if (aiFeedback.getFeedback() != null) {
+                    Logger.info("updateThread0:"+message.getEntityID()+","+aiFeedback.getFeedback().getTopic());
                     updateThread(Long.toString(sid), aiFeedback.getFeedback().getTopic(), new Date());
                 }
             }
@@ -1157,13 +1159,14 @@ public class GWThreadHandler extends AbstractThreadHandler {
             }
 
             if (aiFeedback.getStatus() == MessageDetail.STATUS_SUCCESS) {
-                message.setMessageStatus(MessageSendStatus.Sent, false);
                 if (sid != null && sid > 0 && !sid.equals(message.getThreadId())) {
                     message.setThreadId(sid);
                     if (aiFeedback.getFeedback() != null) {
+                        Logger.info("updateThread1:"+message.getEntityID()+","+aiFeedback.getFeedback().getTopic());
                         updateThread(Long.toString(sid), aiFeedback.getFeedback().getTopic(), new Date());
                     }
                 }
+                message.setMessageStatus(MessageSendStatus.Sent, false);
 
                 if (aiFeedback.getFeedback() != null && (aiExplore == null || aiExplore.getMessage().getId() <= message.getId())) {
                     AIExplore newAIExplore = AIExplore.loads(message);

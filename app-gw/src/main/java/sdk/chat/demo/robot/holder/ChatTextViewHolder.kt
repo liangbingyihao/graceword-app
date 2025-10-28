@@ -31,6 +31,7 @@ import sdk.chat.core.manager.DownloadablePayload
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.core.utils.CurrentLocale
+import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.model.MessageDetail
@@ -130,6 +131,11 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
                 sessionContainer?.visibility = View.VISIBLE
                 sessionName?.let {
                     it.text = topic
+                }
+            }else if(BuildConfig.DEBUG){
+                sessionContainer?.visibility = View.VISIBLE
+                sessionName?.let {
+                    it.text = t.message.threadId?.toString() ?: ""
                 }
             } else {
                 sessionContainer?.visibility = View.GONE

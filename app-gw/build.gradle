@@ -38,7 +38,7 @@ android {
             dimension "version"
             applicationId "sdk.chat.android.robot"
 //            applicationId "com.chuanxiang.graceword"
-//            versionName "1.0.1"
+            versionName "0.0.3"
         }
         official {
             dimension "version"
