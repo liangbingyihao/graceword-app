@@ -333,28 +333,28 @@ public class ImageApi {
                     JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_CONFIGS, data.toString());
 
 
-                    DaoCore daoCore = ChatSDK.db().getDaoCore();
-                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-                    qb.where(MessageDao.Properties.EntityID.eq("welcome")).limit(1);
-                    List<Message> localWelcomeMsg = qb.list();
-
-                    if (localWelcomeMsg.isEmpty()) {
-                        JsonObject welcomeMsg = data.getAsJsonObject("welcome_msg");
-                        if (welcomeMsg != null) {
-                            welcomeMsg.addProperty("status", MessageDetail.STATUS_SUCCESS);
-                            Message message = new Message();
-                            message.setEntityID("welcome");
-                            message.setSender(ChatSDK.currentUser());
-                            message.setDate(new Date(1640995200000L));
-                            message.setType(MessageType.Text);
-                            message.setMessageStatus(MessageSendStatus.Sent, false);
-                            ChatSDK.db().insertOrReplaceEntity(message);
-                            ChatSDK.events().source().accept(NetworkEvent.messageAdded(message));
-                            GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
-                            handler.updateMessage(message, welcomeMsg);
-                        }
-
-                    }
+//                    DaoCore daoCore = ChatSDK.db().getDaoCore();
+//                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+//                    qb.where(MessageDao.Properties.EntityID.eq("welcome")).limit(1);
+//                    List<Message> localWelcomeMsg = qb.list();
+//
+//                    if (localWelcomeMsg.isEmpty()) {
+//                        JsonObject welcomeMsg = data.getAsJsonObject("welcome_msg");
+//                        if (welcomeMsg != null) {
+//                            welcomeMsg.addProperty("status", MessageDetail.STATUS_SUCCESS);
+//                            Message message = new Message();
+//                            message.setEntityID("welcome");
+//                            message.setSender(ChatSDK.currentUser());
+//                            message.setDate(new Date(1640995200000L));
+//                            message.setType(MessageType.Text);
+//                            message.setMessageStatus(MessageSendStatus.Sent, false);
+//                            ChatSDK.db().insertOrReplaceEntity(message);
+//                            ChatSDK.events().source().accept(NetworkEvent.messageAdded(message));
+//                            GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
+//                            handler.updateMessage(message, welcomeMsg);
+//                        }
+//
+//                    }
 
                     emitter.onSuccess(gwConfigs);
                 }

@@ -3,6 +3,7 @@ package sdk.chat.demo.robot.fragments
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -174,7 +175,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
     }
 
     // 设置左右滑动切换章节
-    private fun setupSwipeToChangeChapter() {
+    private fun setupSwipeToChangeChapter2() {
         val swipeHelper = object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(
@@ -251,6 +252,83 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         }
 
         ItemTouchHelper(swipeHelper).attachToRecyclerView(recyclerView)
+    }
+
+    // 设置左右滑动切换章节
+    private fun setupSwipeToChangeChapter() {
+        // 禁用RecyclerView的触摸事件，以便我们可以处理整页滑动
+        recyclerView.setOnTouchListener(object : View.OnTouchListener {
+            private var startX = 0f
+            private var startY = 0f
+            private val SWIPE_THRESHOLD = 100 // 滑动阈值（像素）
+            private val SWIPE_VELOCITY_THRESHOLD = 100 // 滑动速度阈值
+
+            override fun onTouch(v: View?, event: MotionEvent): Boolean {
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        startX = event.x
+                        startY = event.y
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+
+                        val currentTime = System.currentTimeMillis()
+                        if (isLoading || currentTime - lastSwipeTime < MIN_SWIPE_INTERVAL) {
+                            // 取消滑动效果
+                            Log.e("onSwiped", "cancel")
+                            return true
+                        }
+
+                        lastSwipeTime = currentTime
+
+                        val endX = event.x
+                        val endY = event.y
+
+                        val dx = endX - startX
+                        val dy = endY - startY
+
+                        Log.e("onSwiped", "ACTION_UP1")
+                        // 检查是否是左右滑动（水平滑动距离大于垂直滑动距离）
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            Log.e("onSwiped", "ACTION_UP2")
+                            // 检查滑动距离和速度是否超过阈值
+                            if (Math.abs(dx) > SWIPE_THRESHOLD) {
+                                if (dx > 0) {
+                                    // 向右滑动，加载上一章
+                                    if (currentChapterNumber > 1) {
+                                        // 记录被滑动的位置
+                                        loadChapter(currentBookId, currentChapterNumber - 1, "")
+                                    } else if (currentBookId > 1) {
+                                        loadChapter(currentBookId + 1, 1, "")
+                                    } else {
+                                        // 已经是第一章，显示提示并取消滑动效果
+                                        Toast.makeText(context, R.string.first_chapter, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                } else {
+                                    // 向左滑动，加载下一章
+                                    if (currentChapterNumber < currentChapterCount) {
+                                        // 记录被滑动的位置
+//                            swipedPosition = viewHolder.bindingAdapterPosition
+//                            lastSwipeTime = currentTime
+                                        loadChapter(currentBookId, currentChapterNumber + 1, "")
+                                    } else if (currentBookId < 66) {
+                                        loadChapter(currentBookId + 1, 1, "")
+                                    } else {
+                                        // 已经是最后一章，显示提示并取消滑动效果
+                                        Toast.makeText(context, R.string.last_chapter, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                }
+                                return true
+                            }
+                        }
+                        return false
+                    }
+                }
+                return false
+            }
+        })
     }
 
     // 显示加载中

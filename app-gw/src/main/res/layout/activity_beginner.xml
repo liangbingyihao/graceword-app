@@ -29,6 +29,7 @@
             android:id="@+id/question"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="52dp"
             android:layout_marginRight="52dp"
             android:lineSpacingExtra="4dp"

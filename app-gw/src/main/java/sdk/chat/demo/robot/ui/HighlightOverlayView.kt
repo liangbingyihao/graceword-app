@@ -54,7 +54,7 @@ class HighlightOverlayView @JvmOverloads constructor(
     private val guidePic = "guide_pic"
     private val guidePray = "guide_pray"
     private val guideBeginner = "guide_beginner"
-    private val allModes = arrayOf(guidePic, guidePray, guideDrawer)
+    private val allModes = arrayOf(guideBeginner,guidePic, guidePray, guideDrawer)
 
     private var onClickListener: OnClickListener = View.OnClickListener { view ->
         // 处理点击事件
@@ -158,6 +158,11 @@ class HighlightOverlayView @JvmOverloads constructor(
                     BeginnerActivity::class.java
                 )
             )
+            context.getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .edit() {
+                    putBoolean("has_shown_guide_$guideBeginner", true)
+                }
+            this.mode  = null
             return true
         } else {
             return false
