@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- 底部行（时间 + 操作菜单） -->
+    <LinearLayout
+        android:id="@+id/feedback_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:alignItems="flex_start"
+        app:flexDirection="row"
+        app:justifyContent="flex_start"
+        app:layout_alignSelf="flex_start">
+
+        <ImageView
+            android:id="@+id/btn_pic"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_pic_black" />
+
+        <ImageView
+            android:id="@+id/btn_pray"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_pray"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/btn_share_text"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_share_black" />
+
+        <ImageView
+            android:id="@+id/btn_like_ai"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_like_black" />
+
+        <ImageView
+            android:id="@+id/btn_play"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_play_black" />
+
+        <ImageView
+            android:id="@+id/btn_del"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_del_black" />
+
+        <ImageView
+            android:id="@+id/btn_redo"
+            style="@style/FeedOperator"
+            android:src="@mipmap/ic_redo_black" />
+    </LinearLayout>
+</merge>

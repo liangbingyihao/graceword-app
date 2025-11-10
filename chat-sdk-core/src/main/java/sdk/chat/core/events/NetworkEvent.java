@@ -114,7 +114,6 @@ public class NetworkEvent {
         return new NetworkEvent(EventType.MessageAdded, message.getThread(), message);
     }
 
-    @Deprecated
     public static NetworkEvent messageAdded(Thread thread, Message message) {
         return new NetworkEvent(EventType.MessageAdded, thread, message);
     }
@@ -148,11 +147,12 @@ public class NetworkEvent {
         return new NetworkEvent(EventType.MessageRemoved, thread, message);
     }
 
-    public static NetworkEvent messageInputPrompt(String message,String placeHolder) {
+    public static NetworkEvent messageInputPrompt(String message, String placeHolder) {
         NetworkEvent event = new NetworkEvent(EventType.MessageInputPrompt);
         event.text = message;
         Map<String, Object> params = new HashMap<>();
         params.put("default", placeHolder);
+//        params.put("action", action);
         event.data = params;
         return event;
     }

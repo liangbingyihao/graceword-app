@@ -117,8 +117,7 @@
         android:layout_gravity="center|bottom"
         android:background="@color/white"
         android:paddingTop="26dp"
-        android:paddingBottom="12dp"
-        android:layout_marginBottom="16dp">
+        android:paddingBottom="12dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/conversations"

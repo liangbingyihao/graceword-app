@@ -22,6 +22,7 @@ import com.stfalcon.chatkit.messages.MessageHolders
 import com.stfalcon.chatkit.messages.MessagesListAdapter
 import com.stfalcon.chatkit.messages.MessagesListStyle
 import io.noties.markwon.Markwon
+import io.noties.markwon.html.HtmlPlugin
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Predicate
 import sdk.chat.core.dao.Keys
@@ -31,6 +32,7 @@ import sdk.chat.core.manager.DownloadablePayload
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.core.utils.CurrentLocale
+import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
@@ -38,6 +40,8 @@ import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.StateStorage
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.ui.MarkdownRenderer
+import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
 import java.text.DateFormat
@@ -48,7 +52,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
 //    MessageHolders.DefaultMessageViewHolder,
     Consumer<Throwable> {
-    open var root: View? = itemView.findViewById(R.id.root)
+//    open var root: View? = itemView.findViewById(R.id.root)
     open var bubble: ViewGroup? = itemView.findViewById(R.id.bubble)
 
     open var replyText: MaterialButton? = itemView.findViewById(R.id.replyText)
@@ -155,14 +159,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             }
         }
 
-//        time?.let {
-//            UIModule.shared().timeBinder.bind(it, t)
-//        }
-//
-//        messageIcon?.let {
-//            UIModule.shared().iconBinder.bind(it, t)
-//        }
-
 
         if (StateStorage.getStateB(t.message.status)) {
             imageLikeAi?.setImageResource(R.mipmap.ic_dislike_black)
@@ -189,14 +185,29 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         var feedbackText = aiFeedback?.feedbackText ?: ""
         cbAiText?.visibility = View.GONE
 //        feedbackText = aiFeedback?.feedbackText ?: t.message.stringForKey("feedback")
+//        feedbackText = "<span style=\"text-decoration: underline; color: red;\">红色下划线</span> <br/>"+feedbackText
+//        feedbackText = "<span style=\"border-bottom: 1px dotted #666;\">点状虚线下划线</span>"
+//        val markdownText = """
+//            <p>这是一段普通文本。</p>
+//            <p>这是<u class="bible">红色虚线带下划线的文本（带bible类）</u>，点击试试！</p>
+//            <p>这是<u>普通下划线文本（不带类）</u>，使用默认样式。</p>
+//            <p>这是另一段<u class="bible">带有自定义点击事件的红色文本（带bible类）</u>。</p>
+//            <p>混合内容：普通文本，<u class="bible">红色下划线文本（带bible类）</u>，普通文本，<u>普通下划线文本（不带类）</u>。</p>
+//        """.trimIndent().trimIndent()+feedbackText
+
         feedback?.let {
             if (!feedbackText.isEmpty() && isMultiSelectMode) {
                 cbAiText?.visibility = View.VISIBLE
                 cbAiText?.isChecked = t.isAiSelected
             }
             it.visibility = View.VISIBLE
-            Markwon.create(it.context)
-                .setMarkdown(it, feedbackText)
+            it.isClickable = true
+            it.isFocusable = true
+            MarkdownRenderer.markwon.setMarkdown(it, feedbackText);
+//            Markwon.builder(it.context)
+//                .usePlugin(HtmlPlugin.create().addHandler(RedUnderlineTagHandler()))
+//                .build()
+//                .setMarkdown(it, markdownText)
         }
 
 
@@ -356,38 +367,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             sendErrorHint?.visibility = View.GONE
         }
         return true
-
-
-//        if (aiFeedback == null && status == MessageSendStatus.UploadFailed) {
-//            //消息也没发出去
-//            sendErrorHint?.visibility = View.VISIBLE
-//            replyErrorHint?.visibility = View.GONE
-//            contentMenu?.visibility = View.GONE
-//            processContainer?.visibility = View.GONE
-//            imageContainer?.visibility = View.GONE
-//            imageMenu?.visibility = View.GONE
-//            return true
-//        }
-//        sendErrorHint?.visibility = View.GONE
-//        if (status == MessageSendStatus.Uploading || status == MessageSendStatus.Replying) {
-//            feedbackHint?.setText(R.string.uploading);
-//            feedbackHint?.setTextColor("#919191".toColorInt())
-//            imageFeedbackHint?.setImageResource(R.drawable.loading_animation)
-//            return true
-//        } else if (holder.message.messageStatus == MessageSendStatus.Failed) {
-//            feedbackHint?.setText(R.string.ai_failed);
-//            feedbackHint?.setTextColor("#FFCF4B40".toColorInt())
-//            imageFeedbackHint?.setImageResource(R.mipmap.ic_redo_red)
-//        } else if (holder.message.messageStatus == MessageSendStatus.Replying) {
-//            val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
-//            if (holder.message.id == threadHandler.pendingMsgId()) {
-//                processContainer?.visibility = View.VISIBLE
-//                feedbackHint?.setText(R.string.loading);
-//                feedbackHint?.setTextColor("#919191".toColorInt())
-//                imageFeedbackHint?.setImageResource(R.drawable.loading_animation)
-//            }
-//        }
-//        return false
 
     }
 

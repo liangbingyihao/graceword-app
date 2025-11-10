@@ -13,6 +13,7 @@ import sdk.chat.demo.robot.api.model.AIFeedback;
 import sdk.chat.demo.robot.api.model.AIFeedbackDeserializer;
 import sdk.chat.demo.robot.api.model.MessageDetail;
 import sdk.chat.demo.robot.holder.HolderProvider;
+import sdk.chat.demo.robot.holder.WelcomeHolder;
 
 public class GWMsgHandler implements MessageHandler {
     private static Gson gson = new GsonBuilder()
@@ -40,7 +41,7 @@ public class GWMsgHandler implements MessageHandler {
 
 
     public static MessageDetail getAiFeedback(Message message) {
-        if(message==null){
+        if(message==null|| WelcomeHolder.isWelcomeMsg(message)){
             return null;
         }
         String aiFeedbackStr = message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK);

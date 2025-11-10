@@ -14,11 +14,9 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.gyf.immersionbar.ImmersionBar
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
-import materialsearchview.MaterialSearchView
 import org.tinylog.Logger
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
@@ -36,13 +34,12 @@ import sdk.chat.demo.robot.fragments.GWChatFragment
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
+import sdk.chat.demo.robot.holder.WelcomeHolder
 import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
-import sdk.chat.demo.robot.utils.ToastHelper
-import sdk.guru.common.RX
-import java.util.concurrent.TimeUnit
+import androidx.core.view.isVisible
 
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
@@ -60,7 +57,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
     private val chatTag = "tag_chat";
     private var toReloadSessions = false
-    private var hasShownGuide = false
+    private var hasShownWelcome = false
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -100,6 +97,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         vTaskMenu = findViewById<View>(R.id.menu_task)
         vTaskMenu.setOnClickListener(this)
         vRedDotTask = findViewById<View>(R.id.red_dot2)
+
 
 //        KeyboardDrawerHelper.setup(drawerLayout)
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
@@ -144,14 +142,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 })
         )
 
-
-        //        dm.add(ChatSDK.events().sourceOnMain()
-//                .filter(NetworkEvent.filterRoleUpdated(thread, ChatSDK.currentUser()))
-//                .subscribe(networkEvent -> {
-//                    showOrHideTextInputView();
-//                }));
-
         if (!hasShownGuideOverlay(this@MainDrawerActivity)) {
+            getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .edit() {
+                    putBoolean("has_shown_guide", true)
+                }
             dm.add(
                 ChatSDK.events().prioritySourceOnSingle()
                     .filter(
@@ -167,18 +162,41 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         )
                     }, this)
             )
-
             dm.add(
-                threadHandler.welcomeMsg
-                    .delay(2, TimeUnit.SECONDS)
-                    .subscribeOn(RX.io())
-                    .observeOn(RX.main())
-                    .subscribe(
-                        {
-                        },
-                        this
-                    )
+                ChatSDK.events().sourceOnSingle()
+                    .filter(NetworkEvent.filterType(EventType.MessageAdded))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(Consumer { networkEvent: NetworkEvent? ->
+                        if (WelcomeHolder.isWelcomeMsg(networkEvent!!.getMessage())) {
+                            vHomeMenu.visibility = View.GONE
+                            vTaskMenu.visibility = View.GONE
+                            findViewById<View>(R.id.red_dot).visibility = View.GONE
+                            findViewById<View>(R.id.red_dot3).visibility = View.GONE
+                            highlightOverlay?.finishGuideBeginner()
+                        } else {
+                            vHomeMenu.visibility = View.VISIBLE
+                            vTaskMenu.visibility = View.VISIBLE
+                            if(!hasShownWelcome){
+                                getSharedPreferences("app_prefs", MODE_PRIVATE)
+                                    .edit() {
+                                        putBoolean("has_shown_welcome", true)
+                                    }
+                                setRedDotView()
+                            }
+                        }
+                    })
             )
+//            dm.add(
+//                threadHandler.welcomeMsg
+//                    .delay(2, TimeUnit.SECONDS)
+//                    .subscribeOn(RX.io())
+//                    .observeOn(RX.main())
+//                    .subscribe(
+//                        {
+//                        },
+//                        this
+//                    )
+//            )
         }
 
         supportFragmentManager.beginTransaction()
@@ -196,9 +214,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun checkTaskDetail() {
-        hasShownGuide = getSharedPreferences("app_prefs", MODE_PRIVATE)
-            .getBoolean("has_shown_guide", false)
-        if (hasShownGuide) {
+        hasShownWelcome = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            .getBoolean("has_shown_welcome", false)
+        if (hasShownWelcome) {
             val today: String = DateLocalizationUtil.formatDayAgo(0)
             var showDate =
                 getSharedPreferences("app_prefs", MODE_PRIVATE).getString("shown_gw_date", "")
@@ -210,44 +228,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 .edit() {
                     putString("shown_gw_date", today)
                 }
-        } else {
-            // 保存已经显示过引导页的状态
-            getSharedPreferences("app_prefs", MODE_PRIVATE)
-                .edit() {
-                    putBoolean("has_shown_guide", true)
-                }
         }
 
 
     }
 
-
-//    private fun toMenuItems(data: List<Thread>): ArrayList<HistoryItem> {
-//        sessions = data
-//        val sessionMenus: ArrayList<HistoryItem> = ArrayList<HistoryItem>()
-//        var lastTime: String? = null
-//        toReloadSessions = false
-//        for (i in 0 until min(sessions.size, 100)) {
-//            var session = sessions[i]
-////            var thisTime =
-////                DateLocalizationUtil.getFriendlyDate(this@MainDrawerActivity, session.creationDate)
-////            if (thisTime != lastTime) {
-////                lastTime = thisTime
-////                sessionMenus.add(HistoryItem.DateItem(lastTime))
-////            }
-//            var name = when {
-//                session.name.isNotEmpty() -> session.name
-//                session.messages.isNotEmpty() -> session.messages[0].text
-//                else -> "新会话"
-//            }
-////            name = session.entityID + "," + name + "," + session.type.toString();
-//            if (!toReloadSessions && "新会话" == name) {
-//                toReloadSessions = true
-//            }
-//            sessionMenus.add(HistoryItem.SessionItem(name, session.entityID))
-//        }
-//        return sessionMenus
-//    }
 
     private fun listSessions() {
         dm.add(
@@ -355,35 +340,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         }
     }
 
-//    private val dialogEditSingle by lazy {
-//        DialogEditSingle(this) { inputText ->
-//            // 处理发送逻辑
-//            var item: HistoryItem.SessionItem? = sessionAdapter.getSelectItem()
-//            if (item != null) {
-//                Toast.makeText(this, "${item.title}: $inputText", Toast.LENGTH_SHORT).show()
-//                dm.add(
-//                    threadHandler.setSessionName(item.sessionId.toLong(), inputText)
-//                        .observeOn(RX.main()).subscribe(
-//                            { result ->
-//                                if (!result) {
-//                                    Toast.makeText(
-//                                        this@MainDrawerActivity,
-//                                        getString(R.string.failed_and_retry),
-//                                        Toast.LENGTH_SHORT
-//                                    ).show()
-//                                }
-//                            },
-//                            { error -> // onError
-//                                Toast.makeText(
-//                                    this@MainDrawerActivity,
-//                                    "${getString(R.string.failed_and_retry)} ${error.message}",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                            })
-//                )
-//            }
-//        }
-//    }
 
     fun toggleDrawer() {
         if (drawerLayout.isOpen) {
@@ -409,48 +365,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
     override fun getLayout(): Int {
         return R.layout.activity_main_coze_drawer;
-    }
-
-//    override fun searchEnabled(): Boolean {
-//        return false
-//    }
-//
-//    override fun search(text: String?) {
-//
-//    }
-//
-//    override fun searchView(): MaterialSearchView {
-//        return searchView
-//    }
-//
-//    override fun reloadData() {
-//
-//    }
-//
-//    override fun clearData() {
-//
-//    }
-//
-//    override fun updateLocalNotificationsForTab() {
-//
-//    }
-
-    // 显示引导层
-    fun showTutorialOverlay(targetView: View) {
-//        highlightOverlay?.setHighlightMode(this@MainDrawerActivity,guideDrawer)
-//        val rootView = findViewById<ViewGroup>(R.id.content_container) // 获取根布局
-//        val overlay = HighlightOverlayView(this).apply {
-//            layoutParams = FrameLayout.LayoutParams(
-//                ViewGroup.LayoutParams.MATCH_PARENT,
-//                ViewGroup.LayoutParams.MATCH_PARENT
-//            )
-//        }
-//        var r:RecyclerView = findViewById<View>(R.id.chatView).findViewById<RecyclerView>(R.id.recyclerview)
-//        var m: View? = findTopmostVisibleViewByResId(r,R.id.btn_pic)
-//        if(m!=null){
-//            highlightOverlay?.setHighlightMode(this@MainDrawerActivity,guideDrawer) // 设置高亮区域
-//        }
-//        rootView.addView(overlay) // 添加到根布局
     }
 
     override fun onClick(v: View?) {
@@ -481,7 +395,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             }
 
             R.id.menu_gw_daily -> {
-                hasShownGuide = true
+                hasShownWelcome = true
                 startActivity(
                     Intent(
                         this@MainDrawerActivity,
@@ -520,25 +434,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     fun setRedDotView() {
         setGwdRedDotView()
         setTaskRedDotView()
-//
-//        val redDot2: View = findViewById<View>(R.id.red_dot2)
-//        vTaskMenu.post({
-//            // 获取菜单图标的宽高
-//            val menuWidth: Int = vTaskMenu.width
-//
-//            // 创建布局参数
-//            val params: FrameLayout.LayoutParams =
-//                redDot2.layoutParams as FrameLayout.LayoutParams
-//
-//
-//            // 设置红点位置（菜单图标右上角）
-//            params.gravity = Gravity.START or Gravity.TOP
-//            params.leftMargin =
-//                vTaskMenu.left + menuWidth - vTaskMenu.paddingRight - redDot2.width / 2
-//            params.topMargin = vTaskMenu.top + vTaskMenu.paddingTop - redDot2.height / 2
-//            redDot2.setLayoutParams(params)
-//        })
-
 
     }
 
@@ -550,7 +445,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(
                     { data ->
-                        if (data != null && !data.taskDetail.isAllUserTaskCompleted) {
+                        if (data != null && !data.taskDetail.isAllUserTaskCompleted&&vTaskMenu.isVisible) {
                             // 获取菜单图标的宽高
                             val menuWidth: Int = vTaskMenu.width
 
@@ -581,7 +476,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         // 获取红点视图
         val redDot: View = findViewById<View>(R.id.red_dot)
         val redDot3: View = findViewById<View>(R.id.red_dot3)
-        if (!hasShownGuide) {
+        if (!hasShownWelcome) {
             vDgwMenu.post({
                 val drawables: Array<Drawable?> = vDgwMenu.getCompoundDrawables()
                 val leftDrawable: Drawable? = drawables[0]
@@ -603,6 +498,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             })
 // 在视图布局完成后调整位置
             vHomeMenu.post({
+                redDot.visibility = vHomeMenu.visibility
                 // 获取菜单图标的宽高
                 val menuWidth: Int = vHomeMenu.width
 
@@ -620,6 +516,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 redDot.setLayoutParams(params)
             })
 
+            // 保存已经显示过引导页的状态
         } else {
             redDot.visibility = View.GONE
             redDot3.visibility = View.GONE

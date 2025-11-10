@@ -16,6 +16,8 @@ public class AIFeedback {
     private String view;
     private List<String> explore;
     private String prompt;
+    private List<Song> hymns;
+    private String response;
 
     public String getColorTag() {
         return colorTag;
@@ -79,5 +81,21 @@ public class AIFeedback {
 
     public void setExplore(List<String> explore) {
         this.explore = explore;
+    }
+
+    public List<Song> getHymns() {
+        return hymns;
+    }
+
+    public void setHymns(List<Song> hymns) {
+        this.hymns = hymns;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

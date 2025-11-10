@@ -2,39 +2,28 @@ package sdk.chat.demo.robot.ui;
 
 
 import sdk.chat.core.ui.KeyboardOverlayHandler;
+import sdk.chat.demo.robot.activities.BibleActivity;
+import sdk.chat.demo.robot.api.model.GWConfigs;
 import sdk.chat.demo.robot.extensions.ActivityExtensionsKt;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Space;
 import android.widget.TextView;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.tinylog.Logger;
 
 import java.io.File;
@@ -43,8 +32,8 @@ import java.lang.reflect.Field;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.audio.AsrHelper;
-import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.utils.ToastHelper;
 
 public class GWMsgInput extends RelativeLayout
         implements View.OnClickListener, TextWatcher, View.OnFocusChangeListener {
@@ -62,6 +51,8 @@ public class GWMsgInput extends RelativeLayout
 //    public Space sendButtonSpace, attachmentButtonSpace;
 
     private CharSequence input;
+    private InputIntentView inputIntentView;
+    private View inputIntentMenus;
     private GWMsgInput.InputListener inputListener;
     private GWMsgInput.AttachmentsListener attachmentsListener;
     private boolean isTyping;
@@ -127,40 +118,6 @@ public class GWMsgInput extends RelativeLayout
      *
      * @return ImageButton
      */
-//    public ImageButton getButton() {
-//        return messageSendButton;
-//    }
-
-//    private static final int MSG_UPDATE_WAVE = 1;
-//    private int soundWaveTimes;
-//    private final Handler handler = new Handler(Looper.getMainLooper()) {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            if (msg.what == MSG_UPDATE_WAVE && soundWaveTimes > 0) {
-//                --soundWaveTimes;
-//                float amplitude = (float) (Math.random() * 0.8 + 0.2);
-//                soundWaveView.updateAmplitude(amplitude);
-//
-//                if (soundWaveTimes > 0) {
-//                    sendEmptyMessageDelayed(MSG_UPDATE_WAVE, 50);
-//                } else {
-//                    soundWaveView.reset();
-//                }
-//            }
-//        }
-//    };
-
-//    public void startSimulation(int times) {
-//        soundWaveTimes = times;
-//        handler.removeMessages(MSG_UPDATE_WAVE);
-//        handler.sendEmptyMessage(MSG_UPDATE_WAVE);
-//    }
-//
-//    public void stopSimulation() {
-//        soundWaveTimes = 0;
-//        soundWaveView.reset();
-//        handler.removeMessages(MSG_UPDATE_WAVE);
-//    }
     public void onAsrStop(boolean error) {
         if (!error && System.currentTimeMillis() - whenStartAsrMillis < 700) {
             return;
@@ -170,15 +127,18 @@ public class GWMsgInput extends RelativeLayout
         circleOverlayView.stopAnimation();
         circleOverlayView.setVisibility(View.GONE);
         messageInput.setShowSoftInputOnFocus(true);
-        if(editMode==1){
+        if (editMode == 1) {
             if (attachmentsListener != null) attachmentsListener.onChangeKeyboard(true);
         }
 //        stopSimulation();
     }
 
+    public void setInputIntentMenusVisible(int visibility){
+        inputIntentMenus.setVisibility(visibility);
+    }
     public void onMsgStatusChanged(int status) {
         //status: 0: pending,1:idle
-        Log.e("sending", "onMsgStatusChanged:" + status);
+//        Log.e("sending", "onMsgStatusChanged:" + status);
         if (status == 0) {
             messageSendButton.setVisibility(GONE);
             stopSendButton.setVisibility(VISIBLE);
@@ -193,6 +153,17 @@ public class GWMsgInput extends RelativeLayout
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.messageSendButton) {
+            if(!isSendEnable()){
+                if(isSearchingHymns){
+                    ToastHelper.show(getContext(),R.string.hint_search_hymns);
+                }else{
+                    ToastHelper.show(getContext(),R.string.hint_msg_input);
+                }
+                return;
+            }
+            if(!isSearchingHymns&&inputIntentMenus.getVisibility()!=View.VISIBLE){
+                inputIntentMenus.setVisibility(View.VISIBLE);
+            }
             whenStartAsrMillis = 0;
             AsrHelper.INSTANCE.stopAsr();
             boolean isSubmitted = onSubmit();
@@ -201,7 +172,7 @@ public class GWMsgInput extends RelativeLayout
                 messageInput.setText("");
                 lastLength = 0;
                 messagePrompt.setVisibility(GONE);
-                setEditMode(0, false);
+                setEditMode(MODE_NORMAL, false);
             }
             removeCallbacks(typingTimerRunnable);
             post(typingTimerRunnable);
@@ -235,7 +206,20 @@ public class GWMsgInput extends RelativeLayout
 //            view.setVisibility(INVISIBLE);
 //            messageSendButton.setVisibility(VISIBLE);
         } else if (id == R.id.editMode) {
-            setEditMode(editMode == 0 ? 1 : 0, true);
+            setEditMode(editMode == MODE_FULLSCREEN ? MODE_NORMAL : MODE_FULLSCREEN, true);
+        } else if (id == R.id.hymns) {
+            inputIntentMenus.setVisibility(View.GONE);
+            inputIntentView.onClick(view);
+            messageInput.setHint(R.string.hint_search_hymns);
+            isSearchingHymns = true;
+            if (typingListener != null) typingListener.onHeightChange();
+        } else if (id == R.id.hideSongMenu) {
+            inputIntentMenus.setVisibility(View.VISIBLE);
+            messageInput.setHint(R.string.hint_msg_input);
+            isSearchingHymns = false;
+            if (typingListener != null) typingListener.onHeightChange();
+        } else if (id == R.id.bible) {
+            BibleActivity.Companion.start(this.getContext(),"");
         }
     }
 
@@ -246,7 +230,8 @@ public class GWMsgInput extends RelativeLayout
     @Override
     public void onTextChanged(CharSequence s, int start, int count, int after) {
         input = s;
-        messageSendButton.setEnabled(!s.toString().trim().isEmpty());
+//        messageSendButton.setEnabled(!s.toString().trim().isEmpty());
+//        messageSendButton.setEnabled(isSendEnable());
         if (s.length() > 0) {
             if (!isTyping) {
                 isTyping = true;
@@ -325,12 +310,20 @@ public class GWMsgInput extends RelativeLayout
         }
     }
 
+    public String getHymnsParams() {
+        if(!isSearchingHymns) return null;
+        return inputIntentView.getHymnsParams();
+    }
+
+    public void initHymnsParams(GWConfigs configs){
+        inputIntentView.initHymnsParams(configs);
+    }
 
     public void setMessagePrompt(String prompt) {
         if (prompt != null && !prompt.isEmpty()) {
             messagePrompt.setVisibility(VISIBLE);
             messagePrompt.setText(prompt);
-            setEditMode(1, true);
+            setEditMode(MODE_FULLSCREEN, true);
         } else {
             messagePrompt.setVisibility(GONE);
         }
@@ -345,6 +338,7 @@ public class GWMsgInput extends RelativeLayout
     }
 
 
+    @SuppressLint("WrongViewCast")
     public void init(Context context) {
         // Causes some dropped frames... but it's the system
         LayoutInflater.from(context).inflate(R.layout.view_message_input, this);
@@ -358,6 +352,8 @@ public class GWMsgInput extends RelativeLayout
         stopSendButton = findViewById(R.id.messageStopButton);
         attachmentButton = findViewById(R.id.attachmentButton);
         buttonContainer = findViewById(R.id.buttonContainer);
+        inputIntentView = findViewById(R.id.inputIntent);
+        inputIntentMenus = findViewById(R.id.menus);
 //        soundWaveView = findViewById(R.id.soundWave);
         circleOverlayView = findViewById(R.id.circleOverlay);
 //                circleOverlay.startAnimation()
@@ -366,6 +362,8 @@ public class GWMsgInput extends RelativeLayout
         stopSendButton.setOnClickListener(this);
         attachmentButton.setOnClickListener(this);
         editModeButton.setOnClickListener(this);
+        findViewById(R.id.hymns).setOnClickListener(this);
+        findViewById(R.id.bible).setOnClickListener(this);
 //        findViewById(R.id.stopAsr).setOnClickListener(this);
         messageInput.addTextChangedListener(this);
         messagePrompt.addTextChangedListener(new TextWatcher() {
@@ -426,11 +424,16 @@ public class GWMsgInput extends RelativeLayout
 
 
         postDelayed(setEditModeRunnable, 10);
+        inputIntentView.setMainMenuView(this);
 //        setEditMode(0);
 
     }
 
-    private int editMode = 0;//0:关闭，1：全屏
+    private int editMode = MODE_NORMAL;//0:关闭，1：全屏
+    private final static int MODE_NORMAL = 0;
+    private final static int MODE_FULLSCREEN = 1;
+    private final static int MODE_SEARCH_HYMNS = 2;
+    private boolean isSearchingHymns = false;
 
     private final Runnable setEditModeRunnable = new Runnable() {
         @Override
@@ -441,13 +444,13 @@ public class GWMsgInput extends RelativeLayout
 
     public void updateInputHeight() {
         //键盘变更时
-        if (editMode == 1) {
-            setEditMode(1, false);
+        if (editMode == MODE_FULLSCREEN) {
+            setEditMode(MODE_FULLSCREEN, false);
         }
     }
 
     public boolean isFullScreen() {
-        return editMode == 1;
+        return editMode == MODE_FULLSCREEN;
     }
 
     public String getDraft() {
@@ -481,7 +484,7 @@ public class GWMsgInput extends RelativeLayout
                 messagePrompt.setText(prompt);
             }
 
-            setEditMode(0, false);
+            setEditMode(this.editMode, false);
         }
     }
 
@@ -500,7 +503,7 @@ public class GWMsgInput extends RelativeLayout
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) inputContainer.getLayoutParams();
 
         // 设置边距
-        if (editMode == 0) {
+        if (editMode != MODE_FULLSCREEN) {
             if (paramsContract == null) {
                 paramsContract = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 paramsContract.leftMargin = ActivityExtensionsKt.dpToPx(58, this.getContext());
@@ -600,7 +603,7 @@ public class GWMsgInput extends RelativeLayout
 
 //            AsrHelper.INSTANCE.appendLog("1:startPos:" + startPos + "," + lastLength + "," + editable.toString().substring(startPos, startPos + lastLength) + " TO " + newText);
             editable.replace(startPos, startPos + lastLength, newText);
-            messageSendButton.setEnabled(input.length() > 0);
+//            messageSendButton.setEnabled(isSendEnable());
             checkExpand();
 //            AsrHelper.INSTANCE.appendLog("2:" + editable.toString());
             lastLength = newText.length();
@@ -611,34 +614,45 @@ public class GWMsgInput extends RelativeLayout
             }
             messageInput.addTextChangedListener(this);
         } catch (Exception e) {
-            Logger.error(e,"smartInsertAtCursor");
+            Logger.error(e, "smartInsertAtCursor");
         }
     }
 
-    private void setCursor(Drawable drawable) {
-        if (drawable == null) return;
-
-        try {
-            @SuppressLint("SoonBlockedPrivateApi") final Field drawableResField = TextView.class.getDeclaredField("mCursorDrawableRes");
-            drawableResField.setAccessible(true);
-
-            final Object drawableFieldOwner;
-            final Class<?> drawableFieldClass;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                drawableFieldOwner = this.messageInput;
-                drawableFieldClass = TextView.class;
-            } else {
-                final Field editorField = TextView.class.getDeclaredField("mEditor");
-                editorField.setAccessible(true);
-                drawableFieldOwner = editorField.get(this.messageInput);
-                drawableFieldClass = drawableFieldOwner.getClass();
-            }
-            final Field drawableField = drawableFieldClass.getDeclaredField("mCursorDrawable");
-            drawableField.setAccessible(true);
-            drawableField.set(drawableFieldOwner, new Drawable[]{drawable, drawable});
-        } catch (Exception ignored) {
+    private boolean isSendEnable() {
+        boolean r = input != null && !input.toString().trim().isEmpty();
+        if (!r && isSearchingHymns) {
+            String p = inputIntentView.getHymnsParams();
+            r = p != null && !p.isEmpty();
+            Log.e("getHymnsParams.isSendEnable", p+":"+r);
         }
+
+        return r;
     }
+
+//    private void setCursor(Drawable drawable) {
+//        if (drawable == null) return;
+//
+//        try {
+//            @SuppressLint("SoonBlockedPrivateApi") final Field drawableResField = TextView.class.getDeclaredField("mCursorDrawableRes");
+//            drawableResField.setAccessible(true);
+//
+//            final Object drawableFieldOwner;
+//            final Class<?> drawableFieldClass;
+//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+//                drawableFieldOwner = this.messageInput;
+//                drawableFieldClass = TextView.class;
+//            } else {
+//                final Field editorField = TextView.class.getDeclaredField("mEditor");
+//                editorField.setAccessible(true);
+//                drawableFieldOwner = editorField.get(this.messageInput);
+//                drawableFieldClass = drawableFieldOwner.getClass();
+//            }
+//            final Field drawableField = drawableFieldClass.getDeclaredField("mCursorDrawable");
+//            drawableField.setAccessible(true);
+//            drawableField.set(drawableFieldOwner, new Drawable[]{drawable, drawable});
+//        } catch (Exception ignored) {
+//        }
+//    }
 
     public void setTypingListener(GWMsgInput.TypingListener typingListener) {
         this.typingListener = typingListener;
@@ -646,8 +660,10 @@ public class GWMsgInput extends RelativeLayout
 
     public interface TextInputDelegate extends KeyboardOverlayHandler {
 
-        void sendAudio (final File file, String mimeType, long duration);
+        void sendAudio(final File file, String mimeType, long duration);
+
         void sendMessage(String text);
+
         boolean keyboardOverlayAvailable();
 
     }

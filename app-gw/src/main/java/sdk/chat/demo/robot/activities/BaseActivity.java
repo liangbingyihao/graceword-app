@@ -146,7 +146,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Consumer
                     public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
                         Log.d("onApplyWindowInsets", "callback");
                         Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                        v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                        v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                         return insets;
                     }
                 });

@@ -5,14 +5,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -27,7 +25,6 @@ import sdk.chat.core.dao.User;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
-import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -39,9 +36,9 @@ public class GuideActivity extends BaseActivity {
     private LinearLayout dotsLayout;
     private MaterialButton btnNext;
     private final int[] guideImages = {
-            R.mipmap.ic_intro_m1,
-            R.mipmap.ic_intro_m2,
-            R.mipmap.ic_intro_m3
+            R.mipmap.ic_intro_1,
+            R.mipmap.ic_intro_2,
+//            R.mipmap.ic_intro_m3
     };
     private final int[] guideTitles = {
             R.string.guide_1,
@@ -200,19 +197,19 @@ public class GuideActivity extends BaseActivity {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_guide, parent, false);
+                    .inflate(R.layout.item_guide2, parent, false);
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             holder.imageView.setImageResource(guideImages[position]);
-            holder.titleView.setText(getString(guideTitles[position]));
-            holder.descView.setText(getString(guideDescriptions[position]));
-
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.maskView.getLayoutParams();
-            params.height = maskHeights[position]; // 设置新高度（单位：像素）
-            holder.maskView.setLayoutParams(params);
+//            holder.titleView.setText(getString(guideTitles[position]));
+//            holder.descView.setText(getString(guideDescriptions[position]));
+//
+//            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.maskView.getLayoutParams();
+//            params.height = maskHeights[position]; // 设置新高度（单位：像素）
+//            holder.maskView.setLayoutParams(params);
         }
 
         @Override
@@ -222,16 +219,16 @@ public class GuideActivity extends BaseActivity {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             ImageView imageView;
-            TextView titleView;
-            TextView descView;
-            View maskView;
+//            TextView titleView;
+//            TextView descView;
+//            View maskView;
 
             public ViewHolder(View view) {
                 super(view);
                 imageView = view.findViewById(R.id.image);
-                titleView = view.findViewById(R.id.title);
-                descView = view.findViewById(R.id.description);
-                maskView = view.findViewById(R.id.image_mask);
+//                titleView = view.findViewById(R.id.title);
+//                descView = view.findViewById(R.id.description);
+//                maskView = view.findViewById(R.id.image_mask);
             }
         }
     }

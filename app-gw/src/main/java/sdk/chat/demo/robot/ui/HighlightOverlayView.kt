@@ -3,6 +3,7 @@ package sdk.chat.demo.robot.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -18,6 +19,8 @@ import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.utils.Device.dpToPx
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.BaseActivity
+import sdk.chat.demo.robot.activities.BeginnerActivity
+import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.extensions.findTopmostVisibleViewByResId
 import sdk.chat.demo.robot.handlers.GWMsgHandler
@@ -50,6 +53,7 @@ class HighlightOverlayView @JvmOverloads constructor(
     private val guideDrawer = "guide_drawer"
     private val guidePic = "guide_pic"
     private val guidePray = "guide_pray"
+    private val guideBeginner = "guide_beginner"
     private val allModes = arrayOf(guidePic, guidePray, guideDrawer)
 
     private var onClickListener: OnClickListener = View.OnClickListener { view ->
@@ -78,6 +82,12 @@ class HighlightOverlayView @JvmOverloads constructor(
         findViewById<View>(R.id.btn_next).setOnClickListener(onClickListener)
     }
 
+    fun finishGuideBeginner() {
+        context.getSharedPreferences("app_prefs", MODE_PRIVATE)
+            .edit() {
+                putBoolean("has_shown_guide_$guideBeginner", true)
+            }
+    }
 
     private fun setHighlightMode(mode: String): Boolean {
         var context = weakContext?.get()
@@ -141,6 +151,14 @@ class HighlightOverlayView @JvmOverloads constructor(
             relativeTop = 250
             resId = R.mipmap.ic_pray_guide
 //            setHighlightView(67, 250, resId)
+        } else if (mode == guideBeginner) {
+            weakContext?.get()?.startActivity(
+                Intent(
+                    weakContext!!.get(),
+                    BeginnerActivity::class.java
+                )
+            )
+            return true
         } else {
             return false
         }
@@ -150,7 +168,7 @@ class HighlightOverlayView @JvmOverloads constructor(
                     putBoolean("has_shown_guide_$mode", true)
                 }
             highlightIndicator.post {
-                setHighlightView(relativeLeft,relativeTop, resId)
+                setHighlightView(relativeLeft, relativeTop, resId)
             }
             return true
         }

@@ -32,6 +32,7 @@ import java.util.Map;
 
 import io.reactivex.Completable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import kotlin.Unit;
 import sdk.chat.core.dao.Keys;
 import sdk.chat.core.dao.Message;
@@ -55,9 +56,11 @@ import sdk.chat.demo.robot.activities.BaseActivity;
 import sdk.chat.demo.robot.activities.SplashScreenActivity;
 import sdk.chat.demo.robot.activities.TaskActivity;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
+import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.audio.AsrHelper;
 import sdk.chat.demo.robot.handlers.DailyTaskHandler;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.holder.WelcomeHolder;
 import sdk.chat.demo.robot.ui.GWChatContainer;
 import sdk.chat.demo.robot.ui.GWMsgInput;
 import sdk.chat.demo.robot.ui.InputIntentView;
@@ -224,22 +227,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         koh.showOptionsKeyboardOverlay();
 
         input.getInputEditText().setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-
-//        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-//            if (result.getResultCode() == Activity.RESULT_OK) {
-//                Intent data = result.getData();
-//                if (data != null && getActivity() != null) {
-//                    Serializable media = data.getSerializableExtra(KeyUtils.SELECTED_MEDIA);
-//                    if (media != null) {
-//                        // Pass these extras to the chat preview activity
-//                        Intent intent = new Intent(getActivity(), ChatPreviewActivity.class);
-//                        intent.putExtra(KeyUtils.SELECTED_MEDIA, media);
-//                        intent.putExtra(Keys.IntentKeyThreadEntityID, thread.getEntityID());
-//                        getActivity().startActivity(intent);
-//                    }
-//                }
-//            }
-//        });
 
         return rootView;
     }
@@ -409,6 +396,23 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
             }
         });
 
+        if (ImageApi.getGwConfigs() != null) {
+            input.initHymnsParams(ImageApi.getGwConfigs());
+        } else {
+            dm.add(
+                    ImageApi.getServerConfigs()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(RX.main())
+                            .subscribe(configs -> {
+                                        input.initHymnsParams(configs);
+                                    },
+                                    error -> {
+                                        ToastHelper.show(getActivity(), error.getMessage());
+                                    })
+            );
+        }
+
+
         if (enableTrace) {
             Debug.startMethodTracing("chat");
         }
@@ -418,34 +422,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
     protected void addListeners() {
-//        dm.add(ChatSDK.events().sourceOnMain()
-//                .filter(NetworkEvent.filterType(EventType.ThreadMetaUpdated, EventType.ThreadUserAdded, EventType.ThreadUserRemoved))
-//                .filter(NetworkEvent.filterThreadEntityID(thread.getEntityID()))
-//                .subscribe(networkEvent -> {
-//                    // If we are added, we will get voice...
-//                    User user = networkEvent.getUser();
-//                    if (user != null && user.isMe()) {
-//                        showOrHideTextInputView();
-//                    }
-//                }));
-//
-//        dm.add(ChatSDK.events().sourceOnMain()
-//                .filter(NetworkEvent.filterType(EventType.UserMetaUpdated, EventType.UserPresenceUpdated))
-//                .filter(networkEvent -> thread.containsUser(networkEvent.getUser()))
-//                .subscribe(networkEvent -> {
-//                    reloadData();
-//                }));
-
-//        dm.add(ChatSDK.events().sourceOnMain()
-//                .filter(NetworkEvent.filterType(EventType.TypingStateUpdated))
-//                .filter(NetworkEvent.filterThreadEntityID(thread.getEntityID()))
-//                .subscribe(networkEvent -> {
-//                    String typingText = networkEvent.getText();
-//                    if (typingText != null) {
-//                        typingText += getString(sdk.chat.ui.R.string.typing);
-//                    }
-//                    Logger.debug(typingText);
-//                }));
 
         dm.add(
                 ChatSDK.events().sourceOnMain()
@@ -468,8 +444,13 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 .filter(NetworkEvent.filterType(EventType.MessageAdded))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(networkEvent -> {
-                    input.onMsgStatusChanged(0);
-                    hideKeyboard();
+                    if (WelcomeHolder.isWelcomeMsg(networkEvent.getMessage())) {
+                        input.setInputIntentMenusVisible(View.GONE);
+                        input.messageInput.setHint(R.string.hint_msg_welcome);
+                    } else {
+                        input.onMsgStatusChanged(0);
+                        hideKeyboard();
+                    }
                 }));
 
         dm.add(ChatSDK.events().sourceOnSingle()
@@ -596,11 +577,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
         // Clear the draft text
         thread.setDraft(null);
-
-        if (text == null || text.isEmpty()) {
-//            LogHelper.INSTANCE.appendLog("sendMessage with empty text ");
-            return;
-        }
 //        LogHelper.INSTANCE.appendLog("sendMessage:" + text.substring(0, Math.min(10, text.length())));
 
         String prompt = input.getMessagePrompt();
@@ -609,7 +585,21 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
             GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
             handleMessageSend(handler.sendExploreMessage(text, null, AIExplore.ExploreItem.action_input_prompt, prompt));
         } else {
-            handleMessageSend(ChatSDK.thread().sendMessageWithText(text.trim(), thread));
+            String params = input.getHymnsParams();
+            if (params != null) {
+                Log.d("getHymnsParams.send", params);
+                if (text != null && !text.trim().isEmpty()) {
+                    params = text.trim() + "," + params;
+                }
+                prompt = getString(R.string.prompt_search_hymns, params);
+                GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
+                handleMessageSend(handler.sendExploreMessage(prompt, null, AIExplore.ExploreItem.action_search_hymns, ""));
+            } else {
+                if (text == null || text.isEmpty()) {
+                    return;
+                }
+                handleMessageSend(ChatSDK.thread().sendMessageWithText(text.trim(), thread));
+            }
         }
         input.setMessagePrompt(null);
 

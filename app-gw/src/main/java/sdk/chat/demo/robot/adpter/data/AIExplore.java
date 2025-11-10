@@ -58,6 +58,8 @@ public class AIExplore {
         public final static int action_daily_pray = 4;
         public final static int action_input_prompt = 5;
         public final static int action_daily_gw_pray = 6;
+        public final static int action_search_hymns = 7;
+        public final static int action_input_prompt_welcome = 8;
 
         private String text;
         private int action;
@@ -147,15 +149,17 @@ public class AIExplore {
         if (messageDetail == null || messageDetail.getFeedback() == null) {
             return null;
         }
-        List<ExploreItem> itemList = messageDetail.getFeedback().getFunctions();
-        if(itemList!=null&&!itemList.isEmpty()){
-            return new AIExplore(message, itemList);
-        }
-        itemList = new ArrayList<>();
+//        List<ExploreItem> itemList = messageDetail.getFeedback().getFunctions();
+//        if(itemList!=null&&!itemList.isEmpty()){
+//            return new AIExplore(message, itemList);
+//        }
+        List<ExploreItem> itemList = new ArrayList<>();
         List<String> explores = messageDetail.getFeedback().getExplore();
         if (explores != null && !explores.isEmpty()) {
+            int msgAction = message.integerForKey("action");
+            int action = msgAction == AIExplore.ExploreItem.action_search_hymns ? msgAction : 0;
             for (String e : explores) {
-                itemList.add(new ExploreItem(0, null, e));
+                itemList.add(new ExploreItem(action, null, e));
             }
         }
         String prompt = messageDetail.getFeedback().getPrompt();

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="26dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="26dp"
+    android:layout_marginBottom="8dp"
+    android:orientation="vertical"
+    app:alignItems="flex_end"
+    app:flexDirection="column"
+    app:flexWrap="wrap">
+
+    <include layout="@layout/item_feed_user_text" />
+
+    <include layout="@layout/item_feed_process" />
+
+    <TextView
+        android:id="@+id/reply_error_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_click_shadow"
+        android:drawablePadding="4dp"
+        android:text="@string/ai_failed"
+        android:textColor="@color/item_text_selected"
+        android:textSize="17sp"
+        app:drawableLeftCompat="@mipmap/ic_redo_red" />
+
+    <TextView
+        android:id="@+id/feedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:lineSpacingExtra="8dp"
+        android:lineSpacingMultiplier="1"
+        android:textColor="@color/item_text_normal"
+        android:textIsSelectable="true"
+        android:textSize="17sp"
+        app:layout_alignSelf="flex_start" />
+    
+<!--    <LinearLayout-->
+<!--        android:id="@+id/ai_text_container"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal">-->
+
+        <sdk.chat.demo.robot.ui.SongsContainerView
+            android:id="@+id/songsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+<!--    </LinearLayout>-->
+
+    <include layout="@layout/item_feedback_menu" />
+</LinearLayout>

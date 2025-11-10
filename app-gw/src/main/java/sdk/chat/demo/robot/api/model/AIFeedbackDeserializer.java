@@ -23,7 +23,15 @@ public class AIFeedbackDeserializer implements JsonDeserializer<AIFeedback> {
 
         JsonObject jsonObject = json.getAsJsonObject();
         AIFeedback feedback = new AIFeedback();
-
+        if (jsonObject.has("hymns")) {
+            Type listType = new TypeToken<List<Song>>(){}.getType();
+            feedback.setHymns(context.deserialize(jsonObject.get("hymns"), listType));
+            if (jsonObject.has("response")) {
+                feedback.setResponse(jsonObject.get("response").getAsString());
+            }
+        } else {
+            feedback.setHymns(new ArrayList<>()); // 默认空列表
+        }
 //        // 处理 color_tag 字段
 //        if (jsonObject.has("color_tag")) {
 //            feedback.setColorTag(jsonObject.get("color_tag").getAsString());

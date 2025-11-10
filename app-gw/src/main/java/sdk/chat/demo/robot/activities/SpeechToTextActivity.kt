@@ -18,6 +18,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleObserver
+import io.noties.markwon.Markwon
+import io.noties.markwon.html.HtmlPlugin
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import sdk.chat.core.events.EventType
@@ -31,6 +33,7 @@ import sdk.chat.demo.robot.extensions.LanguageUtils
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.SpeechToTextHelper
 import sdk.chat.demo.robot.push.UpdateTokenWorker
+import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
 import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.guru.common.DisposableMap
 import java.util.Locale
@@ -112,7 +115,6 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
 //                REQUEST_RECORD_AUDIO_PERMISSION
 //            )
 //        }
-
         // 初始化语音识别
         speechToTextHelper = SpeechToTextHelper(this) { text, isFinal ->
             runOnUiThread {
@@ -125,8 +127,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             }
         }
 
-//        setVoiceTypeSpinner()
-
+        setVoiceTypeSpinner()
 
 
         dm.add(
@@ -143,13 +144,16 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
                         val clip = ClipData.newPlainText("恩语", msg)
                         clipboard.setPrimaryClip(clip)
                         ttsError.setText(msg)
-                    }else if("tts.params"==errType){
+                    } else if ("tts.params" == errType) {
                         ttsParams.setText(msg)
                     }
                 })
         )
 
-        Log.d("LanguageTag","lang:"+Locale.getDefault().toLanguageTag()+","+getString(R.string.questions));
+        Log.d(
+            "LanguageTag",
+            "lang:" + Locale.getDefault().toLanguageTag() + "," + getString(R.string.questions)
+        );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -172,7 +176,18 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
     fun setVoiceTypeSpinner() {
         ttsVoiceTypeSpinner = findViewById(R.id.ttsVoiceTypeSpinner)
         var voiceTypes = ImageApi.getGwConfigs().dbVoiceTypes
-        var languages = voiceTypes.map { item->SpinnerItem(item.name, item.voiceType) }
+        var languages = listOf<SpinnerItem>()
+        if (voiceTypes != null && !voiceTypes.isEmpty()) {
+            languages = voiceTypes.map { item ->
+                SpinnerItem(
+                    item.name.toString(),
+                    item.voiceType.toString()
+                )
+            }
+        }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languages)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ttsVoiceTypeSpinner.adapter = adapter
 //        val languages = listOf(
 //            SpinnerItem("通用-灿灿", "BV700_streaming"),
 //            SpinnerItem("通用-女声", "BV001_streaming"),
@@ -184,9 +199,6 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
 //            SpinnerItem("有声阅读-甜宠少御", "BV115_streaming"),
 //        )
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languages)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        ttsVoiceTypeSpinner.adapter = adapter
 
         var voiceType =
             getSharedPreferences("app_prefs", MODE_PRIVATE).getString(
@@ -219,7 +231,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
                     .edit() {
                         putString("db_voice_type", selected.value)
                     }
-                if(TTSHelper.voiceType!=selected.value){
+                if (TTSHelper.voiceType != selected.value) {
                     TTSHelper.resetVoiceType()
                 }
                 TTSHelper.voiceType = selected.value
@@ -256,7 +268,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
     override fun onClick(v: View?) {
         when (v?.id) {
 
-            R.id.home ->{
+            R.id.home -> {
                 finish()
             }
 
@@ -308,7 +320,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
                 DailyTaskHandler.testTaskDetail(taskIndex)
             }
 
-            R.id.getLog ->{
+            R.id.getLog -> {
 //                LogUploader.uploadLogs(this@SpeechToTextActivity)
 //                val clipboard =getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
 //                val clip = ClipData.newPlainText("恩语", LogHelper.logStr)

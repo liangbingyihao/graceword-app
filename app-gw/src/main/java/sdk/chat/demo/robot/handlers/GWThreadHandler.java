@@ -70,7 +70,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     private final AtomicBoolean hasSyncedWithNetwork = new AtomicBoolean(false);
     private List<ArticleSession> sessionCache;
     private Message welcome;
-    private AIExplore aiExplore;
+    //    private AIExplore aiExplore;
     //    private Message playingMsg;
     private Boolean isCustomPrompt = null;
     private SystemConf serverPrompt = null;
@@ -275,7 +275,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
 
     public Single<List<Message>> loadMessagesEarlier(@Nullable Long startId, boolean loadFromServer) {
-        Log.d("loadmsg","loadMessagesEarlier:" + startId);
+        Log.d("loadmsg", "loadMessagesEarlier:" + startId);
         return Single.defer(() -> {
             DaoCore daoCore = ChatSDK.db().getDaoCore();
             QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
@@ -285,13 +285,14 @@ public class GWThreadHandler extends AbstractThreadHandler {
             qb.orderDesc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
             int i = 0;
-            while (aiExplore == null && i < messages.size()) {
+            while (i < messages.size()) {
+//                while (aiExplore == null && i < messages.size()) {
                 Message tmp = messages.get(i);
-                MessageDetail aiFeedback = GWMsgHandler.getAiFeedback(tmp);
-                if (aiFeedback != null && aiFeedback.getFeedback() != null) {
-                    aiExplore = AIExplore.loads(tmp);
-//                    Log.d("onLoadElder", "aiExplore1=" + aiExplore.getMessage().getId());
-                }
+//                MessageDetail aiFeedback = GWMsgHandler.getAiFeedback(tmp);
+//                if (aiFeedback != null && aiFeedback.getFeedback() != null) {
+//                    aiExplore = AIExplore.loads(tmp);
+////                    Log.d("onLoadElder", "aiExplore1=" + aiExplore.getMessage().getId());
+//                }
                 if (startId == null || startId == 0) {
                     reloadTimeoutMsg(tmp);
                 }
@@ -302,7 +303,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public Single<List<Message>> loadMessagesLater(@Nullable Long startId, boolean loadFromServer) {
-        Log.d("loadmsg","loadMessagesLater:" + startId);
+        Log.d("loadmsg", "loadMessagesLater:" + startId);
         return Single.defer(() -> {
             DaoCore daoCore = ChatSDK.db().getDaoCore();
             QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
@@ -377,7 +378,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
             if (action == AIExplore.ExploreItem.action_input_prompt) {
                 message.setMetaValue("reply", params);
             } else {
-                message.setMetaValue("context_id", contextMsg!=null?contextMsg.getEntityID():"empty");
+                message.setMetaValue("context_id", contextMsg != null ? contextMsg.getEntityID() : "empty");
                 message.setMetaValue("action", action);
             }
 //    action_daily_ai = 0
@@ -543,7 +544,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
         message.setMessageStatus(MessageSendStatus.Uploading, true);
         pendingMsgId = message.getId();
-        aiExplore = null;
+//        aiExplore = null;
         return GWApiManager.shared().askRobot(message, prompt)
                 .subscribeOn(RX.io()).flatMap(data -> {
                     String entityId = data.get("id").getAsString();
@@ -621,7 +622,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                             JsonObject data = gson.fromJson(message.stringForKey(KEY_AI_FEEDBACK), JsonObject.class);
                             if (data != null && data.has("feedback_text")) {
                                 data.addProperty("feedback_text", "");
-                                if(data.has("feedback")){
+                                if (data.has("feedback")) {
                                     data.remove("feedback");
                                 }
                                 message.setMetaValue(KEY_AI_FEEDBACK, data.toString());
@@ -924,7 +925,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
     @SuppressLint("CheckResult")
     public void triggerNetworkSync() {
-        GWApiManager.shared().listSession(1, 100)
+        GWApiManager.shared().listSession(1, 500)
                 .subscribeOn(RX.io())
 //                .observeOn(RX.io())
                 .subscribe(
@@ -1025,7 +1026,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     public boolean updateThread(String threadId, String sessionName, Date updateAt) {
         Thread entity = ChatSDK.db().fetchOrCreateThreadWithEntityID(threadId);
         boolean modified = false;
-        Logger.info("updateThread:"+threadId+","+sessionName);
+        Logger.info("updateThread:" + threadId + "," + sessionName);
         if (sessionName != null && !sessionName.isEmpty() && !sessionName.equals(entity.getName())) {
             entity.setName(sessionName);
 //            entity.setType(ThreadType.None);
@@ -1071,51 +1072,51 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
 
-    @SuppressLint("CheckResult")
-    public Single<Message> getWelcomeMsg() {
-        if (welcome != null) {
-            return Single.just(welcome);
-        }
-        return Single.fromCallable(() -> {
-            try {
-                DaoCore daoCore = ChatSDK.db().getDaoCore();
-                QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-                qb.where(MessageDao.Properties.EntityID.eq("welcome")).limit(1);
-                List<Message> data = qb.list();
-
-                if (data.isEmpty()) {
-                    ImageApi.getServerConfigs()
-                            .subscribeOn(RX.io())
-                            .subscribe(
-                                    json -> {
-                                    },
-                                    error -> {
-                                    }
-                            );
-                }
-                welcome = data.get(0);
-                return welcome;
-            } catch (Exception e) {
-                throw new IOException("Failed to get threads", e);
-            }
-        }).subscribeOn(RX.io());
-//        return listSessions()
-//                .flatMap(Single::just)
-//                .onErrorResumeNext(error -> {
-//                    // 错误处理逻辑
-//                    if (error instanceof IOException) {
-//                        return Single.error(new IOException("Failed to list sessions", error));
-//                    }
-//                    return Single.error(error);
-//                });
-    }
+//    @SuppressLint("CheckResult")
+//    public Single<Message> getWelcomeMsg() {
+//        if (welcome != null) {
+//            return Single.just(welcome);
+//        }
+//        return Single.fromCallable(() -> {
+//            try {
+//                DaoCore daoCore = ChatSDK.db().getDaoCore();
+//                QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+//                qb.where(MessageDao.Properties.EntityID.eq("welcome")).limit(1);
+//                List<Message> data = qb.list();
+//
+//                if (data.isEmpty()) {
+//                    ImageApi.getServerConfigs()
+//                            .subscribeOn(RX.io())
+//                            .subscribe(
+//                                    json -> {
+//                                    },
+//                                    error -> {
+//                                    }
+//                            );
+//                }
+//                welcome = data.get(0);
+//                return welcome;
+//            } catch (Exception e) {
+//                throw new IOException("Failed to get threads", e);
+//            }
+//        }).subscribeOn(RX.io());
+////        return listSessions()
+////                .flatMap(Single::just)
+////                .onErrorResumeNext(error -> {
+////                    // 错误处理逻辑
+////                    if (error instanceof IOException) {
+////                        return Single.error(new IOException("Failed to list sessions", error));
+////                    }
+////                    return Single.error(error);
+////                });
+//    }
 
 
     public void updateMessage(Message message, JsonObject json) {
         if (json == null || message == null) {
             return;
         }
-//        Log.d("sending", "updateMessage:" + json.toString());
+        Log.d("sending", "updateMessage:" + json.toString());
         try {
             MessageDetail aiFeedback = gson.fromJson(json, MessageDetail.class);
             if (aiFeedback == null) {
@@ -1133,7 +1134,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 message.setThreadId(sid);
                 ChatSDK.db().update(message);
                 if (aiFeedback.getFeedback() != null) {
-                    Logger.info("updateThread0:"+message.getEntityID()+","+aiFeedback.getFeedback().getTopic());
+                    Logger.info("updateThread0:" + message.getEntityID() + "," + aiFeedback.getFeedback().getTopic());
                     updateThread(Long.toString(sid), aiFeedback.getFeedback().getTopic(), new Date());
                 }
             }
@@ -1162,22 +1163,23 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 if (sid != null && sid > 0 && !sid.equals(message.getThreadId())) {
                     message.setThreadId(sid);
                     if (aiFeedback.getFeedback() != null) {
-                        Logger.info("updateThread1:"+message.getEntityID()+","+aiFeedback.getFeedback().getTopic());
+                        Logger.info("updateThread1:" + message.getEntityID() + "," + aiFeedback.getFeedback().getTopic());
                         updateThread(Long.toString(sid), aiFeedback.getFeedback().getTopic(), new Date());
                     }
                 }
                 message.setMessageStatus(MessageSendStatus.Sent, false);
 
-                if (aiFeedback.getFeedback() != null && (aiExplore == null || aiExplore.getMessage().getId() <= message.getId())) {
-                    AIExplore newAIExplore = AIExplore.loads(message);
-                    if (newAIExplore != null) {
-                        aiExplore = newAIExplore;
-                    }
-                }
+//                if (aiFeedback.getFeedback() != null && (aiExplore == null || aiExplore.getMessage().getId() <= message.getId())) {
+//                    AIExplore newAIExplore = AIExplore.loads(message);
+//                    if (newAIExplore != null) {
+//                        aiExplore = newAIExplore;
+//                    }
+//                }
             }
 
             MessageHolder holder = HolderProvider.INSTANCE.getExitsMessageHolder(message);
             if (holder instanceof AIFeedbackType) {
+                Log.e("AIExplore", "setAiFeedback:" + message.getId());
                 AIFeedbackType aiHolder = (AIFeedbackType) holder;
                 //需要刷新
                 aiHolder.setAiFeedback(aiFeedback);

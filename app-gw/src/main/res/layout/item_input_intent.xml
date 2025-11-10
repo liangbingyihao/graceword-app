@@ -3,37 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/menus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <!--            android:background="#FFEEEB"-->
-
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/hymns"
-            style="@style/ExploreButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@string/hymns"
-            android:textSize="12sp"
-            app:cornerRadius="16dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/bible"
-            style="@style/ExploreButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:gravity="center"
-            app:cornerRadius="16dp"
-            android:text="@string/read_bible"
-            android:textSize="12sp" />
-
-    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/menuSong"
@@ -76,21 +45,10 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <Spinner
-                    android:id="@+id/spStyle"
-                    style="@style/SpinnerInputIntent" />
+<!--                <Spinner-->
+<!--                    android:id="@+id/spStyle"-->
+<!--                    style="@style/SpinnerInputIntent" />-->
 
-                <Spinner
-                    android:id="@+id/spTheme"
-                    style="@style/SpinnerInputIntent" />
-
-                <Spinner
-                    android:id="@+id/spOccasion"
-                    style="@style/SpinnerInputIntent" />
-
-                <Spinner
-                    android:id="@+id/spOrchestra"
-                    style="@style/SpinnerInputIntent" />
             </LinearLayout>
         </HorizontalScrollView>
     </RelativeLayout>

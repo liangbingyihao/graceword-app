@@ -34,6 +34,7 @@
                     android:id="@+id/red_dot3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:src="@drawable/red_dot" />
             </FrameLayout>
 

@@ -101,11 +101,28 @@
     <string name="get_my_userid">复制迁移id</string>
     <string name="my_version">当前版本:%s</string>
     <string name="asr_error">语音繁忙，请尝试其他录入方式</string>
-    <string name="msg_input_hint">记录生活点滴或探讨信仰问题</string>
+    <string name="hint_msg_input">记录生活点滴或探讨信仰问题</string>
+    <string name="hint_msg_welcome">请输入您的想法</string>
     <string name="share_preview">分享预览</string>
     <string name="share_confirm">直接分享</string>
     <string name="share_total">已选%d条信息</string>
     <string name="query_hint">请选择以下任意条件或填入关键字，进行查询</string>
     <string name="read_bible">看圣经</string>
     <string name="hymns">赞美诗</string>
+    <string name="hint_search_hymns">补充歌名/关键字或直接查询</string>
+    <string name="prompt_search_hymns">查询赞美诗：%s</string>
+    <string name="listen">收听</string>
+    <string name="sheet_music">乐谱</string>
+    <string name="lyrics_ppt">歌词PPT</string>
+    <string name="composer">作曲:%s</string>
+    <string name="lyricist">作词:%s</string>
+    <string name="album">作曲:%s 作词:%s\n专辑:%s\n乐队:%s</string>
+    <string name="deselect">取消选择</string>
+    <string name="error_loading_chapter">加载章节失败</string>
+    <string name="prev_chapter">上一章</string>
+    <string name="next_chapter">下一章</string>
+    <string name="first_chapter">已经是第一章</string>
+    <string name="last_chapter">已经是最后一章</string>
+
+    <string name="beginner_welcome">欢迎来到恩语</string>
 </resources>

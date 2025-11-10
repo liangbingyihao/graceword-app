@@ -15,6 +15,7 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.holder.WelcomeHolder
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
 
@@ -32,7 +33,7 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     open val dm = DisposableMap()
     var loading: Boolean = false
 
-    fun bind(loading: Boolean,aiExplore: ExploreHolder) {
+    fun bind(loading: Boolean, aiExplore: ExploreHolder) {
         bindListeners(aiExplore)
         // 根据header类型处理
         this.loading = loading
@@ -40,15 +41,15 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         bindExplore(aiExplore)
     }
 
-    open fun bindExplore(aiExplore: ExploreHolder) {
-        bindListeners(aiExplore)
+    open fun bindExplore(t: ExploreHolder) {
+        bindListeners(t)
         val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
 
         var i = 0
-        var aiExplore: AIExplore? = aiExplore.aiExplore
+        var aiExplore: AIExplore? = t.aiExplore
         val aiFeedback = GWMsgHandler.getAiFeedback(aiExplore?.message)
-        var status = aiExplore?.message?.messageStatus
-        Log.e("AIExplore", "bindExplore:" + aiExplore?.message?.id+",status:"+status)
+        var status = t.message?.messageStatus
+        Log.e("AIExplore", "bindExplore:" + t.message?.id + ",status:" + status)
         if (status != MessageSendStatus.Sent) {
             placeHolderView?.visibility = View.VISIBLE
         } else {
@@ -85,7 +86,14 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                         }
                     }
                 } else if (data.action == AIExplore.ExploreItem.action_input_prompt) {
-                    var event = NetworkEvent.messageInputPrompt(data.text,data.getParamsStr())
+                    var event =
+                        NetworkEvent.messageInputPrompt(data.text, data.getParamsStr())
+                    v.setOnClickListener { view ->
+                        ChatSDK.events().source().accept(event)
+                    }
+                } else if (data.action == AIExplore.ExploreItem.action_input_prompt_welcome) {
+                    var event =
+                        NetworkEvent.messageInputPrompt(null, data.text)
                     v.setOnClickListener { view ->
                         ChatSDK.events().source().accept(event)
                     }
@@ -101,7 +109,6 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                     }
                 }
             } else {
-//                Log.d("sending", "bindExplore:gone $i");
                 v.visibility = View.GONE
             }
             ++i
@@ -114,17 +121,21 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     }
 
     open fun bindListeners(t: ExploreHolder) {
-        dm.dispose()
-        dm.add(
-            ChatSDK.events().sourceOnSingle()
-                .filter(NetworkEvent.filterType(EventType.MessageUpdated))
-                .filter(filterById(t.message.id))
-                .subscribe {
-//                    Log.e("AIExplore", "ExploreViewHolder.MessageUpdated:" + t.message.id)
-                    RX.main().scheduleDirect {
-                        t.aiExplore = null
-                        bind(this.loading,t)
-                    }
-                })
+        if (WelcomeHolder.isWelcomeMsg(t.message)) {
+            return
+        } else {
+            dm.dispose()
+            dm.add(
+                ChatSDK.events().sourceOnSingle()
+                    .filter(NetworkEvent.filterType(EventType.MessageUpdated))
+                    .filter(filterById(t.message.id))
+                    .subscribe {
+                        RX.main().scheduleDirect {
+                            t.aiExplore = null
+                            Log.e("AIExplore", "EventType.MessageUpdated:" + t.message.id)
+                            bind(this.loading, t)
+                        }
+                    })
+        }
     }
 }

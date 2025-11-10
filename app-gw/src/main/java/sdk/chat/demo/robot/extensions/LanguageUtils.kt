@@ -69,7 +69,7 @@ object LanguageUtils {
         }
     }
 
-    fun getAppLanguage(context: Context, refresh: Boolean): String? {
+    fun getAppLanguage(context: Context, refresh: Boolean=false): String? {
         if (!refresh &&currentLang!=null&& currentLang!!.isNotEmpty()) {
             return currentLang
         }

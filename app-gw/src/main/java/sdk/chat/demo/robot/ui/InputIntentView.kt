@@ -1,60 +1,138 @@
 package sdk.chat.demo.robot.ui
 
 import android.content.Context
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Spinner
-import sdk.chat.core.dao.Message
+import android.widget.TextView
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.BaseActivity
+import sdk.chat.demo.robot.api.model.GWConfigs
 import java.lang.ref.WeakReference
 
+data class FieldValue(
+    val field: String,
+    var value: String? = null
+)
+
+class LabelValueSpinnerAdapter(
+    context: Context,
+    private val items: List<String>
+) : ArrayAdapter<String>(context, R.layout.item_input_intent_spinner, items) {
+
+    private var selectedPosition = -1
+    private var label = items[0]
+
+    override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = convertView ?: LayoutInflater.from(context)
+            .inflate(R.layout.item_input_intent_dropdown, parent, false)
+
+        val textView = view.findViewById<TextView>(R.id.dropdownText)
+        if (position == 0) {
+            textView.text = context.getString(R.string.deselect)
+        } else {
+            textView.text = items[position]
+        }
+
+        // 设置选中状态
+        val selectedView = view.findViewById<View>(R.id.selected)
+        if (position == selectedPosition) {
+            selectedView.visibility = View.VISIBLE
+        } else {
+            selectedView.visibility = View.INVISIBLE
+        }
+
+        return view
+    }
+
+    fun setSelectedPosition(position: Int): String? {
+        if (position < 0 || position >= items.size) {
+            return null
+        }
+        selectedPosition = position
+        notifyDataSetChanged()
+        return items[position];
+    }
+
+    fun getSelectedPosition(): Int = selectedPosition
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = super.getView(position, convertView, parent)
+        val textView = view.findViewById<TextView>(R.id.spinnerText)
+
+        // 未选中时只显示label
+        if (position == 0) {
+            textView.text = "${label}"
+        } else {
+            textView.text = "${label}:${items[position]}"
+        }
+        return view
+    }
+
+}
 
 class InputIntentView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
-    private var weakContext: WeakReference<BaseActivity>? = null
-    private var weakMessage: WeakReference<Message>? = null
-//    private val maskBackground: View
-//    private val highlightIndicator: View
-//风格、主题、场合、乐团 Style, Theme, Occasion, Orchestra
-    private var spStyle: Spinner
-    private var spTheme: Spinner
-    private var spOccasion: Spinner
-    private var spOrchestra: Spinner
+    var mainMenus: WeakReference<GWMsgInput>? = null
     private var menuSong: View
-    private var menus: View
-    private var mode: String? = null
+    private var containerLayout: LinearLayout
+    private var searchCriteria = mutableListOf<FieldValue>()
 
-    private val guideDrawer = "guide_drawer"
-    private val guidePic = "guide_pic"
-    private val guidePray = "guide_pray"
-    private val allModes = arrayOf(guidePic, guidePray, guideDrawer)
-    // 下拉框选项数据
-    private val spinnerItems = listOf(
-        "短选项",
-        "中等长度的选项内容",
-        "这是一个非常非常长的选项内容，需要动态调整宽度",
-        "另一个长选项：Android开发中的自定义视图实现",
-        "短"
-    )
+    fun setMainMenuView(view: GWMsgInput?) {
+        mainMenus = if (view != null) WeakReference(view) else null
+    }
+
+    fun getHymnsParams(): String? {
+        return searchCriteria
+            .filter { it.value != null && it.value!!.isNotBlank() }
+            .joinToString(", ") { "${it.field}:${it.value}" }
+    }
+
+    fun initHymnsParams(configs: GWConfigs) {
+        containerLayout.removeAllViews()
+        searchCriteria.clear()
+        if (configs.hymnsParams != null && !configs.hymnsParams.isEmpty()) {
+            configs.hymnsParams.map { param ->
+                searchCriteria.add(FieldValue(param.field.toString(), ""))
+                val spinner = createCustomSpinner(param)
+                containerLayout.addView(spinner)
+            }
+        }
+    }
 
 
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.hymns -> {
                 menuSong.visibility = VISIBLE
-                menus.visibility = GONE
                 true
             }
 
             R.id.hideSongMenu -> {
                 menuSong.visibility = GONE
-                menus.visibility = VISIBLE
+                mainMenus?.get()?.onClick(view)
+
+
+                for (i in 0 until containerLayout.childCount) {
+                    val child = containerLayout.getChildAt(i)
+                    // 检查是否为 Spinner
+                    if (child is Spinner) {
+//                        Log.e("inputintent","clear.setSelectedPosition 0")
+                        child.setSelection(0, false)
+//                        (child.adapter as LabelValueSpinnerAdapter).setSelectedPosition(0)
+                    }
+                }
                 true
             }
         }
@@ -63,44 +141,94 @@ class InputIntentView @JvmOverloads constructor(
     init {
         // 加载布局
         inflate(context, R.layout.item_input_intent, this)
-        spStyle = findViewById(R.id.spStyle)
-        spTheme = findViewById(R.id.spTheme)
-        spOccasion = findViewById(R.id.spOccasion)
-        spOrchestra = findViewById(R.id.spOrchestra)
-        menuSong =  findViewById(R.id.menuSong)
-        menus =  findViewById(R.id.menus)
-
-        spStyle.adapter = ArrayAdapter<String>(
-            this.context,
-            R.layout.item_input_intent_spinner,
-            spinnerItems
-        )
-        spTheme.adapter = ArrayAdapter<String>(
-            this.context,
-            R.layout.item_input_intent_spinner,
-            spinnerItems
-        )
-        spOccasion.adapter = ArrayAdapter<String>(
-            this.context,
-            R.layout.item_input_intent_spinner,
-            spinnerItems
-        )
-        spOrchestra.adapter = ArrayAdapter<String>(
-            this.context,
-            R.layout.item_input_intent_spinner,
-            spinnerItems
-        )
-        //                circleOverlay.startAnimation()
-//        attachmentButtonSpace = findViewById(R.id.attachmentButtonSpace);
-        findViewById<View?>(R.id.hymns).setOnClickListener(this)
-        findViewById<View?>(R.id.bible).setOnClickListener(this)
+        menuSong = findViewById(R.id.menuSong)
+        containerLayout = findViewById(R.id.containerLayout)
         findViewById<View?>(R.id.hideSongMenu).setOnClickListener(this)
-
-//        highlightIndicator = findViewById(R.id.guide_view)
-//        highlightTarget = findViewById(R.id.highlight_target)
-//        highlightDesc = findViewById(R.id.highlight_desc)
-//        maskBackground.setOnClickListener(onClickListener)
-//        findViewById<View>(R.id.btn_next).setOnClickListener(onClickListener)
     }
 
+    private fun adjustSpinnerWidth(spinner: Spinner, hymnParam: GWConfigs.HymnParam) {
+        // 计算最长的文本（包括label和所有选项）
+        var paint: Paint
+        val textView = spinner.findViewById<TextView>(android.R.id.text1)
+        if (textView != null) {
+            paint = textView.paint
+        } else {
+            // 备用方案：创建新的 Paint 对象
+            paint = Paint().apply {
+                textSize = 14.spToPx() // 设置与 Spinner 相同的字体大小
+                typeface = Typeface.DEFAULT
+            }
+        }
+
+//        val allTexts = listOf(hymnParam.field) + hymnParam.choices
+//        val maxTextWidth = allTexts.maxOf { text ->
+//            paint.measureText(text)
+
+        val maxTextWidth = 0
+        // 计算总宽度（文本宽度 + 内边距 + 箭头区域）
+        val padding = spinner.paddingLeft + spinner.paddingRight
+        val arrowArea = 48.dpToPx()
+        val minWidth = 60.dpToPx()
+        val maxWidth = (resources.displayMetrics.widthPixels * 0.3).toInt()
+
+        val targetWidth = (maxTextWidth + padding + arrowArea + 150).toInt()
+            .coerceAtLeast(minWidth)
+            .coerceAtMost(maxWidth)
+
+        // 应用宽度调整
+        spinner.layoutParams = spinner.layoutParams.apply {
+            width = targetWidth
+        }
+        spinner.requestLayout()
+    }
+
+    private fun createCustomSpinner(hymnParam: GWConfigs.HymnParam): Spinner {
+        // 创建自定义下拉框
+        val spinner = Spinner(this.context, Spinner.MODE_DROPDOWN).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginEnd = 16.dpToPx() // 设置右边距
+                setBackgroundResource(R.drawable.spinner_bg_oval)
+            }
+
+            val list = mutableListOf<String>()
+            hymnParam.field?.let { list.add(it) }
+            hymnParam.choices?.forEach { list.add(it) }
+
+            adapter =
+                LabelValueSpinnerAdapter(this.context, list)
+
+            // 下拉框点击事件
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    // 处理选项选择
+//                    Log.e("inputintent","OnItemSelectedListener $position")
+                    val fieldValue = searchCriteria.find { it.field == hymnParam.field }
+                    val selected = (adapter as LabelValueSpinnerAdapter).setSelectedPosition(position)
+                    fieldValue?.value = if (position == 0) null else selected
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+            // 动态调整宽度
+//            post {
+//                adjustSpinnerWidth(this, hymnParam)
+//            }
+        }
+
+        return spinner
+    }
+
+    // 扩展函数：dp转px
+    private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
+
+    // 扩展函数：sp转px
+    private fun Int.spToPx(): Float = this * resources.displayMetrics.scaledDensity
 }

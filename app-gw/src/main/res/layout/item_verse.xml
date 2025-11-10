@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/white"
+    android:padding="2dp">
+
+    <!-- 节号 -->
+    <TextView
+        android:id="@+id/verse_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginEnd="8dp"/>
+
+    <!-- 经文内容 -->
+    <TextView
+        android:id="@+id/verse_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/item_text_normal"
+        android:textSize="16sp"
+        android:lineSpacingExtra="4dp"/>
+
+</LinearLayout>

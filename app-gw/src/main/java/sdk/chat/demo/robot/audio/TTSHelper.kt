@@ -794,7 +794,7 @@ object TTSHelper {
 //            mCurAppId = SensitiveDefines.APPID
 //        }
         //【必需配置】在线合成鉴权相关：Appid "2617262954"
-        ImageApi.getGwConfigs().voiceBaseConfigs.appId
+        ImageApi.getGwConfigs().voiceBaseConfigs?.appId
         mSpeechEngine!!.setOptionString(
             SpeechEngineDefines.PARAMS_KEY_APP_ID_STRING,
             configs.voiceBaseConfigs.appId

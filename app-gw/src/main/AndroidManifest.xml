@@ -93,6 +93,8 @@
 
         <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity"/>
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.BibleActivity"/>
+        <activity android:name="sdk.chat.demo.robot.activities.BeginnerActivity"/>
         <activity android:name="sdk.chat.demo.robot.activities.MainDrawerActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.SettingsActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.WebViewActivity"/>

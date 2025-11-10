@@ -95,7 +95,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginRight">16dp</item>
         <item name="android:paddingLeft">8dp</item>
-        <item name="android:paddingRight">32dp</item>
+        <item name="android:paddingRight">46dp</item>
         <item name="android:background">@drawable/spinner_bg_oval</item>
     </style>
     <style name="FeedOperatorRight">
@@ -126,6 +126,20 @@
         <item name="cornerSizeTopRight">15dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="CornerButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:backgroundTint">@android:color/transparent</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerRadius">21dp</item>
+        <item name="strokeColor">@color/white</item>
+        <item name="strokeWidth">1dp</item>
     </style>
 <!--    <style name="Widget.MyApp.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">-->
 <!--        &lt;!&ndash; 基础样式继承自Material3 &ndash;&gt;-->

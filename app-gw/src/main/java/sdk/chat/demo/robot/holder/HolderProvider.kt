@@ -5,7 +5,7 @@ import sdk.chat.core.types.MessageType
 import java.util.concurrent.ConcurrentHashMap
 
 object HolderProvider {
-    public const val  GWMessageType: Int = 777
+    public const val GWMessageType: Int = 777
     private val messageHolders = ConcurrentHashMap<Message, MessageHolder>()
 
     fun getMessageHolder(message: Message?): MessageHolder? {
@@ -14,8 +14,18 @@ object HolderProvider {
         messageHolders[message]?.let { return it }
 
         val holder = when {
-            message.typeIs(MessageType.Text) -> TextHolder(message)
-            message.typeIs(MessageType.Image) || message.typeIs(GWMessageType) -> ImageHolder(message)
+            message.typeIs(MessageType.Text) -> {
+                if (WelcomeHolder.isWelcomeMsg(message)) {
+                    WelcomeHolder(message)
+                } else {
+                    TextHolder(message)
+                }
+            }
+
+            message.typeIs(MessageType.Image) || message.typeIs(GWMessageType) -> ImageHolder(
+                message
+            )
+
             else -> null
         }
 

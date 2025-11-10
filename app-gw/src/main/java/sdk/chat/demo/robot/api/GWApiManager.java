@@ -67,7 +67,8 @@ public class GWApiManager {
     static {
 
         if (BuildConfig.DEBUG) {
-            URL = "https://api-test.grace-word.com/api/";
+//            URL = "https://api-test.grace-word.com/api/";
+            URL = "http://8.217.172.116:5000/api/";
         } else {
             URL = "https://api.grace-word.com/api/";
         }

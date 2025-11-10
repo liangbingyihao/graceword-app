@@ -72,41 +72,41 @@ public class SocialShareUtils {
     }
 
 
-    public static Uri getDrawableUri(Context context, @DrawableRes int drawableId) {
-        // 2. 创建临时文件
-        File cachePath = new File(context.getCacheDir(), "card_cache");
-        if (!cachePath.exists()) {
-            cachePath.mkdirs();
-        }
-        File file = new File(cachePath, "ss_preview.png");
-        if (!file.exists() || file.length() == 0) {
-            // 1. 获取 drawable 并转换为 bitmap
-            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), drawableId);
-            if (bitmap == null) {
-                return null;
-            }
-            try {
-                // 3. 保存 bitmap 到文件
-                FileOutputStream stream = new FileOutputStream(file);
-                boolean success = bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                stream.close();
-
-                if (!success) {
-                    file.delete();
-                    return null;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-
-        }
-        // 4. 获取 Uri
-        return FileProvider.getUriForFile(context,
-                context.getPackageName() + ".provider",
-                file);
-
-    }
+//    public static Uri getDrawableUri(Context context, @DrawableRes int drawableId) {
+//        // 2. 创建临时文件
+//        File cachePath = new File(context.getCacheDir(), "card_cache");
+//        if (!cachePath.exists()) {
+//            cachePath.mkdirs();
+//        }
+//        File file = new File(cachePath, "ss_preview.png");
+//        if (!file.exists() || file.length() == 0) {
+//            // 1. 获取 drawable 并转换为 bitmap
+//            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), drawableId);
+//            if (bitmap == null) {
+//                return null;
+//            }
+//            try {
+//                // 3. 保存 bitmap 到文件
+//                FileOutputStream stream = new FileOutputStream(file);
+//                boolean success = bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+//                stream.close();
+//
+//                if (!success) {
+//                    file.delete();
+//                    return null;
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//
+//        }
+//        // 4. 获取 Uri
+//        return FileProvider.getUriForFile(context,
+//                context.getPackageName() + ".provider",
+//                file);
+//
+//    }
 
 
     public static void showCustomShareDialog(final Context context,

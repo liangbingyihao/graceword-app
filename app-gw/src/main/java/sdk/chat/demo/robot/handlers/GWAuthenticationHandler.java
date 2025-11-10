@@ -110,7 +110,7 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
             }
             GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
             ImageApi.getServerConfigs().subscribe();
-            handler.getWelcomeMsg().subscribe();
+//            handler.getWelcomeMsg().subscribe();
             handler.createChatSessions();
             ImageApi.listImageTags().subscribe();
             setAuthStateToIdle();

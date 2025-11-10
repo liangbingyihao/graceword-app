@@ -103,11 +103,28 @@
     <string name="image_saved">圖片已成功儲存</string>
     <string name="image_save_failed">圖片儲存失敗</string>
     <string name="asr_error">語音繁忙，請嘗試其他輸入方式</string>
-    <string name="msg_input_hint">記錄點滴或探討信仰問題</string>
+    <string name="hint_msg_input">記錄點滴或探討信仰問題</string>
+    <string name="hint_msg_welcome">請輸入您的想法</string>
     <string name="share_preview">分享預覽</string>
     <string name="share_confirm">直接分享</string>
     <string name="share_total">已選%d條信息</string>
     <string name="query_hint">請選擇以下任意條件或填入關鍵字，進行查詢</string>
     <string name="read_bible">看聖經</string>
     <string name="hymns">讚美詩</string>
+    <string name="hint_search_hymns">補充歌名/關鍵字或直接查詢</string>x
+    <string name="prompt_search_hymns">搜尋讚美詩：%s</string>
+    <string name="listen">收聽</string>
+    <string name="sheet_music">樂譜</string>
+    <string name="lyrics_ppt">歌詞PPT</string>
+    <string name="composer">作曲:%s</string>
+    <string name="lyricist">作詞:%s</string>
+    <string name="album">作曲:%s 作詞:%s\n專輯:%s\n樂隊:%s</string>
+    <string name="deselect">取消選擇</string>
+    <string name="error_loading_chapter">載入章節失敗</string>
+    <string name="prev_chapter">上一章</string>
+    <string name="next_chapter">下一章</string>
+    <string name="first_chapter">已經是第一章</string>
+    <string name="last_chapter">已經是最後一章</string>
+
+    <string name="beginner_welcome">歡迎來到恩語</string>
 </resources>

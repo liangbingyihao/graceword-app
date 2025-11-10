@@ -104,11 +104,29 @@
     <string name="image_save_failed">Image save failed</string>
     <string name="image_saved">Image saved successfully</string>
     <string name="asr_error">Voice recognition is busy, please try alternative input methods</string>
-    <string name="msg_input_hint">Record daily reflections or discuss faith matters</string>
+    <string name="hint_msg_input">Record daily reflections or discuss faith matters</string>
+    <string name="hint_msg_welcome">Please enter your thoughts</string>
     <string name="share_preview">Share Preview</string>
     <string name="share_confirm">Share Directly</string>
     <string name="share_total">%d items selected</string>
     <string name="query_hint">Please select any of the following criteria or enter keywords to search</string>
     <string name="read_bible">Read Bible</string>
     <string name="hymns">Hymns</string>
+    <string name="hint_search_hymns">Add song title/keyword or search directly</string>
+    <string name="prompt_search_hymns">Hymn search: %s</string>
+    <string name="listen">Listen</string>
+    <string name="sheet_music">Sheet Music</string>
+    <string name="lyrics_ppt">Lyrics PPT</string>
+    <string name="composer">Composer:%s</string>
+    <string name="lyricist">Lyricist:%s</string>
+    <string name="album">Composer:%s Lyricist:%s\nAlbum:%s\nBand:%s</string>
+    <string name="deselect">Deselect</string>
+
+    <string name="error_loading_chapter">Failed to load chapter</string>
+    <string name="prev_chapter">Previous Chapter</string>
+    <string name="next_chapter">Next Chapter</string>
+    <string name="first_chapter">Already at first chapter</string>
+    <string name="last_chapter">Already at last chapter</string>
+
+    <string name="beginner_welcome">Welcome to Grace Word</string>
 </resources>
