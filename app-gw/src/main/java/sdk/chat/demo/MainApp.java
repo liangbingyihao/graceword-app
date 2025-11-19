@@ -10,10 +10,13 @@ import android.util.Log;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.utils.Device;
 import sdk.chat.demo.robot.ChatSDKGW;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
+import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.chat.demo.robot.extensions.TinyLoggerManager;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.push.UpdateTokenWorker;
 import sdk.guru.common.DisposableMap;
 import sdk.guru.common.RX;
@@ -29,9 +32,11 @@ import androidx.work.WorkManager;
 
 import com.bytedance.speech.speechengine.SpeechEngineGenerator;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.vojtkovszky.billinghelper.BillingHelper;
 
 import org.tinylog.Logger;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainApp extends Application implements Configuration.Provider, Application.ActivityLifecycleCallbacks {
@@ -41,6 +46,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
     private Activity currentActivity;
     private ChatSDK chatSDK;
     public long startTimeStamp;
+    public static String isNewUser = "0";
 
     public static Context getContext() {
         return context;
@@ -80,7 +86,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         startTimeStamp = System.currentTimeMillis();
         TinyLoggerManager.initialize(this);
         registerActivityLifecycleCallbacks(this);
-        Log.i("MainApp",getPackageName());
+        Log.i("MainApp", getPackageName());
         Logger.error("MainApp.onCreate");
         context = getApplicationContext();
         scheduleTokenUpdate();
@@ -103,17 +109,29 @@ public class MainApp extends Application implements Configuration.Provider, Appl
                                 isInitialized = true;
                             },
                             error -> { /* 错误处理 */
-                                Logger.error(error,"authenticate error");
+                                Logger.error(error, "authenticate error");
                                 LogHelper.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
                                 isInitialized = false;
                             }
                     ));
         } catch (Exception e) {
-            Logger.error(e,"MainApp.onCreate");
+            Logger.error(e, "MainApp.onCreate");
             LogHelper.INSTANCE.reportExportEvent("app.init", "init error", e);
         }
         setupEnhancedCrashReporting();
         LanguageUtils.INSTANCE.initAppLanguage(this);
+
+        String installDay = chatSDK.getKeyStorage().get("install_day");
+        String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
+        if (installDay == null || installDay.isEmpty()) {
+            chatSDK.getKeyStorage().put("install_day", today);
+        }
+        isNewUser = today.equals(installDay) ? "1" : "0";
+
+        LogUploader.reportEvent(
+                "app_launch", List.of(
+                )
+        );
 //        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(true);
     }
 
@@ -123,7 +141,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 
         Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
             try {
-                Logger.error(ex,"uncaughtException");
+                Logger.error(ex, "uncaughtException");
             } catch (Exception e) {
 
             }

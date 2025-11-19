@@ -13,17 +13,22 @@ import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import io.reactivex.CompletableObserver;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import sdk.chat.core.session.ChatSDK;
+import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.BaseActivity;
 import sdk.chat.demo.robot.utils.AlertUtils;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -46,17 +51,16 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
-        LayoutInflater localInflater = inflater;
-//        if(UIModule.config().theme != 0 && getActivity() != null) {
+        //        if(UIModule.config().theme != 0 && getActivity() != null) {
 //            final Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), UIModule.config().theme);
 //
 //            // clone the inflater using the ContextThemeWrapper
 //            localInflater = inflater.cloneInContext(contextThemeWrapper);
 //        }
-        rootView = inflate(localInflater, container);
+        rootView = inflate(inflater, container);
 //        rootView = localInflater.inflate(getLayout(), container, false);
 
         setHasOptionsMenu(true);
@@ -66,6 +70,7 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
             public Context getContext() {
                 return BaseFragment.this.getContext();
             }
+
             @Override
             public View getRootView() {
                 return getView();
@@ -104,16 +109,18 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
 
     protected abstract void initViews();
 
-    public void setTabVisibility (boolean isVisible) {
+    public void setTabVisibility(boolean isVisible) {
         tabIsVisible = isVisible;
     }
 
-    abstract public void clearData ();
-    public void safeReloadData () {
-        if(getView() != null && ChatSDK.auth().isAuthenticated()) {
+    abstract public void clearData();
+
+    public void safeReloadData() {
+        if (getView() != null && ChatSDK.auth().isAuthenticated()) {
             reloadData();
         }
     }
+
     public abstract void reloadData();
 
     @Override
@@ -147,6 +154,7 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
 
     /**
      * Called once if the deferred computation 'throws' an exception.
+     *
      * @param e the exception, not null.
      */
     public void onError(@NonNull Throwable e) {
@@ -160,38 +168,41 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
         onError(t);
     }
 
-    /** Show a SuperToast with the given text. */
-    protected void showToast(@StringRes int textResourceId){
+    /**
+     * Show a SuperToast with the given text.
+     */
+    protected void showToast(@StringRes int textResourceId) {
         alert.showToast(textResourceId);
     }
 
-    protected void showToast(String text){
+    protected void showToast(String text) {
         alert.showToast(text);
     }
 
-    protected void showSnackbar(int textResourceId, int duration){
+    protected void showSnackbar(int textResourceId, int duration) {
         alert.showSnackbar(textResourceId, duration);
     }
 
-    protected void showSnackbar(int textResourceId){
+    protected void showSnackbar(int textResourceId) {
         alert.showSnackbar(textResourceId);
     }
 
-    protected void showSnackbar (String text) {
+    protected void showSnackbar(String text) {
         alert.showSnackbar(text);
     }
 
-    protected void showSnackbar (String text, int duration) {
+    protected void showSnackbar(String text, int duration) {
         alert.showSnackbar(text, duration);
     }
 
-    protected Consumer<? super Throwable> toastOnErrorConsumer () {
+    protected Consumer<? super Throwable> toastOnErrorConsumer() {
         return alert.toastOnErrorConsumer();
     }
 
-    protected Consumer<? super Throwable> snackbarOnErrorConsumer () {
+    protected Consumer<? super Throwable> snackbarOnErrorConsumer() {
         return alert.snackbarOnErrorConsumer();
     }
+
     protected void showProgressDialog(int stringResId) {
         alert.showProgressDialog(stringResId);
     }
@@ -208,6 +219,38 @@ public abstract class BaseFragment extends Fragment implements Consumer<Throwabl
         alert.dismissProgressDialog();
     }
 
+
+    private AlertDialog progressDialog;
+
+    private void showLoading() {
+        showLoading("加载中...");
+    }
+
+    private void showLoading(String message) {
+        hideLoading(); // 先隐藏之前的对话框
+        Context context = this.getActivity();
+        if (context == null) {
+            return;
+        }
+
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null);
+        TextView textMessage = dialogView.findViewById(R.id.text_message);
+        textMessage.setText(message);
+
+        progressDialog = new MaterialAlertDialogBuilder(context)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        progressDialog.show();
+    }
+
+    private void hideLoading() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
 }
 
 

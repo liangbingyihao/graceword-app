@@ -22,7 +22,8 @@ data class GWConfigs(
     val hymnsParams: List<HymnParam>? = null,
 
     @SerializedName("welcome_survey")
-    val welcomeSurvey:WelcomeSurvey? = null
+    val welcomeSurvey: WelcomeSurvey? = null,
+    val billingInfo: BillingInfo? = null
 
 ) {
 
@@ -54,7 +55,7 @@ data class GWConfigs(
         val question: String? = null,
         val title: String? = null,
         val options: List<WelcomeSurveyOption>? = null
-    ){
+    ) {
         fun findOptionByValue(value: String?): WelcomeSurveyOption? {
             if (value == null) return null
             return options?.find { it.value == value }
@@ -65,5 +66,9 @@ data class GWConfigs(
         val value: String? = null,
         val prompts: List<String>? = null,
         val response: String? = null
+    )
+
+    data class BillingInfo(
+        val productSubscriptions: List<String>? = null
     )
 }

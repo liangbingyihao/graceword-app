@@ -19,13 +19,18 @@ import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.ExportInfo
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.LanguageUtils
+import sdk.chat.demo.robot.handlers.BillingManager
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.utils.ToastHelper
+import java.util.List
 
 class SettingsActivity : BaseActivity(), View.OnClickListener {
     private lateinit var tvLang: TextView
     private lateinit var loadingDialog: AlertDialog
     private var exportInfo: ExportInfo? = null
+    private lateinit var vVipHint: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +40,8 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
         findViewById<View>(R.id.config_lang).setOnClickListener(this)
         findViewById<View>(R.id.feedback).setOnClickListener(this)
         findViewById<View>(R.id.my_userid).setOnClickListener(this)
+        findViewById<View>(R.id.restore_subscription).setOnClickListener(this)
+        vVipHint = findViewById<View>(R.id.export_vip)
         tvLang = findViewById<TextView>(R.id.lang_value)
         initView()
         getSettings()
@@ -43,7 +50,22 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
             v.visibility = View.VISIBLE
             v.setOnClickListener(this)
         }
+        LogUploader.reportEvent(
+            "mod_settings", listOf<KeyValuePair?>(
+                KeyValuePair("settings_action", "0"),
+            )
+        )
     }
+
+    override fun onResume() {
+        super.onResume()
+        if (BillingManager.getInstance().hasSubscriptions()) {
+            vVipHint.visibility = View.GONE
+        } else {
+            vVipHint.visibility = View.VISIBLE
+        }
+    }
+
 
     override fun getLayout(): Int {
         return 0
@@ -52,11 +74,26 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.home -> {
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "50"),
+                    )
+                )
                 finish()
             }
 
             R.id.export -> {
-                getExportInfo()
+                var isVip = "0"
+                if(!BillingManager.getInstance().tryToPay(this@SettingsActivity,"export_graceword")){
+                    isVip = "1"
+                    getExportInfo()
+                }
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "20"),
+                        KeyValuePair("isVip", isVip)
+                    )
+                )
             }
 
             R.id.config_lang -> {
@@ -66,6 +103,11 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                         SettingLangsActivity::class.java
                     )
                 )
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "10"),
+                    )
+                )
             }
 
             R.id.feedback -> {
@@ -73,6 +115,11 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                     Intent(
                         this,
                         ComplaintActivity::class.java
+                    )
+                )
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "30"),
                     )
                 )
             }
@@ -86,6 +133,50 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                 )
             }
 
+            R.id.restore_subscription ->{
+                showProgressDialog(R.string.processing)
+                dm.add(
+                    BillingManager.getInstance().acknowledgePurchase()
+                        .subscribe({ success ->
+//                    hideLoading()
+                            dismissProgressDialog()
+                            if (success) {
+                                ToastHelper.show(this@SettingsActivity, "Success!")
+                                LogUploader.reportEvent(
+                                    "mod_purchase_page", listOf<KeyValuePair?>(
+                                        KeyValuePair("purchase_entrance", "setting"),
+                                        KeyValuePair("purchase_action", "41"),
+                                    )
+                                )
+                            } else {
+//                        showAcknowledgeFailed()
+                                LogUploader.reportEvent(
+                                    "mod_purchase_page", listOf<KeyValuePair?>(
+                                        KeyValuePair("purchase_entrance", "setting"),
+                                        KeyValuePair("purchase_action", "42"),
+                                        KeyValuePair("purchase_error", "backend"),
+                                    )
+                                )
+                            }
+                        }, { error ->
+//                    hideLoading()
+                            dismissProgressDialog()
+                            ToastHelper.show(this@SettingsActivity, error.message)
+                            LogUploader.reportEvent(
+                                "mod_purchase_page", listOf<KeyValuePair?>(
+                                    KeyValuePair("purchase_entrance", "setting"),
+                                    KeyValuePair("purchase_action", "42"),
+                                    KeyValuePair(
+                                        "purchase_error",
+                                        error.message ?: "Unknown error"
+                                    ),
+                                )
+                            )
+//                    showNetworkError(error)
+                        })
+                )
+            }
+
             R.id.my_userid -> {
                 var userId = ChatSDK.currentUserID()
                 val clipboard =
@@ -95,6 +186,11 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                 ToastHelper.show(
                     MainApp.getContext(),
                     MainApp.getContext().getString(R.string.copied)
+                )
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "40"),
+                    )
                 )
             }
         }

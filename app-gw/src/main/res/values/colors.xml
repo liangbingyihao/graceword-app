@@ -20,6 +20,7 @@
     <color name="bg_gray_button">#F5F5F5</color>
     <color name="text_prompt">#69000000</color>
     <color name="item_text_menu">#CF4B3F</color>
+    <color name="bg_bill_menu">#CF4B41</color>
     <color name="black_translucent">#CC000000</color>
     <color name="default_verse_background">#00FFFFFF</color>
     <color name="selected_verse_background">#26CF4B3F</color>

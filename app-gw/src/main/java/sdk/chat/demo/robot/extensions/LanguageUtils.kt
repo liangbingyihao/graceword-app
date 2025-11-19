@@ -1,14 +1,17 @@
 package sdk.chat.demo.robot.extensions
 
 import android.content.Context
+import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import java.util.Locale
-import android.os.Build
-import android.os.LocaleList
+import android.util.Log
 import androidx.core.content.edit
 import android.icu.text.Transliterator
+import android.os.Build
 import androidx.annotation.StringRes
+import androidx.core.app.LocaleManagerCompat
+import androidx.core.os.ConfigurationCompat
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
 import org.tinylog.Logger
@@ -114,11 +117,31 @@ object LanguageUtils {
 
     // 获取系统当前语言
     fun getSystemLanguage(): String {
-        var lang = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            LocaleList.getDefault()[0].toLanguageTag()
-        } else {
-            Locale.getDefault().toLanguageTag()
+//        var lang = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//            LocaleList.getDefault()[0].toLanguageTag()
+//        } else {
+//            Locale.getDefault().toLanguageTag()
+//        }
+//        return lang
+//        var lang =  ConfigurationCompat.getLocales(Resources.getSystem().getConfiguration()).get(0)
+//            ?.getLanguage() ?: "";
+        var lang =  try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                LocaleManagerCompat.getSystemLocales(MainApp.getContext()).get(0)?.toLanguageTag() ?: ""
+            }else{
+                val systemConfig = Resources.getSystem().configuration
+                val systemLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    systemConfig.locales[0]
+                } else {
+                    systemConfig.locale
+                }
+                systemLocale.toLanguageTag()
+            }
+        } catch (e: Exception) {
+            "" // 默认英语
         }
+        Log.e("getSystemLanguage",lang)
         return lang
     }
+
 }

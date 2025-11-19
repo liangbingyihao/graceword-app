@@ -1,16 +1,14 @@
 package sdk.chat.demo.robot.activities
 
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.content.edit
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +29,7 @@ import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.LanguageUtils.updateContext
 import sdk.chat.demo.robot.extensions.dpToPx
 import sdk.chat.demo.robot.fragments.GWChatFragment
+import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
@@ -39,7 +38,7 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
-import androidx.core.view.isVisible
+import java.util.List
 
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
@@ -47,6 +46,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private lateinit var recyclerView: RecyclerView
     private lateinit var vHomeMenu: View
     private lateinit var vTaskMenu: View
+    private lateinit var vBillingMenu: View
     private lateinit var vRedDotTask: View
     private lateinit var vDgwMenu: TextView
 //    private lateinit var vErrorHint: TextView
@@ -58,6 +58,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private val chatTag = "tag_chat";
     private var toReloadSessions = false
     private var hasShownWelcome = false
+    private var cntShowBilling = 0
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -97,6 +98,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         vTaskMenu = findViewById<View>(R.id.menu_task)
         vTaskMenu.setOnClickListener(this)
         vRedDotTask = findViewById<View>(R.id.red_dot2)
+        vBillingMenu = findViewById<View>(R.id.menu_vip)
+        vBillingMenu.setOnClickListener(this)
 
 
 //        KeyboardDrawerHelper.setup(drawerLayout)
@@ -132,6 +135,14 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             ChatSDK.events().sourceOnMain()
                 .filter(NetworkEvent.filterType(EventType.ThreadsUpdated)).subscribe(Consumer {
                     listSessions()
+                })
+        )
+        dm.add(
+            ChatSDK.events().sourceOnSingle()
+                .filter(NetworkEvent.filterType(EventType.BillChange))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(Consumer { networkEvent: NetworkEvent? ->
+                    onBillChanged()
                 })
         )
 
@@ -174,14 +185,18 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
                             highlightOverlay?.finishGuideBeginner()
                         } else {
+                            if(false){
+                                //FIXME
+                                vTaskMenu.visibility = View.VISIBLE
+                            }
                             vHomeMenu.visibility = View.VISIBLE
-                            vTaskMenu.visibility = View.VISIBLE
-                            if(!hasShownWelcome){
+                            if (!hasShownWelcome) {
                                 getSharedPreferences("app_prefs", MODE_PRIVATE)
                                     .edit() {
                                         putBoolean("has_shown_welcome", true)
                                     }
                                 setRedDotView()
+                                checkPreLaunchBill()
                             }
                         }
                     })
@@ -205,23 +220,45 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
-        checkTaskDetail()
+        checkPreLaunchActivity()
 
         highlightOverlay?.handleStatic(
             this@MainDrawerActivity,
             null
         )
+
+        LogUploader.chatEntrance("app_launch")
     }
 
-    private fun checkTaskDetail() {
+    private fun checkPreLaunchBill(){
+        if (!BillingManager.getInstance().hasSubscriptions()) {
+            cntShowBilling = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .getInt("cnt_show_billing", -1)
+            var from = "app_launch_nonfirst"
+            if(cntShowBilling==-1){
+                from = "app_launch_first"
+                cntShowBilling = 0
+            }
+            if (cntShowBilling % 3 == 1) {
+                BillingActivity.start(this@MainDrawerActivity,from)
+            }
+            getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .edit() {
+                    putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
+                }
+        }
+    }
+
+    private fun checkPreLaunchActivity() {
         hasShownWelcome = getSharedPreferences("app_prefs", MODE_PRIVATE)
             .getBoolean("has_shown_welcome", false)
+        checkPreLaunchBill()
         if (hasShownWelcome) {
             val today: String = DateLocalizationUtil.formatDayAgo(0)
             var showDate =
                 getSharedPreferences("app_prefs", MODE_PRIVATE).getString("shown_gw_date", "")
             if (today != showDate) {
-                ImageViewerActivity.start(this@MainDrawerActivity);
+                ImageViewerActivity.start(this@MainDrawerActivity,"","auto_launch");
             }
 
             getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -231,6 +268,14 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         }
 
 
+    }
+
+    private fun onBillChanged() {
+        if (BillingManager.getInstance().hasSubscriptions()) {
+            vBillingMenu.visibility = View.GONE
+        } else {
+            vBillingMenu.visibility = View.VISIBLE
+        }
     }
 
 
@@ -250,6 +295,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                                 LogUploader.reportEvent(
                                     "mod_timeline", mutableListOf(
                                         KeyValuePair("timeline_entrance", "sidebar"),
+                                        KeyValuePair("timeline_action", "0"),
                                     )
                                 )
 
@@ -327,12 +373,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             }
 
             R.id.action_share -> {
-                startActivity(
-                    Intent(
-                        this@MainDrawerActivity,
-                        TaskActivity::class.java
-                    )
-                )
+                BillingActivity.start(this@MainDrawerActivity,"main_page_right_corner")
                 true
             }
 
@@ -347,6 +388,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         } else {
             hideKeyboard()
             drawerLayout.openDrawer(GravityCompat.START)
+            LogUploader.reportEvent(
+                "mod_sidebar", listOf<KeyValuePair?>(
+                    KeyValuePair("sidebar_action", "0")
+                )
+            )
         }
     }
 
@@ -361,6 +407,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         }
         setRedDotView()
         threadHandler.reloadTimeoutMsg()
+        BillingManager.getInstance().checkSubscriptions()
+        onBillChanged()
     }
 
     override fun getLayout(): Int {
@@ -368,7 +416,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     override fun onClick(v: View?) {
-        if (v?.id != R.id.menu_task) {
+        if (v?.id != R.id.menu_task && v?.id != R.id.menu_vip) {
             toggleDrawer()
         }
         when (v?.id) {
@@ -383,6 +431,12 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         SearchActivity::class.java
                     )
                 )
+
+                LogUploader.reportEvent(
+                    "mod_sidebar", listOf<KeyValuePair?>(
+                        KeyValuePair("sidebar_action", "10")
+                    )
+                )
             }
 
             R.id.menu_favorites -> {
@@ -392,14 +446,19 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         FavoriteListActivity::class.java
                     )
                 )
+                LogUploader.reportEvent(
+                    "mod_sidebar", listOf<KeyValuePair?>(
+                        KeyValuePair("sidebar_action", "20")
+                    )
+                )
             }
 
             R.id.menu_gw_daily -> {
                 hasShownWelcome = true
-                startActivity(
-                    Intent(
-                        this@MainDrawerActivity,
-                        ImageViewerActivity::class.java
+                ImageViewerActivity.start(this@MainDrawerActivity,"","sidebar");
+                LogUploader.reportEvent(
+                    "mod_sidebar", listOf<KeyValuePair?>(
+                        KeyValuePair("sidebar_action", "30")
                     )
                 )
             }
@@ -411,6 +470,15 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         SettingsActivity::class.java
                     )
                 )
+                LogUploader.reportEvent(
+                    "mod_sidebar", listOf<KeyValuePair?>(
+                        KeyValuePair("sidebar_action", "40")
+                    )
+                )
+            }
+
+            R.id.menu_vip -> {
+                BillingActivity.start(this@MainDrawerActivity,"main_page_right_corner")
             }
 
 
@@ -434,10 +502,13 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     fun setRedDotView() {
         setGwdRedDotView()
         setTaskRedDotView()
-
     }
 
     fun setTaskRedDotView() {
+        if(true){
+            //FIXME
+            return
+        }
 
         dm.add(
             DailyTaskHandler.getTaskProgress()
@@ -445,22 +516,23 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(
                     { data ->
-                        if (data != null && !data.taskDetail.isAllUserTaskCompleted&&vTaskMenu.isVisible) {
-                            // 获取菜单图标的宽高
-                            val menuWidth: Int = vTaskMenu.width
-
-                            // 创建布局参数
-                            val params: FrameLayout.LayoutParams =
-                                vRedDotTask.layoutParams as FrameLayout.LayoutParams
-
-
-                            // 设置红点位置（菜单图标右上角）
-                            params.gravity = Gravity.START or Gravity.TOP
-                            params.leftMargin =
-                                vTaskMenu.left + menuWidth - vTaskMenu.paddingRight - vRedDotTask.width / 2
-                            params.topMargin =
-                                vTaskMenu.top + vTaskMenu.paddingTop - vRedDotTask.height / 2
-                            vRedDotTask.setLayoutParams(params)
+                        if (data != null && !data.taskDetail.isAllUserTaskCompleted && vTaskMenu.isVisible) {
+//                            // 获取菜单图标的宽高
+//                            val menuWidth: Int = vTaskMenu.width
+//
+//                            // 创建布局参数
+//                            val params: FrameLayout.LayoutParams =
+//                                vRedDotTask.layoutParams as FrameLayout.LayoutParams
+//
+//
+//                            // 设置红点位置（菜单图标右上角）
+//                            params.gravity = Gravity.START or Gravity.TOP
+//                            params.leftMargin =
+//                                vTaskMenu.left + menuWidth - vTaskMenu.paddingRight - vRedDotTask.width / 2
+//                            params.topMargin =
+//                                vTaskMenu.top + vTaskMenu.paddingTop - vRedDotTask.height / 2
+//                            vRedDotTask.setLayoutParams(params)
+                            vRedDotTask.visibility = View.VISIBLE
                         } else {
                             vRedDotTask.visibility = View.GONE
                         }
@@ -477,44 +549,45 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         val redDot: View = findViewById<View>(R.id.red_dot)
         val redDot3: View = findViewById<View>(R.id.red_dot3)
         if (!hasShownWelcome) {
-            vDgwMenu.post({
-                val drawables: Array<Drawable?> = vDgwMenu.getCompoundDrawables()
-                val leftDrawable: Drawable? = drawables[0]
-                if (leftDrawable != null) {
-
-                    // 创建布局参数
-                    val params: FrameLayout.LayoutParams =
-                        redDot3.layoutParams as FrameLayout.LayoutParams
-
-
-                    // 设置红点位置（菜单图标右上角）
-                    params.gravity = Gravity.START or Gravity.TOP
-                    params.leftMargin =
-                        vDgwMenu.left + vDgwMenu.paddingLeft + leftDrawable.intrinsicWidth - redDot3.width / 2
-                    params.topMargin = vDgwMenu.top + vDgwMenu.paddingTop - redDot3.height / 2
-                    redDot3.setLayoutParams(params)
-                }
-
-            })
-// 在视图布局完成后调整位置
-            vHomeMenu.post({
-                redDot.visibility = vHomeMenu.visibility
-                // 获取菜单图标的宽高
-                val menuWidth: Int = vHomeMenu.width
-
-
-                // 创建布局参数
-                val params: FrameLayout.LayoutParams =
-                    redDot.layoutParams as FrameLayout.LayoutParams
-
-
-                // 设置红点位置（菜单图标右上角）
-                params.gravity = Gravity.START or Gravity.TOP
-                params.leftMargin =
-                    vHomeMenu.left + menuWidth - vHomeMenu.paddingRight - redDot.width / 2
-                params.topMargin = vHomeMenu.top + vHomeMenu.paddingTop - redDot.height / 2
-                redDot.setLayoutParams(params)
-            })
+            redDot.visibility = vHomeMenu.visibility
+//            vDgwMenu.post({
+//                val drawables: Array<Drawable?> = vDgwMenu.getCompoundDrawables()
+//                val leftDrawable: Drawable? = drawables[0]
+//                if (leftDrawable != null) {
+//
+//                    // 创建布局参数
+//                    val params: FrameLayout.LayoutParams =
+//                        redDot3.layoutParams as FrameLayout.LayoutParams
+//
+//
+//                    // 设置红点位置（菜单图标右上角）
+//                    params.gravity = Gravity.START or Gravity.TOP
+//                    params.leftMargin =
+//                        vDgwMenu.left + vDgwMenu.paddingLeft + leftDrawable.intrinsicWidth - redDot3.width / 2
+//                    params.topMargin = vDgwMenu.top + vDgwMenu.paddingTop - redDot3.height / 2
+//                    redDot3.setLayoutParams(params)
+//                }
+//
+//            })
+//// 在视图布局完成后调整位置
+//            vHomeMenu.post({
+//                redDot.visibility = vHomeMenu.visibility
+//                // 获取菜单图标的宽高
+//                val menuWidth: Int = vHomeMenu.width
+//
+//
+//                // 创建布局参数
+//                val params: FrameLayout.LayoutParams =
+//                    redDot.layoutParams as FrameLayout.LayoutParams
+//
+//
+//                // 设置红点位置（菜单图标右上角）
+//                params.gravity = Gravity.START or Gravity.TOP
+//                params.leftMargin =
+//                    vHomeMenu.left + menuWidth - vHomeMenu.paddingRight - redDot.width / 2
+//                params.topMargin = vHomeMenu.top + vHomeMenu.paddingTop - redDot.height / 2
+//                redDot.setLayoutParams(params)
+//            })
 
             // 保存已经显示过引导页的状态
         } else {

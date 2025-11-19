@@ -23,6 +23,7 @@ import sdk.chat.core.utils.KeyStorage;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.robot.api.GWApiManager;
 import sdk.chat.demo.robot.api.ImageApi;
+import sdk.chat.demo.robot.api.model.ActionLimitConfig;
 import sdk.chat.demo.robot.api.model.ImageDaily;
 import sdk.chat.demo.robot.extensions.DeviceIdHelper;
 import sdk.chat.demo.robot.extensions.LogHelper;
@@ -110,8 +111,12 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
             }
             GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
             ImageApi.getServerConfigs().subscribe();
-//            handler.getWelcomeMsg().subscribe();
+            BillingManager.Companion.getInstance().getBillingHelper().subscribe();
+            SocialShareHandler.getHeaderImageAsync().subscribe();
             handler.createChatSessions();
+            // 初始化计数器
+            LimitCounter.INSTANCE.initialize(MainApp.getContext(),null);
+            ActionLimitConfig.INSTANCE.loadDefaultConfigs();
             ImageApi.listImageTags().subscribe();
             setAuthStateToIdle();
 

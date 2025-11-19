@@ -14,7 +14,6 @@
 <!--        android:background="?attr/colorPrimary"-->
 <!--        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"-->
 <!--        android:title="圣经"/>-->
-
     <!-- 主内容区域 -->
     <FrameLayout
         android:id="@+id/fragment_container"

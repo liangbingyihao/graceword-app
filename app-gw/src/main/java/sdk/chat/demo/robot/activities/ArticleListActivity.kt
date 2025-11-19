@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
@@ -33,12 +31,14 @@ import sdk.chat.demo.robot.adpter.GenericMenuPopupWindow
 import sdk.chat.demo.robot.adpter.SessionPopupAdapter
 import sdk.chat.demo.robot.adpter.data.Article
 import sdk.chat.demo.robot.adpter.data.ArticleSession
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.LogHelper
 import sdk.chat.demo.robot.extensions.showMaterialConfirmationDialog
 import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.ui.LoadMoreSwipeRefreshLayout
 import sdk.chat.demo.robot.ui.PopupMenuHelper
 import sdk.chat.demo.robot.utils.SoftHideKeyBoardUtil
@@ -118,6 +118,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                 })
         )
         SoftHideKeyBoardUtil.assistActivity(findViewById<View>(R.id.main))
+
     }
 
 //    override fun getRootView(): View? {
@@ -135,7 +136,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             onItemClick = { article ->
                 // 处理普通点击
 //                Toast.makeText(this, "点击了: ${article.localId}，${article.title}", Toast.LENGTH_SHORT).show()
-                ChatActivity.start(ArticleListActivity@ this, article.id);
+                ChatActivity.start(ArticleListActivity@ this, article.id,"timeline");
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "20"),
+                    )
+                )
             },
             onEditClick = { article ->
                 // 处理编辑点击
@@ -144,11 +150,21 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                 vEdSummary.setText(article.title)
                 vEdSummaryContainer.visibility = View.VISIBLE
                 showKeyboard(vEdSummary)
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "40"),
+                    )
+                )
             },
             onLongClick = { v, article ->
                 // 处理长按
 //                Toast.makeText(this, "长按: ${article.title}", Toast.LENGTH_SHORT).show()
                 showPopupMenu(v, article)
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "30"),
+                    )
+                )
                 true
             })
         recyclerView.adapter = articleAdapter
@@ -247,9 +263,10 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             if (it < 0) 0 else it
         }
         var menuPopupAdapter = SessionPopupAdapter(this, items, selectedPosition)
-        var title = items[selectedPosition].title
+        var s = items[selectedPosition]
+        var title = s.title
         tvTitle.text = title
-        if (items[selectedPosition].isQA) {
+        if (s.isQA || s.id == GWThreadHandler.chatSessionId) {
             vMoreMenus.visibility = View.INVISIBLE
         } else {
             vMoreMenus.visibility = View.VISIBLE
@@ -268,7 +285,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                         menuPopup.setTitle(item.title)
                         loadArticles()
 
-                        if (item.isQA) {
+                        if (item.isQA || item.id == GWThreadHandler.chatSessionId) {
                             vMoreMenus.visibility = View.INVISIBLE
                         } else {
                             vMoreMenus.visibility = View.VISIBLE
@@ -376,7 +393,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     },
                     { error -> // onError
                         swipeRefreshLayout.isRefreshing = false
-                        LogHelper.reportExportEvent("load.err", error.message.toString(),error)
+                        LogHelper.reportExportEvent("load.err", error.message.toString(), error)
                         Toast.makeText(
                             this@ArticleListActivity,
                             error.message,
@@ -390,6 +407,11 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.home -> {
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "80")
+                    )
+                )
                 finish()
             }
 
@@ -400,6 +422,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                 startActivity(intent)
+
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "50"),
+                    )
+                )
                 finish()
             }
 
@@ -428,6 +456,11 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             }
 
             R.id.more_menus -> {
+                LogUploader.reportEvent(
+                    "mod_timeline", mutableListOf(
+                        KeyValuePair("timeline_action", "60"),
+                    )
+                )
                 PopupMenuHelper(
                     context = this,
                     anchorView = v,
@@ -456,6 +489,15 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                                                 })
                                         dm.add(disposable)
                                     })
+                                LogUploader.reportEvent(
+                                    "mod_timeline", mutableListOf(
+                                        KeyValuePair("timeline_action", "62"),
+                                        KeyValuePair(
+                                            "timeline_edit_entrance",
+                                            "timeline_page_corner"
+                                        ),
+                                    )
+                                )
                             }
 
                             R.id.rename -> {
@@ -463,6 +505,15 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                                 vEdSummary.setText(tvTitle.text)
                                 vEdSummaryContainer.visibility = View.VISIBLE
                                 showKeyboard(vEdSummary)
+                                LogUploader.reportEvent(
+                                    "mod_timeline", mutableListOf(
+                                        KeyValuePair("timeline_action", "61"),
+                                        KeyValuePair(
+                                            "timeline_edit_entrance",
+                                            "timeline_page_corner"
+                                        ),
+                                    )
+                                )
                             }
                         }
                     },
@@ -493,13 +544,28 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                             positiveAction = {
                                 changeTopic(-1)
                             })
+                        LogUploader.reportEvent(
+                            "mod_timeline", mutableListOf(
+                                KeyValuePair("timeline_action", "38"),
+                            )
+                        )
                     }
 
                     R.id.changeTopic -> {
                         menuPopup.show(true)
+                        LogUploader.reportEvent(
+                            "mod_timeline", mutableListOf(
+                                KeyValuePair("timeline_action", "32"),
+                            )
+                        )
                     }
 
                     R.id.copy -> {
+                        LogUploader.reportEvent(
+                            "mod_timeline", mutableListOf(
+                                KeyValuePair("timeline_action", "31"),
+                            )
+                        )
                         val article = articleAdapter.selectArticle
                         if (article != null) {
                             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager

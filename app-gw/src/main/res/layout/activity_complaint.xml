@@ -60,6 +60,7 @@
         android:layout_height="220dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
+        android:hint="@string/hint_complaint"
         android:gravity="top|left"
         android:background="@color/bg_gray_button"
         android:inputType="textAutoCorrect|textAutoComplete|textMultiLine|textCapSentences"

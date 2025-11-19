@@ -20,6 +20,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import sdk.chat.demo.robot.api.model.ActionConfig;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
+import sdk.chat.demo.robot.handlers.BillingManager;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -28,6 +32,7 @@ import androidx.fragment.app.FragmentContainerView;
 import org.tinylog.Logger;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import io.reactivex.Completable;
@@ -60,6 +65,8 @@ import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.audio.AsrHelper;
 import sdk.chat.demo.robot.handlers.DailyTaskHandler;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.handlers.LimitCounter;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.holder.WelcomeHolder;
 import sdk.chat.demo.robot.ui.GWChatContainer;
 import sdk.chat.demo.robot.ui.GWMsgInput;
@@ -294,16 +301,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         return bottomMargin;
     }
 
-//    public void showReplyView(String title, String imageURL, String text) {
-//        koh.hideKeyboardOverlayAndShowKeyboard();
-//        updateOptionsButton();
-//        if (audioBinder != null) {
-//            audioBinder.showReplyView();
-//        }
-//        replyView.show(title, imageURL, text);
-//
-//        updateChatViewMargins(true);
-//    }
 
     protected void initViews() {
         chatView = rootView.findViewById(R.id.chatView);
@@ -448,9 +445,17 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                         input.setInputIntentMenusVisible(View.GONE);
                         input.messageInput.setHint(R.string.hint_msg_welcome);
                     } else {
+                        input.messageInput.setHint(R.string.hint_msg_input);
                         input.onMsgStatusChanged(0);
                         hideKeyboard();
                     }
+                }));
+
+        dm.add(ChatSDK.events().sourceOnSingle()
+                .filter(NetworkEvent.filterType(EventType.BillChange))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(networkEvent -> {
+                    onBillChanged();
                 }));
 
         dm.add(ChatSDK.events().sourceOnSingle()
@@ -580,6 +585,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //        LogHelper.INSTANCE.appendLog("sendMessage:" + text.substring(0, Math.min(10, text.length())));
 
         String prompt = input.getMessagePrompt();
+        String chatMode = "message";
 
         if (prompt != null) {
             GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
@@ -594,6 +600,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 prompt = getString(R.string.prompt_search_hymns, params);
                 GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
                 handleMessageSend(handler.sendExploreMessage(prompt, null, AIExplore.ExploreItem.action_search_hymns, ""));
+                chatMode = "hymn";
             } else {
                 if (text == null || text.isEmpty()) {
                     return;
@@ -601,6 +608,12 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 handleMessageSend(ChatSDK.thread().sendMessageWithText(text.trim(), thread));
             }
         }
+        LogUploader.reportEvent(
+                "mod_chat", List.of(
+                        new KeyValuePair("chat_action", "30"),
+                        new KeyValuePair("chat_mode", chatMode)
+                        )
+        );
         input.setMessagePrompt(null);
 
     }
@@ -608,7 +621,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected void handleMessageSend(Completable completable) {
         completable.observeOn(RX.main()).doOnError(throwable -> {
             Log.e("sending", throwable.getLocalizedMessage());
-            showToast(throwable.getLocalizedMessage());
+            ToastHelper.show(getActivity(), throwable.getLocalizedMessage());
             Logger.error(throwable, "handleMessageSend");
         }).subscribe(this);
     }
@@ -644,6 +657,8 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
             input.setDraft(thread.getDraft());
 //            input.getInputEditText().setText(thread.getDraft(), TextView.BufferType.EDITABLE);
         }
+
+        onBillChanged();
 
         // Put it here in the case that they closed the app with this screen open
 //        thread.markReadAsync().subscribe();
@@ -719,9 +734,12 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
 
-    public void switchContent() {
-        if (chatView != null) {
-//            chatView.switchContent();
+    private void onBillChanged() {
+        Log.e("BillingManager", "chatFragment hasSubscriptions:"+BillingManager.Companion.getInstance().hasSubscriptions());
+        if (BillingManager.Companion.getInstance().hasSubscriptions()) {
+            input.setHintVip(null);
+        }else{
+            input.setHintVip(getString(R.string.hint_vip_text_left_msg, LimitCounter.INSTANCE.getRemainingCount(ActionConfig.DAILY_MSG)));
         }
     }
 

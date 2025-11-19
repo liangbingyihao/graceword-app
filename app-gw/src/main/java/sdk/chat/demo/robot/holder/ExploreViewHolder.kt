@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.holder
 
+import android.content.Intent
 import android.util.Log
 import android.view.View
 import android.widget.TextView
@@ -12,12 +13,16 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.BillingActivity
 import sdk.chat.demo.robot.adpter.data.AIExplore
+import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
-import sdk.chat.demo.robot.holder.WelcomeHolder
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
+import java.util.List
 
 open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     var contentLoadingProgressBar: ContentLoadingProgressBar =
@@ -30,6 +35,8 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         "explore2" to itemView.findViewById<TextView>(R.id.explore3)
     )
     val placeHolderView = itemView.findViewById<View>(R.id.placeholder)
+    val vipText = itemView.findViewById<View>(R.id.vip_text)
+    val vipInvite = itemView.findViewById<View>(R.id.button_start_vip)
     open val dm = DisposableMap()
     var loading: Boolean = false
 
@@ -39,6 +46,16 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         this.loading = loading
         contentLoadingProgressBar.visibility = if (loading) View.VISIBLE else View.GONE
         bindExplore(aiExplore)
+        var action = aiExplore.message.integerForKey("action")
+        if (!BillingManager.getInstance().hasSubscriptions()
+            && action == AIExplore.ExploreItem.action_guest_talk
+        ) {
+            vipText.visibility = View.VISIBLE
+            vipInvite.visibility = View.VISIBLE
+        } else {
+            vipText.visibility = View.GONE
+            vipInvite.visibility = View.GONE
+        }
     }
 
     open fun bindExplore(t: ExploreHolder) {
@@ -96,6 +113,12 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                         NetworkEvent.messageInputPrompt(null, data.text)
                     v.setOnClickListener { view ->
                         ChatSDK.events().source().accept(event)
+                        LogUploader.reportEvent(
+                            "mod_guide", listOf<KeyValuePair?>(
+                                KeyValuePair("guide_action", "20"),
+                                KeyValuePair("guide_option_id", (i+1).toString())
+                            )
+                        )
                     }
                 } else {
                     v.setOnClickListener { view ->
@@ -107,6 +130,11 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                             data.getParamsStr()
                         ).subscribe();
                     }
+                    LogUploader.reportEvent(
+                        "mod_chat", listOf<KeyValuePair?>(
+                            KeyValuePair("chat_action", "40")
+                        )
+                    )
                 }
             } else {
                 v.visibility = View.GONE
@@ -136,6 +164,9 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                             bind(this.loading, t)
                         }
                     })
+            vipInvite.setOnClickListener {
+                BillingActivity.start(vipInvite.context,"reply_limit")
+            }
         }
     }
 }

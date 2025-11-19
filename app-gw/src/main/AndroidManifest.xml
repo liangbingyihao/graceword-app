@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-
+    <uses-permission android:name="com.android.vending.BILLING" />
 
     <queries>
         <!-- Facebook -->
@@ -94,6 +94,7 @@
         <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity"/>
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.BibleActivity"/>
+        <activity android:name="sdk.chat.demo.robot.activities.BillingActivity"/>
         <activity android:name="sdk.chat.demo.robot.activities.BeginnerActivity"/>
         <activity android:name="sdk.chat.demo.robot.activities.MainDrawerActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.SettingsActivity" />

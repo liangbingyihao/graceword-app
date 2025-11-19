@@ -21,9 +21,11 @@ import sdk.chat.demo.robot.activities.ArticleListActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ExportInfo
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.LanguageUtils
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.guru.common.RX
 
@@ -65,6 +67,12 @@ class SettingLangsActivity : BaseActivity(), View.OnClickListener {
                         .observeOn(RX.main())
                         .doFinally { finish() }
                         .subscribe()
+                )
+
+                LogUploader.reportEvent(
+                    "mod_settings", listOf<KeyValuePair?>(
+                        KeyValuePair("settings_action", "11"),
+                    )
                 )
             }
         }, 10)

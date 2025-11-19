@@ -29,6 +29,7 @@
     <string name="search_history">History</string>
     <string name="timeline">Grace Journal</string>
     <string name="pending_image">Processing image...</string>
+    <string name="processing">Processing...</string>
     <string name="copied">Copied to clipboard.</string>
     <string name="save">Favorites</string>
     <string name="saved">Added to saved items</string>
@@ -41,7 +42,7 @@
     <string name="retrying">Retrying…</string>
     <string name="enter">Start Journey</string>
     <string name="failed_and_retry">Something went wrong. Please try again later.</string>
-    <string name="added_to_timeline">Added to your grace journal</string>
+    <string name="added_to_timeline">Added to your Grace Journal</string>
     <string name="task_today">Grace Journey</string>
     <string name="get_it">Got it</string>
     <string name="settings">Settings</string>
@@ -104,7 +105,7 @@
     <string name="image_save_failed">Image save failed</string>
     <string name="image_saved">Image saved successfully</string>
     <string name="asr_error">Voice recognition is busy, please try alternative input methods</string>
-    <string name="hint_msg_input">Record daily reflections or discuss faith matters</string>
+    <string name="hint_msg_input">Write Journal or Ask Questions</string>
     <string name="hint_msg_welcome">Please enter your thoughts</string>
     <string name="share_preview">Share Preview</string>
     <string name="share_confirm">Share Directly</string>
@@ -129,4 +130,49 @@
     <string name="last_chapter">Already at last chapter</string>
 
     <string name="beginner_welcome">Welcome to Grace Word</string>
+
+    <string name="subscription_success">Subscription Successful</string>
+    <string name="congratulations">Congratulations on becoming a VIP Member</string>
+    <string name="vip_already">You are already an VIP Member</string>
+    <string name="draft">Draft</string>
+    <string name="scripture_image_generated">Scripture image generated</string>
+    <string name="upgrade_to_unlock">Upgrade to unlock</string>
+    <string name="hint_vip_text_left_msg"><![CDATA[Remaining replies today: %d times, <font color=\'#CF4B41\'>Unlimited use →</font>]]></string>
+    <string name="hint_vip_text_empty">Daily replies exhausted. Upgrade to membership to continue recording and discussing faith topics with GraceWords</string>
+    <string name="hint_complaint">Suggestions/Reply-related issues/Problems encountered/Feature usage</string>
+    <string name="vip_already2">Subscription successful, but sync data exception. Recommended to restart APP or contact customer service</string>
+
+
+
+    <!-- 产品方案 -->
+    <string name="trial_title">7-day free trial</string>
+    <string name="trial_price">Then $49.99/year, only $0.96/week</string>
+    <string name="save_badge">Save 38%</string>
+    <string name="weekly_title">$1.99/week</string>
+    <string name="weekly_price">Then $19.99/3 months</string>
+
+    <!-- 按钮和说明 -->
+    <string name="auto_renew_text">Auto-renewable, cancel anytime</string>
+    <string name="start_trial_button">Start Free Trial</string>
+
+    <!-- 底部链接 -->
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="privacy_policy">Privacy Policy</string>
+
+
+    <!-- 价格周期 -->
+    <string name="period_day">day</string>
+    <string name="period_week">week</string>
+    <string name="period_7_days">7 days</string>
+    <string name="period_month">month</string>
+    <string name="period_quarter">quarter</string>
+    <string name="period_half_year">half year</string>
+    <string name="period_year">year</string>
+
+    <!-- 价格描述 -->
+    <string name="free_trial"> free trial</string>
+    <string name="then_prefix">Then</string>
+    <string name="price_format">%1$s/%2$s</string>
+
+    <string name="restore_subscription">Restore Purchase</string>
 </resources>

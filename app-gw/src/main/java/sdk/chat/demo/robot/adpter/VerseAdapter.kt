@@ -32,6 +32,15 @@ class VerseAdapter(
         }
     }
 
+    init {
+        // 初始化：将 referenced=true 的经文索引加入选中集合
+        verses.forEachIndexed { index, verse ->
+            if (verse.referenced == true) {
+                selectedPositions.add(index)
+            }
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VerseViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_verse, parent, false)

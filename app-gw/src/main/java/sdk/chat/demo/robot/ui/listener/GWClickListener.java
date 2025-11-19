@@ -34,18 +34,22 @@ import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.ArticleListActivity;
 import sdk.chat.demo.robot.activities.BaseActivity;
+import sdk.chat.demo.robot.activities.BillingActivity;
 import sdk.chat.demo.robot.activities.ImageViewerActivity;
 import sdk.chat.demo.robot.adpter.ChatAdapter;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
 import sdk.chat.demo.robot.api.model.AIFeedback;
+import sdk.chat.demo.robot.api.model.ActionConfig;
 import sdk.chat.demo.robot.api.model.ImageDaily;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.MessageDetail;
 import sdk.chat.demo.robot.audio.TTSHelper;
 import sdk.chat.demo.robot.extensions.ActivityExtensionsKt;
 import sdk.chat.demo.robot.extensions.ImageSaveUtils;
+import sdk.chat.demo.robot.handlers.BillingManager;
 import sdk.chat.demo.robot.handlers.CardGenerator;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.handlers.LimitCounter;
 import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.holder.DailyGWHolder;
 import sdk.chat.demo.robot.holder.ImageHolder;
@@ -79,7 +83,8 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         adapter.registerViewClickListener(R.id.btn_download, listener);
         adapter.registerViewClickListener(R.id.btn_share_image, listener);
 //        adapter.registerViewClickListener(R.id.btn_share_text, listener);
-//        adapter.registerViewClickListener(R.id.btn_share_user_text, listener);
+        adapter.registerViewClickListener(R.id.vip_bible_pic, listener);
+        adapter.registerViewClickListener(R.id.bt_start_vip, listener);
         adapter.registerViewClickListener(R.id.btn_play, listener);
         adapter.registerViewClickListener(R.id.btn_pray, listener);
         adapter.registerViewClickListener(R.id.btn_pic, listener);
@@ -87,6 +92,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
         adapter.registerViewClickListener(R.id.btn_redo, listener);
         adapter.registerViewClickListener(R.id.btn_like_ai, listener);
         adapter.registerViewClickListener(R.id.btn_copy_user_text, listener);
+        adapter.registerViewClickListener(R.id.btn_copy_ai_text, listener);
         adapter.registerViewClickListener(R.id.btn_like_user_text, listener);
         adapter.registerViewClickListener(R.id.btn_del_user_text, listener);
         adapter.registerViewClickListener(R.id.session_name, listener);
@@ -170,6 +176,12 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 //            ImageHolder imageHolder = (ImageHolder) imessage;
 
             pending = true;
+
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", id == R.id.btn_download ? "13" : "12")
+                    ));
+
             Disposable disposable = PermissionRequestHandler
                     .requestWriteExternalStorage(weakContext.get())
                     .andThen( // After permission is granted, execute the following operations
@@ -229,13 +241,20 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 //            ImageDaily imageDaily = imageHolder.getImageDaily();
             if (resId == R.layout.item_image_gw) {
                 if (imageDaily != null) {
-                    ImageViewerActivity.Companion.start(this.weakContext.get(), imageDaily.getDate());
+                    ImageViewerActivity.Companion.start(this.weakContext.get(), imageDaily.getDate(),"fullscreen");
                 }
             } else if (imageDaily != null) {
                 ImageMessageOnClickHandler.onClick(this.weakContext.get(), view, imageDaily.getBackgroundUrl(), imageDaily.getScripture());
             }
         } else if (id == R.id.btn_play) {
-            if (imessage.getClass() == TextHolder.class) {
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "30")
+                    ));
+            if (BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(),"tts")) {
+                return;
+            }
+            if (imessage.getClass() == TextHolder.class && message != null) {
                 if (message.equals(TTSHelper.INSTANCE.getPlayingMsg())) {
                     TTSHelper.INSTANCE.stop();
                 } else {
@@ -254,6 +273,28 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                 clipboard.setPrimaryClip(clip);
                 ToastHelper.show(getContext(), getContext().getString(R.string.copied));
             }
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "0")
+                    )
+            );
+        } else if (id == R.id.btn_copy_ai_text) {
+            if (this.weakContext.get() != null && imessage.getClass() == TextHolder.class) {
+                String copyText = aiFeedback != null ? aiFeedback.getFeedbackText() : "";
+                Markwon md = Markwon.create(view.getContext());
+                copyText = md.render(md.parse(copyText)).toString();
+                ClipboardManager clipboard = (ClipboardManager) this.weakContext.get().getSystemService(Context.CLIPBOARD_SERVICE);
+//                TextHolder holder = (TextHolder) imessage;
+//                String copyText = holder.getText();
+                ClipData clip = ClipData.newPlainText("恩语", copyText);
+                clipboard.setPrimaryClip(clip);
+                ToastHelper.show(getContext(), getContext().getString(R.string.copied));
+            }
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "0")
+                    )
+            );
         } else if (id == R.id.btn_pic) {
             if (this.weakContext.get() != null && imessage.getClass() == TextHolder.class) {
                 TextHolder t = (TextHolder) imessage;
@@ -272,7 +313,16 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                         feedback.getTag() + "|" + feedback.getBible()
                 ).subscribe();
             }
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "10")
+                    )
+            );
         } else if (id == R.id.btn_del || id == R.id.btn_del_user_text) {
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "40")
+                    ));
             if (imessage.getClass() == TextHolder.class && message != null) {
                 Context context = this.weakContext.get();
                 ActivityExtensionsKt.showMaterialConfirmationDialog(context, context.getString(R.string.delete_confirm), null, null, () -> {
@@ -294,6 +344,10 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 
             }
         } else if (id == R.id.btn_like_ai || id == R.id.btn_like_user_text) {
+            LogUploader.reportEvent(
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "20")
+                    ));
             if (imessage.getClass() == TextHolder.class && message != null) {
                 Single<Integer> r = id == R.id.btn_like_ai ? threadHandler.toggleAiLikeState(message) : threadHandler.toggleContentLikeState(message);
                 Disposable disposable = r.observeOn(AndroidSchedulers.mainThread())
@@ -316,7 +370,16 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                 weakContext.get().onSubscribe(disposable);
             }
         } else if (id == R.id.btn_redo) {
+            LogUploader.reportEvent(
+                "mod_msg_interact", List.of(
+                        new KeyValuePair("interact_action", "50")
+                ));
             if (imessage.getClass() == TextHolder.class) {
+                if (!LimitCounter.INSTANCE.canPerformAction(ActionConfig.DAILY_MSG)) {
+                    BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(),"reply_limit");
+                    ToastHelper.show(weakContext.get(), R.string.hint_vip_text_empty);
+                    return;
+                }
                 if (aiFeedback != null) {
                     aiFeedback.setStatus(1);
                     ChatSDK.events().source().accept(NetworkEvent.messageUpdated(message));
@@ -333,7 +396,13 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
             if (message != null) {
                 LogUploader.reportEvent(
                         "mod_timeline", List.of(
-                                new KeyValuePair("timeline_entrance", "chat_page_saved")
+                                new KeyValuePair("timeline_entrance", "chat_page_saved"),
+                                new KeyValuePair("timeline_action", "0")
+                        )
+                );
+                LogUploader.reportEvent(
+                        "mod_chat", List.of(
+                                new KeyValuePair("chat_action", "50")
                         )
                 );
                 ArticleListActivity.Companion.start(weakContext.get(), message.getThreadId().toString());
@@ -362,6 +431,8 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                 );
                 view.setVisibility(View.VISIBLE);
             }).subscribe(weakContext.get());
+        } else if (id == R.id.vip_bible_pic || id == R.id.bt_start_vip) {
+            BillingActivity.Companion.start(weakContext.get(), "verse_image");
         }
     }
 }

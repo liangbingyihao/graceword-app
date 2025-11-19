@@ -18,6 +18,7 @@ import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.api.model.Song
+import sdk.chat.demo.robot.extensions.StateStorage
 import sdk.chat.demo.robot.ui.SongsContainerView
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
@@ -144,6 +145,16 @@ open class SongsContainerViewHolder<T : MessageHolder>(itemView: View) :
             }
         })
 
+        if (StateStorage.getStateB(t.message.status)) {
+            imageLikeAi?.setImageResource(R.mipmap.ic_dislike_black)
+        } else {
+            imageLikeAi?.setImageResource(R.mipmap.ic_like_black)
+        }
+        if (StateStorage.getStateA(t.message.status)) {
+            imageLikeContent?.setImageResource(R.mipmap.ic_dislike_black)
+        } else {
+            imageLikeContent?.setImageResource(R.mipmap.ic_like_black)
+        }
 
         bindSendStatus(t)
     }

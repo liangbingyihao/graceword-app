@@ -51,6 +51,10 @@ public class DailyTaskHandler {
     private final static String URL_STORY_HISTORY = ImageApi.URL2 + "story/history";
 
     public static void testTaskDetail(Integer completeIndex) {
+        if(true){
+            //FIXME
+            return;
+        }
         String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
         TaskDetail item = new TaskDetail(today);
         if (completeIndex > MAX_TASK_INDEX) {
@@ -65,12 +69,20 @@ public class DailyTaskHandler {
     }
 
     public static void completeTaskByIndex(int index){
+        if(true){
+            //FIXME
+            return;
+        }
         TaskDetail taskDetail = getTaskToday();
         taskDetail.completeTaskByIndex(index);
         setTaskDetail(taskDetail);
     }
 
     public static void setTaskDetail(TaskDetail detail) {
+        if(true){
+            //FIXME
+            return;
+        }
         if (detail == null) {
             Log.e("TaskHandler", "TaskDetail cannot be null");
             return;
@@ -111,6 +123,10 @@ public class DailyTaskHandler {
 
 
     public static TaskDetail getTaskToday() {
+        if(true){
+            //FIXME
+            return new TaskDetail(1);
+        }
         String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_TASK_DETAIL);
         String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
         if (cachedData != null) {
@@ -132,6 +148,10 @@ public class DailyTaskHandler {
     }
 
     public static boolean shouldNotify(){
+        if(true){
+            //FIXME
+            return false;
+        }
         TaskDetail taskDetail = getTaskToday();
         boolean ret = taskDetail.isTaskCompleted(TaskDetail.UNLOCK_STORY_MASK) && !taskDetail.isTaskCompleted(TaskDetail.TASK_DONE);
         if(ret){

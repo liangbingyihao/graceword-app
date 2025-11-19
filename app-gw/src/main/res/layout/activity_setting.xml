@@ -105,27 +105,15 @@
                     android:text="@string/setting_export"
                     android:textColor="@color/item_text_normal"
                     android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/gray_divider" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="58dp"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/version"
-                    android:layout_width="wrap_content"
+                
+                <ImageView
+                    android:id="@+id/export_vip"
+                    android:layout_width="16dp"
                     android:layout_height="wrap_content"
-                    android:text="version"
-                    android:textColor="@color/item_text_normal"
-                    android:textSize="16sp" />
+                    android:layout_marginLeft="6dp"
+                    android:src="@mipmap/ic_vip"/>
             </LinearLayout>
+
 
             <View
                 android:layout_width="match_parent"
@@ -163,6 +151,46 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/get_my_userid"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gray_divider" />
+
+            <LinearLayout
+                android:id="@+id/restore_subscription"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/restore_subscription"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gray_divider" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="58dp"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="version"
                     android:textColor="@color/item_text_normal"
                     android:textSize="16sp" />
             </LinearLayout>

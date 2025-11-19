@@ -5,6 +5,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.ui.MarkdownRenderer
 
 open class WelcomeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     open var replyText: MaterialButton? = itemView.findViewById(R.id.replyText)
@@ -14,6 +15,10 @@ open class WelcomeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bind(h: WelcomeHolder) {
 //        replyText?.text = h.question
 //        text?.text = h.text
-        feedback?.text = h.option.response
+        if (h.option != null && h.option.response != null) {
+            feedback?.let {
+                MarkdownRenderer.markwon.setMarkdown(it, h.option.response ?: "");
+            }
+        }
     }
 }

@@ -19,14 +19,17 @@ import com.gyf.immersionbar.ImmersionBar;
 
 import org.tinylog.Logger;
 
+import java.util.List;
 import java.util.Locale;
 
 import sdk.chat.core.dao.User;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.utils.ToastHelper;
 import sdk.guru.common.RX;
 
@@ -106,7 +109,20 @@ public class GuideActivity extends BaseActivity {
             } else {
                 launchMainActivity();
             }
+
+            LogUploader.reportEvent(
+                    "mod_guide", List.of(
+                            new KeyValuePair("guide_action", "10"),
+                            new KeyValuePair("guide_type", "app_launch")
+                    )
+            );
         });
+        LogUploader.reportEvent(
+                "mod_guide", List.of(
+                        new KeyValuePair("guide_action", "0"),
+                        new KeyValuePair("guide_type", "app_launch")
+                )
+        );
     }
 
     @Override

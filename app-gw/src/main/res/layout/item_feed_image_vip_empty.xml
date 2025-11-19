@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <FrameLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:clickable="true"-->
+<!--        android:focusable="true"-->
+<!--        app:layout_alignSelf="flex_start">-->
+
+<!--        <ImageView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:adjustViewBounds="true"-->
+<!--            android:src="@mipmap/fg_vip_pic" />-->
+
+        <LinearLayout
+            android:id="@+id/vip_bible_pic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@mipmap/fg_vip_pic"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="100dp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="8dp"
+                android:text="@string/scripture_image_generated"
+                android:textColor="@color/white"
+                android:textIsSelectable="true"
+                android:textSize="15sp"
+                app:layout_alignSelf="flex_start" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bt_start_vip"
+                android:layout_width="116dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="12dp"
+                android:stateListAnimator="@null"
+                android:text="@string/upgrade_to_unlock"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:backgroundTint="@color/bg_bill_menu"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                app:strokeWidth="0dp" />
+        </LinearLayout>
+<!--    </FrameLayout>-->
+</merge>

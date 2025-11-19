@@ -3,12 +3,16 @@ package sdk.chat.demo.robot.ui;
 
 import sdk.chat.core.ui.KeyboardOverlayHandler;
 import sdk.chat.demo.robot.activities.BibleActivity;
+import sdk.chat.demo.robot.activities.BillingActivity;
 import sdk.chat.demo.robot.api.model.GWConfigs;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.ActivityExtensionsKt;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -28,11 +32,13 @@ import org.tinylog.Logger;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.audio.AsrHelper;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.utils.ToastHelper;
 
 public class GWMsgInput extends RelativeLayout
@@ -53,6 +59,7 @@ public class GWMsgInput extends RelativeLayout
     private CharSequence input;
     private InputIntentView inputIntentView;
     private View inputIntentMenus;
+    private TextView hintVip;
     private GWMsgInput.InputListener inputListener;
     private GWMsgInput.AttachmentsListener attachmentsListener;
     private boolean isTyping;
@@ -133,9 +140,10 @@ public class GWMsgInput extends RelativeLayout
 //        stopSimulation();
     }
 
-    public void setInputIntentMenusVisible(int visibility){
+    public void setInputIntentMenusVisible(int visibility) {
         inputIntentMenus.setVisibility(visibility);
     }
+
     public void onMsgStatusChanged(int status) {
         //status: 0: pending,1:idle
 //        Log.e("sending", "onMsgStatusChanged:" + status);
@@ -153,15 +161,15 @@ public class GWMsgInput extends RelativeLayout
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.messageSendButton) {
-            if(!isSendEnable()){
-                if(isSearchingHymns){
-                    ToastHelper.show(getContext(),R.string.hint_search_hymns);
-                }else{
-                    ToastHelper.show(getContext(),R.string.hint_msg_input);
+            if (!isSendEnable()) {
+                if (isSearchingHymns) {
+                    ToastHelper.show(getContext(), R.string.hint_search_hymns);
+                } else {
+                    ToastHelper.show(getContext(), R.string.hint_msg_input);
                 }
                 return;
             }
-            if(!isSearchingHymns&&inputIntentMenus.getVisibility()!=View.VISIBLE){
+            if (!isSearchingHymns && inputIntentMenus.getVisibility() != View.VISIBLE) {
                 inputIntentMenus.setVisibility(View.VISIBLE);
             }
             whenStartAsrMillis = 0;
@@ -182,6 +190,10 @@ public class GWMsgInput extends RelativeLayout
                 AsrHelper.INSTANCE.stopAsr();
                 messageInput.setShowSoftInputOnFocus(true);
             } else {
+                LogUploader.reportEvent(
+                        "mod_chat", List.of(
+                                new KeyValuePair("chat_action", "10")
+                        ));
                 attachmentButton.setImageResource(R.mipmap.ic_recording);
                 circleOverlayView.setVisibility(View.VISIBLE);
                 circleOverlayView.startAnimation();
@@ -203,6 +215,11 @@ public class GWMsgInput extends RelativeLayout
             Log.d("sending", "stop");
             ((GWThreadHandler) ChatSDK.thread()).stopPolling();
             onMsgStatusChanged(1);
+            LogUploader.reportEvent(
+                    "mod_chat", List.of(
+                            new KeyValuePair("chat_action", "35")
+                    )
+            );
 //            view.setVisibility(INVISIBLE);
 //            messageSendButton.setVisibility(VISIBLE);
         } else if (id == R.id.editMode) {
@@ -213,13 +230,30 @@ public class GWMsgInput extends RelativeLayout
             messageInput.setHint(R.string.hint_search_hymns);
             isSearchingHymns = true;
             if (typingListener != null) typingListener.onHeightChange();
+
+            LogUploader.reportEvent(
+                    "mod_chat", List.of(
+                            new KeyValuePair("chat_action", "60")
+                    )
+            );
         } else if (id == R.id.hideSongMenu) {
             inputIntentMenus.setVisibility(View.VISIBLE);
             messageInput.setHint(R.string.hint_msg_input);
             isSearchingHymns = false;
             if (typingListener != null) typingListener.onHeightChange();
+            LogUploader.reportEvent(
+                    "mod_chat", List.of(
+                            new KeyValuePair("chat_action", "63")
+                    )
+            );
         } else if (id == R.id.bible) {
-            BibleActivity.Companion.start(this.getContext(),"");
+            BibleActivity.Companion.start(this.getContext(), "");
+        } else if (id == R.id.hint_vip_msg) {
+            this.getContext().startActivity(
+                    new Intent(this.getContext(),
+                            BillingActivity.class
+                    )
+            );
         }
     }
 
@@ -311,11 +345,11 @@ public class GWMsgInput extends RelativeLayout
     }
 
     public String getHymnsParams() {
-        if(!isSearchingHymns) return null;
+        if (!isSearchingHymns) return null;
         return inputIntentView.getHymnsParams();
     }
 
-    public void initHymnsParams(GWConfigs configs){
+    public void initHymnsParams(GWConfigs configs) {
         inputIntentView.initHymnsParams(configs);
     }
 
@@ -354,6 +388,7 @@ public class GWMsgInput extends RelativeLayout
         buttonContainer = findViewById(R.id.buttonContainer);
         inputIntentView = findViewById(R.id.inputIntent);
         inputIntentMenus = findViewById(R.id.menus);
+        hintVip = findViewById(R.id.hint_vip_msg);
 //        soundWaveView = findViewById(R.id.soundWave);
         circleOverlayView = findViewById(R.id.circleOverlay);
 //                circleOverlay.startAnimation()
@@ -364,6 +399,7 @@ public class GWMsgInput extends RelativeLayout
         editModeButton.setOnClickListener(this);
         findViewById(R.id.hymns).setOnClickListener(this);
         findViewById(R.id.bible).setOnClickListener(this);
+        hintVip.setOnClickListener(this);
 //        findViewById(R.id.stopAsr).setOnClickListener(this);
         messageInput.addTextChangedListener(this);
         messagePrompt.addTextChangedListener(new TextWatcher() {
@@ -451,6 +487,15 @@ public class GWMsgInput extends RelativeLayout
 
     public boolean isFullScreen() {
         return editMode == MODE_FULLSCREEN;
+    }
+
+    public void setHintVip(String msg) {
+        if (msg != null && !msg.isEmpty()) {
+            hintVip.setVisibility(VISIBLE);
+            hintVip.setText(Html.fromHtml(msg, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            hintVip.setVisibility(GONE);
+        }
     }
 
     public String getDraft() {
@@ -623,7 +668,7 @@ public class GWMsgInput extends RelativeLayout
         if (!r && isSearchingHymns) {
             String p = inputIntentView.getHymnsParams();
             r = p != null && !p.isEmpty();
-            Log.e("getHymnsParams.isSendEnable", p+":"+r);
+            Log.e("getHymnsParams.isSendEnable", p + ":" + r);
         }
 
         return r;

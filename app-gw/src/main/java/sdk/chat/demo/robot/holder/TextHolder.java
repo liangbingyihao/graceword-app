@@ -2,13 +2,14 @@ package sdk.chat.demo.robot.holder;
 
 
 import com.stfalcon.chatkit.commons.models.MessageContentType;
-
+import android.content.Context;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.noties.markwon.Markwon;
 import kotlin.jvm.JvmField;
 import sdk.chat.core.dao.Message;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
@@ -127,6 +128,43 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
 //        }
 //
 //        return selectedSongs;
+    }
+
+    public List<Integer> getSelectedSongIndex() {
+        if (!isSong) {
+            return new ArrayList<>();
+        }
+
+        return Optional.ofNullable(getAiFeedback())
+                .map(MessageDetail::getFeedback)
+                .map(AIFeedback::getHymns)
+                .map(hymns -> {
+                    List<Integer> selectedIndexes = new ArrayList<>();
+                    for (int i = 0; i < hymns.size(); i++) {
+                        Song song = hymns.get(i);
+                        if (song != null && song.isSelected()) {
+                            selectedIndexes.add(i);
+                        }
+                    }
+                    return selectedIndexes;
+                })
+                .orElse(new ArrayList<>());
+    }
+
+
+    public String getShareSummary(Context context){
+        String summary;
+        if (isUserSelected()) {
+            summary = message.getText();
+        } else {
+            summary = getAiFeedback().getFeedbackText();
+            Markwon md = Markwon.create(context);
+            summary = md.render(md.parse(summary)).toString();
+        }
+        if (summary != null && summary.length() > 100) {
+            summary = summary.substring(0, 100) + "... 点击链接查看全部:";
+        }
+        return summary;
     }
 
     public void updateNextAndPreviousMessages() {

@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -18,41 +17,35 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.google.android.material.button.MaterialButton
-import com.stfalcon.chatkit.messages.MessageHolders
 import com.stfalcon.chatkit.messages.MessagesListAdapter
 import com.stfalcon.chatkit.messages.MessagesListStyle
-import io.noties.markwon.Markwon
-import io.noties.markwon.html.HtmlPlugin
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Predicate
 import sdk.chat.core.dao.Keys
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
-import sdk.chat.core.manager.DownloadablePayload
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
-import sdk.chat.core.utils.CurrentLocale
-import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.StateStorage
+import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.ui.MarkdownRenderer
-import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 
 open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     RecyclerView.ViewHolder(itemView),
 //    MessageHolders.BaseMessageViewHolder<T>(itemView, null),
 //    MessageHolders.DefaultMessageViewHolder,
     Consumer<Throwable> {
-//    open var root: View? = itemView.findViewById(R.id.root)
+    //    open var root: View? = itemView.findViewById(R.id.root)
     open var bubble: ViewGroup? = itemView.findViewById(R.id.bubble)
 
     open var replyText: MaterialButton? = itemView.findViewById(R.id.replyText)
@@ -81,6 +74,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     open var imageContainer: View? = itemView.findViewById(R.id.image_container)
     open var imageMenu: View? = itemView.findViewById(R.id.image_menu)
     open var bible: TextView? = itemView.findViewById(R.id.bible)
+    open var vipBiblePic: View? = itemView.findViewById(R.id.vip_bible_pic)
 
     open var imageLikeAi: ImageView? = itemView.findViewById(R.id.btn_like_ai)
     open var imageLikeContent: ImageView? = itemView.findViewById(R.id.btn_like_user_text)
@@ -136,7 +130,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
                 sessionName?.let {
                     it.text = topic
                 }
-            }else if(BuildConfig.DEBUG){
+            } else if (BuildConfig.DEBUG) {
                 sessionContainer?.visibility = View.VISIBLE
                 sessionName?.let {
                     it.text = t.message.threadId?.toString() ?: ""
@@ -215,9 +209,9 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if (t.message.entityID.equals("welcome")) {
             contentMenu?.visibility = View.GONE
             bubble?.visibility = View.GONE
-            if(isMultiSelectMode){
+            if (isMultiSelectMode) {
                 feedbackMenu?.visibility = View.GONE
-            }else{
+            } else {
                 feedbackMenu?.visibility = View.VISIBLE
             }
             sessionContainer?.visibility = View.GONE
@@ -237,43 +231,102 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             }
         }
 
+        bindBiblePic(t, bibleText)
 
-        var imageUrl = t.message.stringForKey(Keys.ImageUrl)
-        if (imageUrl.isEmpty() || bibleText == null || bibleText.isEmpty()) {
-            imageContainer?.visibility = View.GONE
-            imageMenu?.visibility = View.GONE
-        } else {
-            imageContainer?.visibility = View.VISIBLE
-            imageMenu?.visibility = View.VISIBLE
-            bible?.text = bibleText
-            Glide.with(image!!)
-                .load(imageUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.icn_200_image_message_placeholder) // 占位图
-                .error(R.drawable.icn_200_image_message_error) // 错误图
-                .addListener(object : RequestListener<Drawable> {
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        model: Any,
-                        target: Target<Drawable>,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        return false
-                    }
+//        var imageUrl = t.message.stringForKey(Keys.ImageUrl)
+//        imageMenu?.visibility = View.GONE
+//        imageContainer?.visibility = View.GONE
+//        vipBiblePic?.visibility = View.GONE
+//        if (!imageUrl.isNullOrEmpty() && !bibleText.isNullOrEmpty()) {
+//            imageContainer?.visibility = View.VISIBLE
+//            if (!BillingManager.getInstance()
+//                    .hasSubscriptions() && t.message.integerForKey(Keys.Permission) == -1
+//            ) {
+//                image?.visibility == View.INVISIBLE
+//                vipBiblePic?.visibility = View.VISIBLE
+//            } else {
+//                imageMenu?.visibility = View.VISIBLE
+//                bible?.text = bibleText
+//                Glide.with(image!!)
+//                    .load(imageUrl)
+//                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                    .placeholder(R.drawable.icn_200_image_message_placeholder) // 占位图
+//                    .error(R.drawable.icn_200_image_message_error) // 错误图
+//                    .addListener(object : RequestListener<Drawable> {
+//                        override fun onResourceReady(
+//                            resource: Drawable,
+//                            model: Any,
+//                            target: Target<Drawable>,
+//                            dataSource: DataSource,
+//                            isFirstResource: Boolean
+//                        ): Boolean {
+//                            return false
+//                        }
+//
+//                        override fun onLoadFailed(
+//                            e: GlideException?,
+//                            model: Any,
+//                            target: Target<Drawable>,
+//                            isFirstResource: Boolean
+//                        ): Boolean {
+//                            return false
+//                        }
+//                    })
+//                    .into(image!!)
+//            }
+//        }
 
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        return false
-                    }
-                })
-                .into(image!!)
+    }
+
+    fun bindBiblePic(t: T, verses: String? = null) {
+        var bibleText = verses
+        if (bibleText == null) {
+            var aiFeedback: MessageDetail? = (t as? TextHolder)?.getAiFeedback();
+            bibleText = aiFeedback?.feedback?.bible
         }
 
+        var imageUrl = t.message.stringForKey(Keys.ImageUrl)
+        imageMenu?.visibility = View.GONE
+        imageContainer?.visibility = View.GONE
+        vipBiblePic?.visibility = View.GONE
+        if (!imageUrl.isNullOrEmpty() && !bibleText.isNullOrEmpty()) {
+            imageContainer?.visibility = View.VISIBLE
+            if (!BillingManager.getInstance()
+                    .hasSubscriptions() && t.message.integerForKey(Keys.Permission) == -1
+            ) {
+                image?.visibility == View.INVISIBLE
+                vipBiblePic?.visibility = View.VISIBLE
+            } else {
+                imageMenu?.visibility = View.VISIBLE
+                bible?.text = bibleText
+                Glide.with(image!!)
+                    .load(imageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.icn_200_image_message_placeholder) // 占位图
+                    .error(R.drawable.icn_200_image_message_error) // 错误图
+                    .addListener(object : RequestListener<Drawable> {
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            return false
+                        }
+
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any,
+                            target: Target<Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            return false
+                        }
+                    })
+                    .into(image!!)
+            }
+        }
     }
 
     fun showFeedbackMenus(v: View?, visible: Int, bibleText: String?) {
@@ -414,7 +467,14 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
                         bindProgress(t)
                     }
                 })
-
+        dm.add(
+            ChatSDK.events().sourceOnSingle()
+                .filter(NetworkEvent.filterType(EventType.BillChange))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(Consumer { networkEvent: NetworkEvent? ->
+                    bindBiblePic(t)
+                })
+        )
         dm.add(
             ChatSDK.events().sourceOnSingle()
                 .filter { networkEvent: NetworkEvent? ->

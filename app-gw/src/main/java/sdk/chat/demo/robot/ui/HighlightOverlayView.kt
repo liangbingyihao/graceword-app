@@ -54,7 +54,7 @@ class HighlightOverlayView @JvmOverloads constructor(
     private val guidePic = "guide_pic"
     private val guidePray = "guide_pray"
     private val guideBeginner = "guide_beginner"
-    private val allModes = arrayOf(guideBeginner,guidePic, guidePray, guideDrawer)
+    private val allModes = arrayOf(guideBeginner,guidePic, guideDrawer)
 
     private var onClickListener: OnClickListener = View.OnClickListener { view ->
         // 处理点击事件

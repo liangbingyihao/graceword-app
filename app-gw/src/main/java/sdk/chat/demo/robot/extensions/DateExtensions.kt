@@ -2,6 +2,8 @@ package sdk.chat.demo.robot.extensions
 
 import android.content.Context
 import android.text.format.DateUtils
+import com.vojtkovszky.billinghelper.BillingHelper
+import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -10,6 +12,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
 
 object DateLocalizationUtil {
     val dayFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())

@@ -360,7 +360,8 @@ public class ImageApi {
                 }
                 emitter.onSuccess(gwConfigs);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
+                emitter.onSuccess(gwConfigs);
             }
         });
     }

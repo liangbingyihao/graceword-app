@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.android.billingclient.api.PurchasesUpdatedListener
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import sdk.chat.core.session.ChatSDK
@@ -61,7 +62,6 @@ class EditTextFragment : Fragment() {
 
     private var position: Int = 0
     private var localPrompt: String? = ""
-
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -13,6 +13,7 @@ data class KeyValuePair(
 )
 
 data class LogRequest(
+    val logstore:String,
     val topic: String,
     val logs: List<LogEntry>
 )
@@ -24,6 +25,7 @@ fun createBatchLogsRequest(
     logs: String
 ): LogRequest {
     return LogRequest(
+        logstore = "feedback",
         topic = topic,
         logs = mutableListOf(
             LogEntry(
@@ -40,6 +42,7 @@ fun createBatchLogsRequest(
 
 fun createLogRequest(topic: String, kvs: List<KeyValuePair>): LogRequest {
     return LogRequest(
+        logstore = "report",
         topic = topic,
         logs = mutableListOf(
             LogEntry(

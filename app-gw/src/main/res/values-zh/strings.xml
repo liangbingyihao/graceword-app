@@ -125,4 +125,46 @@
     <string name="last_chapter">已经是最后一章</string>
 
     <string name="beginner_welcome">欢迎来到恩语</string>
+    <string name="subscription_success">订阅成功</string>
+    <string name="congratulations">恭喜你成为荣耀会员</string>
+    <string name="vip_already">你已是荣耀会员</string>
+    <string name="draft">草稿</string>
+    <string name="scripture_image_generated">经文图已生成</string>
+    <string name="upgrade_to_unlock">升级解锁</string>
+
+
+    <!-- 产品方案 -->
+    <string name="trial_title">7天免费试用</string>
+    <string name="trial_price">之后$49.99/年，只需$0.96/周</string>
+    <string name="save_badge">节省 38%</string>
+    <string name="weekly_title">$1.99/周</string>
+    <string name="weekly_price">之后$19.99/3个月</string>
+
+    <!-- 按钮和说明 -->
+    <string name="auto_renew_text">自动续订，可随时取消</string>
+    <string name="start_trial_button">开始免费试用</string>
+
+    <!-- 底部链接 -->
+    <string name="terms_of_service">服务条款</string>
+    <string name="privacy_policy">隐私协议</string>
+
+    <!-- 价格周期 -->
+    <string name="period_day">天</string>
+    <string name="period_week">周</string>
+    <string name="period_7_days">7天</string>
+    <string name="period_month">月</string>
+    <string name="period_quarter">季度</string>
+    <string name="period_half_year">半年</string>
+    <string name="period_year">年</string>
+
+    <!-- 价格描述 -->
+    <string name="free_trial">免费试用</string>
+    <string name="then_prefix">之后</string>
+    <string name="price_format">%1$s/%2$s</string>
+    <string name="restore_subscription">恢复订阅</string>
+
+    <string name="hint_vip_text_left_msg"><![CDATA[今天剩余回复次数：%d次，<font color=\'#CF4B41\'>无限使用 →</font>]]></string>
+    <string name="hint_vip_text_empty">今天回复次数已用完，升级会员， 让恩语陪你继续记录和探讨信仰问题</string>
+    <string name="hint_complaint">优化建议/回复内容相关/遇到问题/功能使用</string>
+    <string name="vip_already2">订阅成功，同步订阅数据异常，建议重启APP或联系客服反馈</string>
 </resources>

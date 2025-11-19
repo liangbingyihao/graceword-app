@@ -16,6 +16,8 @@ import android.widget.Spinner
 import android.widget.TextView
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.model.GWConfigs
+import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.handlers.LogUploader
 import java.lang.ref.WeakReference
 
 data class FieldValue(
@@ -213,6 +215,11 @@ class InputIntentView @JvmOverloads constructor(
                     val fieldValue = searchCriteria.find { it.field == hymnParam.field }
                     val selected = (adapter as LabelValueSpinnerAdapter).setSelectedPosition(position)
                     fieldValue?.value = if (position == 0) null else selected
+                    LogUploader.reportEvent(
+                        "mod_chat", listOf<KeyValuePair?>(
+                            KeyValuePair("chat_action", "62")
+                        )
+                    )
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}

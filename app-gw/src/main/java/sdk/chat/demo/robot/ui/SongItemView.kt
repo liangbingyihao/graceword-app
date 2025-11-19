@@ -1,10 +1,10 @@
 package sdk.chat.demo.robot.ui
 
 import android.content.ActivityNotFoundException
-import android.net.Uri
-import android.content.Intent
 import android.content.Context
+import android.content.Intent
 import android.graphics.Paint
+import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,11 +13,12 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.SettingsActivity
 import sdk.chat.demo.robot.activities.WebViewActivity
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.Song
-import sdk.chat.demo.robot.utils.ToastHelper
+import sdk.chat.demo.robot.handlers.LogUploader
 import java.lang.ref.WeakReference
+import java.util.List
 
 class SongItemView @JvmOverloads constructor(
     context: Context,
@@ -74,16 +75,31 @@ class SongItemView @JvmOverloads constructor(
         tvListenLink.setOnClickListener {
 //            onListenLinkClick?.invoke()
             openUrlInBrowser(this.song?.get()?.listenUrl)
+            LogUploader.reportEvent(
+                "mod_msg_interact", listOf<KeyValuePair?>(
+                    KeyValuePair("interact_action", "60")
+                )
+            )
         }
 
         tvSheetMusicLink.setOnClickListener {
 //            onSheetMusicClick?.invoke()
             openUrlInBrowser(this.song?.get()?.sheetMusicUrl)
+            LogUploader.reportEvent(
+                "mod_msg_interact", listOf<KeyValuePair?>(
+                    KeyValuePair("interact_action", "61")
+                )
+            )
         }
 
         tvPPTLink.setOnClickListener {
 //            onSheetMusicClick?.invoke()
             openUrlInBrowser(this.song?.get()?.pptUrl)
+            LogUploader.reportEvent(
+                "mod_msg_interact", listOf<KeyValuePair?>(
+                    KeyValuePair("interact_action", "62")
+                )
+            )
         }
 
         tvExpandLyrics.setOnClickListener {
@@ -109,7 +125,8 @@ class SongItemView @JvmOverloads constructor(
         this.song = WeakReference(song)
         this.isMultiSelectMode = isMultiSelectMode
         tvSongTitle.text = song.title
-        tvAlbum.text = context.getString(R.string.album, song.composer, song.lyricist, song.album,song.artist)
+        tvAlbum.text =
+            context.getString(R.string.album, song.composer, song.lyricist, song.album, song.artist)
         tvLyrics.text = song.lyrics
         tvCopyright.text = song.copyright
 
@@ -219,9 +236,19 @@ class SongItemView @JvmOverloads constructor(
         if (isLyricsExpanded) {
             tvLyrics.maxLines = Integer.MAX_VALUE
             tvExpandLyrics.text = context.getString(R.string.fold)
+            LogUploader.reportEvent(
+                "mod_msg_interact", listOf<KeyValuePair?>(
+                    KeyValuePair("interact_action", "63")
+                )
+            )
         } else {
             tvLyrics.maxLines = 7
             tvExpandLyrics.text = context.getString(R.string.unfold)
+            LogUploader.reportEvent(
+                "mod_msg_interact", listOf<KeyValuePair?>(
+                    KeyValuePair("interact_action", "64")
+                )
+            )
         }
     }
 
@@ -242,7 +269,8 @@ class SongItemView @JvmOverloads constructor(
         if (url == null || url.isEmpty()) {
             return
         }
-        if (url.endsWith("ppt", true) || url.endsWith("pdf", true)) {
+        //FIXME
+        if (true||url.endsWith("ppt", true) || url.endsWith("pdf", true)) {
             try {
                 val intent =
                     Intent(

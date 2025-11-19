@@ -41,6 +41,14 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/hint_vip_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8dp"
+        android:gravity="center"
+        />
+
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

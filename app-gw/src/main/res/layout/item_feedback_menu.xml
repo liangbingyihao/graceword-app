@@ -15,6 +15,12 @@
         app:layout_alignSelf="flex_start">
 
         <ImageView
+            android:id="@+id/btn_copy_ai_text"
+            style="@style/FeedOperator"
+            android:layout_marginStart="0dp"
+            android:src="@mipmap/ic_copy_black" />
+
+        <ImageView
             android:id="@+id/btn_pic"
             style="@style/FeedOperator"
             android:src="@mipmap/ic_pic_black" />

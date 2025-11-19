@@ -19,7 +19,8 @@ data class BibleChapter(
 data class Verse(
     @SerializedName("verse")
     val verseNumber: Int,
-    val text: String
+    val text: String,
+    val referenced: Boolean
 )
 
 // 圣经书卷模型

@@ -26,6 +26,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -33,8 +34,10 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import sdk.chat.core.utils.PermissionRequestHandler;
 import sdk.chat.demo.pre.R;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.ImageSaveUtils;
 import sdk.chat.demo.robot.handlers.CardGenerator;
+import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.utils.ToastHelper;
 import sdk.guru.common.DisposableMap;
 
@@ -179,7 +182,10 @@ public class PopupImageView extends RelativeLayout {
         if (activity == null || activity.isFinishing()) {
             return;
         }
-
+        LogUploader.reportEvent(
+                "mod_msg_interact", List.of(
+                        new KeyValuePair("interact_action", share ? "12" : "13")
+                ));
         Disposable disposable = PermissionRequestHandler
                 .requestWriteExternalStorage(activity)
                 .andThen( // After permission is granted, execute the following operations

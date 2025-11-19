@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.fragments.BibleChapterFragment
+import sdk.chat.demo.robot.fragments.BiblePagerFragment
 
 class BibleActivity : BaseActivity() {
     companion object {
@@ -32,12 +32,15 @@ class BibleActivity : BaseActivity() {
 //        // 设置Toolbar
 //        val toolbar = findViewById<Toolbar>(R.id.toolbar)
 //        setSupportActionBar(toolbar)
-        val reference = intent.getStringExtra(ARG_REFERENCE).toString()
+        var reference = intent.getStringExtra(ARG_REFERENCE).toString()
+        if(!reference.isEmpty()){
+            reference = reference.removeSurrounding("(", ")")
+        }
 
         // 加载BibleChapterFragment
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, BibleChapterFragment.newInstance(reference = reference))
+                .replace(R.id.fragment_container, BiblePagerFragment.newInstance(reference = reference))
                 .commit()
         }
     }

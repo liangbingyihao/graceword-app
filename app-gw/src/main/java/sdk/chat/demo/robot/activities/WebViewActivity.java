@@ -170,7 +170,7 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
 
     private void showError(String message) {
         progressBar.setVisibility(View.GONE);
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     @Override

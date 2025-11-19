@@ -56,7 +56,7 @@ class FavoriteListActivity : BaseActivity(), View.OnClickListener {
         myAdapter = FavoriteAdapter(
             onItemClick = { item ->
                 // 处理普通点击
-                ChatActivity.start(FavoriteListActivity@ this, item.messageId);
+                ChatActivity.start(FavoriteListActivity@ this, item.messageId,"favorite");
             },
             onLongClick = { v, article ->
                 // 处理长按

@@ -40,6 +40,7 @@ import sdk.chat.core.dao.MessageDao;
 import sdk.chat.core.dao.Thread;
 import sdk.chat.core.dao.ThreadDao;
 import sdk.chat.core.dao.User;
+import sdk.chat.core.events.EventType;
 import sdk.chat.core.events.NetworkEvent;
 import sdk.chat.core.interfaces.ThreadType;
 import sdk.chat.core.rigs.MessageSendRig;
@@ -54,8 +55,10 @@ import sdk.chat.demo.robot.adpter.data.ArticleSession;
 import sdk.chat.demo.robot.api.GWApiManager;
 import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.AIFeedback;
+import sdk.chat.demo.robot.api.model.ActionConfig;
 import sdk.chat.demo.robot.api.model.GWConfigs;
 import sdk.chat.demo.robot.api.model.ImageDaily;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.MessageDetail;
 import sdk.chat.demo.robot.api.model.SystemConf;
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
@@ -64,6 +67,7 @@ import sdk.chat.demo.robot.extensions.StateStorage;
 import sdk.chat.demo.robot.holder.AIFeedbackType;
 import sdk.chat.demo.robot.holder.HolderProvider;
 import sdk.chat.demo.robot.holder.MessageHolder;
+import sdk.chat.demo.robot.holder.WelcomeHolder;
 import sdk.guru.common.RX;
 
 public class GWThreadHandler extends AbstractThreadHandler {
@@ -285,6 +289,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
             qb.orderDesc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
             int i = 0;
+            boolean isVip = BillingManager.Companion.getInstance().hasSubscriptions();
             while (i < messages.size()) {
 //                while (aiExplore == null && i < messages.size()) {
                 Message tmp = messages.get(i);
@@ -293,6 +298,9 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //                    aiExplore = AIExplore.loads(tmp);
 ////                    Log.d("onLoadElder", "aiExplore1=" + aiExplore.getMessage().getId());
 //                }
+                if (isVip&&tmp.integerForKey(Keys.Permission) == -1) {
+                    tmp.setMetaValue(Keys.Permission,0);
+                }
                 if (startId == null || startId == 0) {
                     reloadTimeoutMsg(tmp);
                 }
@@ -312,6 +320,15 @@ public class GWThreadHandler extends AbstractThreadHandler {
             }
             qb.orderAsc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
+            int i = 0;
+            boolean isVip = BillingManager.Companion.getInstance().hasSubscriptions();
+            while (i < messages.size()) {
+                Message tmp = messages.get(i);
+                if (isVip&&tmp.integerForKey(Keys.Permission) == -1) {
+                    tmp.setMetaValue(Keys.Permission,0);
+                }
+                ++i;
+            }
 //            int i = messages.size() - 1;
 //            if (i >= 0) {
 //                AIExplore newAiExplore = null;
@@ -405,6 +422,9 @@ public class GWThreadHandler extends AbstractThreadHandler {
         return ImageApi.listImageTags().subscribeOn(RX.io()).flatMap(data -> {
             String tag = aiFeedback.getFeedback().getTag();
             String imageUrl = ImageApi.getRandomImageByTag(tag);
+            if (!LimitCounter.INSTANCE.performAction(ActionConfig.DAILY_PIC)) {
+                message.setMetaValue(Keys.Permission, -1);
+            }
             message.setMetaValue(Keys.ImageUrl, imageUrl);
 //            message.setType(MessageType.Image);
             ChatSDK.db().update(message, false);
@@ -422,9 +442,12 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     private void reloadTimeoutMsg(Message message) {
+        if (message == null || message.isLocalMessage() || WelcomeHolder.isWelcomeMsg(message)) {
+            return;
+        }
         try {
             MessageDetail aiFeedback = GWMsgHandler.getAiFeedback(message);
-            if (message != null && !message.isLocalMessage() && (aiFeedback == null || aiFeedback.getStatus() <= MessageDetail.STATUS_PENDING)) {
+            if (aiFeedback == null || aiFeedback.getStatus() <= MessageDetail.STATUS_PENDING) {
                 //可能是上次没取完的数据
                 Log.d("sending", "timeout msg content:" + message.getText());
                 startPolling(message.getId(), message.getEntityID(), 0);
@@ -446,15 +469,12 @@ public class GWThreadHandler extends AbstractThreadHandler {
         if (!message.isLocalMessage()) {
             //重试查看AI回复
             try {
-//                JsonObject data = gson.fromJson(message.stringForKey(KEY_AI_FEEDBACK), JsonObject.class);
-//                if(data==null){
-//                    data = new JsonObject();
-//                }
-//                if (data.has("status")) {
-//                    data.addProperty("status", MessageDetail.STATUS_PENDING);
-//                }
-//                updateMessage(message, data);
+                if (!LimitCounter.INSTANCE.canPerformAction(ActionConfig.DAILY_MSG)) {
+                    return Completable.error(new Exception(MainApp.getContext().getString(R.string.hint_vip_text_empty)));
+                }
                 startPolling(message.getId(), message.getEntityID(), 1);
+                LimitCounter.INSTANCE.performAction(ActionConfig.DAILY_MSG);
+                ChatSDK.events().source().accept(new NetworkEvent(EventType.BillChange));
                 return Completable.complete();
             } catch (Exception e) {
                 return Completable.error(e);
@@ -544,13 +564,20 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
         message.setMessageStatus(MessageSendStatus.Uploading, true);
         pendingMsgId = message.getId();
-//        aiExplore = null;
+        //FIXME
+        if (!LimitCounter.INSTANCE.canPerformAction(ActionConfig.DAILY_MSG)) {
+            message.setMetaValue("action", AIExplore.ExploreItem.action_guest_talk);
+            message.setThreadId(0L);
+        }
+
         return GWApiManager.shared().askRobot(message, prompt)
                 .subscribeOn(RX.io()).flatMap(data -> {
                     String entityId = data.get("id").getAsString();
                     message.setEntityID(entityId);
                     message.setMessageStatus(MessageSendStatus.Replying, false);
                     ChatSDK.db().getDaoCore().getDaoSession().update(message);
+                    LimitCounter.INSTANCE.performAction(ActionConfig.DAILY_MSG);
+                    ChatSDK.events().source().accept(new NetworkEvent(EventType.BillChange));
 //                    ChatSDK.db().update(message);
                     startPolling(message.getId(), entityId, 0);
 //                    message.setMessageStatus(MessageSendStatus.Uploading,true);
@@ -565,6 +592,11 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 .doOnError(throwable -> {
                     pendingMsgId = null;
                     ChatSDK.events().source().accept(NetworkEvent.messageSendStatusChanged(message));
+                    LogUploader.reportEvent(
+                            "mod_chat", List.of(
+                                    new KeyValuePair("chat_action", "31")
+                            )
+                    );
                 }).onErrorResumeNext(Single::error)
                 .ignoreElement();
 
@@ -833,7 +865,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public String getSessionName(Long sessionId) {
-        if (sessionId != null && sessionId > 0 && sessionCache != null && !sessionCache.isEmpty()) {
+        if (sessionId != null && sessionId >= 0 && sessionCache != null && !sessionCache.isEmpty()) {
             String strId = sessionId.toString();
             for (ArticleSession session : sessionCache) {
                 if (session.getId().equals(strId)) {
@@ -894,6 +926,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //                    return Long.compare(b.getEntityID(), a.getCreationDate().getTime()); // 倒序
 //                });
 
+            ret.add(new ArticleSession(chatSessionId, Objects.requireNonNull(LanguageUtils.INSTANCE.getString(R.string.draft)), false));
             sessionCache = new ArrayList<>(ret);
             if (!hasSyncedWithNetwork.get()) {
                 triggerNetworkSync();
@@ -994,7 +1027,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
         thread.setEntityID(chatSessionId);
         thread.setCreator(ChatSDK.currentUser());
         thread.setCreationDate(new Date());
-        thread.setName("chat", false);
+        thread.setName("Temp", false);
         ArrayList<User> users = new ArrayList<>(ChatSDK.contact().contacts());
         User currentUser = ChatSDK.currentUser();
         users.add(currentUser);
@@ -1100,18 +1133,17 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //                throw new IOException("Failed to get threads", e);
 //            }
 //        }).subscribeOn(RX.io());
-////        return listSessions()
-////                .flatMap(Single::just)
-////                .onErrorResumeNext(error -> {
-////                    // 错误处理逻辑
-////                    if (error instanceof IOException) {
-////                        return Single.error(new IOException("Failed to list sessions", error));
-////                    }
-////                    return Single.error(error);
-////                });
+
+    /// /        return listSessions()
+    /// /                .flatMap(Single::just)
+    /// /                .onErrorResumeNext(error -> {
+    /// /                    // 错误处理逻辑
+    /// /                    if (error instanceof IOException) {
+    /// /                        return Single.error(new IOException("Failed to list sessions", error));
+    /// /                    }
+    /// /                    return Single.error(error);
+    /// /                });
 //    }
-
-
     public void updateMessage(Message message, JsonObject json) {
         if (json == null || message == null) {
             return;
@@ -1152,6 +1184,11 @@ public class GWThreadHandler extends AbstractThreadHandler {
                         }
                     }
                     message.setMessageStatus(MessageSendStatus.Sent, false);
+                    LogUploader.reportEvent(
+                            "mod_chat", List.of(
+                                    new KeyValuePair("chat_action", "34")
+                            )
+                    );
                 } else if (aiFeedback.getStatus() == MessageDetail.STATUS_CANCEL || (fb != null && fb.getView() != null && !fb.getView().isEmpty())) {
                     message.setMessageStatus(MessageSendStatus.Sent, false);
                 } else {

@@ -34,9 +34,6 @@
             android:scaleType="centerCrop"
             app:siShape="@drawable/shape_half_image_bubble"
             app:siSquare="false" />
-        <!--        app:siShape="?outcomingBubbleDrawable"-->
-        <!--        app:siShape="@drawable/shape_incoming_image_bubble"-->
-        <!--        <siyamed.shapeimageview.PorterShapeImageView-->
 
         <TextView
             android:id="@+id/bible"
@@ -50,6 +47,8 @@
             android:padding="8dp"
             android:textColor="@color/gray"
             android:textSize="12sp" />
+
+        <include layout="@layout/item_feed_image_vip_empty" />
     </FrameLayout>
 
     <!-- 底部行（时间 + 操作菜单） -->

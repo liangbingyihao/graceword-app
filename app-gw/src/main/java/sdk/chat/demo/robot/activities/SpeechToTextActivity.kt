@@ -31,6 +31,7 @@ import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.LanguageUtils
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
+import sdk.chat.demo.robot.handlers.LimitCounter
 import sdk.chat.demo.robot.handlers.SpeechToTextHelper
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
@@ -78,6 +79,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
         findViewById<View>(R.id.setTask).setOnClickListener(this)
         findViewById<View>(R.id.setPrompt).setOnClickListener(this)
         findViewById<View>(R.id.getLog).setOnClickListener(this)
+        findViewById<View>(R.id.billing).setOnClickListener(this)
 //        findViewById<View>(R.id.startdbasr).setOnClickListener(this)
 //        findViewById<View>(R.id.initdbasr).setOnClickListener(this)
 //        findViewById<View>(R.id.cleardbasr).setOnClickListener(this)
@@ -288,6 +290,11 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
                 recreate()
             }
 
+            R.id.billing -> {
+//                speechToTextHelper.stopListening()
+                BillingActivity.start(this@SpeechToTextActivity,"test")
+            }
+
             R.id.setPrompt -> {
 //                startActivity(
 //                    Intent(
@@ -313,6 +320,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
 //                }
                 JsonCacheManager.save(this@SpeechToTextActivity, "gwTaskProcess", "")
                 JsonCacheManager.save(this@SpeechToTextActivity, "gwDaily", "")
+                LimitCounter.clearAll(this@SpeechToTextActivity)
             }
 
             R.id.setTask -> {

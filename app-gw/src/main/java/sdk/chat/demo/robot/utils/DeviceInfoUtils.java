@@ -1,4 +1,5 @@
 package sdk.chat.demo.robot.utils;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -6,13 +7,17 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 import sdk.chat.core.session.ChatSDK;
+import sdk.chat.demo.MainApp;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
+import sdk.chat.demo.robot.extensions.LanguageUtils;
 
 public class DeviceInfoUtils {
 
@@ -76,7 +81,7 @@ public class DeviceInfoUtils {
         } catch (Exception ignored) {
 
         }
-        return uid;
+        return uid == null ? "" : uid;
     }
 
     public static String getAppVersion(Context context) {
@@ -129,16 +134,21 @@ public class DeviceInfoUtils {
 
     private static List<KeyValuePair> deviceInfos = null;
 
-    public static List<KeyValuePair> getAllDeviceInfoKvs(Context context){
-        if(deviceInfos==null){
+    public static List<KeyValuePair> getAllDeviceInfoKvs(Context context) {
+        if (deviceInfos == null) {
+            String appLang = LanguageUtils.INSTANCE.getAppLanguage(context, false);
+            appLang = appLang == null ? "" : appLang;
             deviceInfos = List.of(
-                    new KeyValuePair("region",getRegion(context)),
-                    new KeyValuePair("model",getDeviceModel()),
-                    new KeyValuePair("osVersion",getOSVersion()),
-                    new KeyValuePair("bundleId",getBundleId(context)),
-                    new KeyValuePair("appVersion",getAppVersion(context)),
-                    new KeyValuePair("deciceUuid",getDeviceUuid(context)),
-                    new KeyValuePair("userId",getUserId(context))
+                    new KeyValuePair("newUser", MainApp.isNewUser),
+                    new KeyValuePair("region", getRegion(context)),
+                    new KeyValuePair("model", getDeviceModel()),
+                    new KeyValuePair("osVersion", getOSVersion()),
+                    new KeyValuePair("bundleId", getBundleId(context)),
+                    new KeyValuePair("appVersion", getAppVersion(context)),
+                    new KeyValuePair("deciceUuid", getDeviceUuid(context)),
+                    new KeyValuePair("userId", getUserId(context)),
+                    new KeyValuePair("app_language", appLang),
+                    new KeyValuePair("system_language", LanguageUtils.INSTANCE.getSystemLanguage())
             );
         }
         return deviceInfos;

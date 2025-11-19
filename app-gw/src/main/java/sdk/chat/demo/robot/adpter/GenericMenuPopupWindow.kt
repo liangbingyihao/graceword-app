@@ -12,6 +12,8 @@ import android.widget.TextView
 import sdk.chat.demo.pre.R
 import kotlin.math.min
 import androidx.core.graphics.drawable.toDrawable
+import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.handlers.LogUploader
 
 class GenericMenuPopupWindow<T, VH : GenericMenuAdapter.ViewHolder<T>>(
     private val context: Context,
@@ -117,6 +119,11 @@ class GenericMenuPopupWindow<T, VH : GenericMenuAdapter.ViewHolder<T>>(
         menuNew.setOnClickListener {
             onItemSelected(null, -1);
             dismiss()
+            LogUploader.reportEvent(
+                "mod_timeline", mutableListOf(
+                    KeyValuePair("timeline_action", "36"),
+                )
+            )
         }
 
         popupWindow = PopupWindow(

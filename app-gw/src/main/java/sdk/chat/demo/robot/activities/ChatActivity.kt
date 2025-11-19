@@ -10,22 +10,26 @@ import androidx.core.os.bundleOf
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.fragments.GWChatFragment
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.ui.listener.GWClickListener
 
 
 class ChatActivity : BaseActivity(), View.OnClickListener,
     GWClickListener.TTSSpeaker {
     private val chatTag = "tag_chat";
+    private var from: String? = null
 //    private var textToSpeech: TextToSpeech? = null
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
     companion object {
         private const val EXTRA_INITIAL_DATA = "initial_data"
+        private const val EXTRA_CHAT_FROM = "chat_from"
 
         // 提供静态启动方法（推荐）
-        fun start(context: Context, messageId: String? = null) {
+        fun start(context: Context, messageId: String? = null, from: String? = null) {
             val intent = Intent(context, ChatActivity::class.java).apply {
                 putExtra(EXTRA_INITIAL_DATA, messageId)
+                putExtra(EXTRA_CHAT_FROM, from)
             }
             context.startActivity(intent)
         }
@@ -36,6 +40,10 @@ class ChatActivity : BaseActivity(), View.OnClickListener,
         super.onCreate(savedInstanceState)
         setContentView(layout)
         val messageId = intent.getStringExtra(EXTRA_INITIAL_DATA)
+        from = intent.getStringExtra(EXTRA_CHAT_FROM)
+        if (from != null && !from!!.isEmpty()) {
+            LogUploader.chatEntrance(from)
+        }
 
 // 设置参数
         val fragment = GWChatFragment().apply {
@@ -168,6 +176,9 @@ class ChatActivity : BaseActivity(), View.OnClickListener,
 
     override fun onDestroy() {
         super.onDestroy()
+        if (from != null && !from!!.isEmpty()) {
+            LogUploader.chatExit()
+        }
 //        TTSHelper.clear()
     }
 }

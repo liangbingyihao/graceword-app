@@ -1,17 +1,22 @@
 package sdk.chat.demo.robot.api;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
+import java.util.Date;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -39,7 +44,9 @@ import sdk.chat.demo.pre.BuildConfig;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.model.FavoriteList;
 import sdk.chat.demo.robot.api.model.SystemConf;
+import sdk.chat.demo.robot.api.model.TaskProgress;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
+import sdk.chat.demo.robot.handlers.BillingManager;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
 import sdk.chat.demo.robot.push.UpdateTokenWorker;
 import sdk.guru.common.RX;
@@ -142,6 +149,39 @@ public class GWApiManager {
                 .build();
     }
 
+    public <T> T handleResponse(Response response,Class<T> classOfT) throws IOException {
+        if (!response.isSuccessful()) {
+            throw new IOException("HTTP " + response.code() + ": " + response.message());
+        }
+
+        String responseBody = response.body() != null ? response.body().string() : "";
+        if (responseBody.isEmpty()) {
+            throw new IOException("Empty response body");
+        }
+
+        JsonObject jsonObject;
+        try {
+            jsonObject = gson.fromJson(responseBody, JsonObject.class);
+        } catch (Exception e) {
+            throw new IOException("Invalid JSON response: " + e.getMessage());
+        }
+
+        JsonPrimitive codePrimitive = jsonObject.getAsJsonPrimitive("code");
+        String code = codePrimitive != null ? codePrimitive.getAsString() : null;
+        if (!"OK".equals(code)) {
+            String errorMessage = jsonObject.getAsJsonPrimitive("message").getAsString();
+            throw new IOException(errorMessage);
+        } else {
+            JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
+            if(classOfT==null||classOfT==JsonObject.class){
+                return (T) data;
+            }else{
+                return gson.fromJson(data, classOfT);
+            }
+        }
+
+    }
+
     public Single<AccountDetails> authenticate(final AccountDetails details) {
         return Single.create((SingleOnSubscribe<AccountDetails>) emitter -> {
             Map<String, String> params = new HashMap<>();
@@ -184,6 +224,17 @@ public class GWApiManager {
                         JsonObject data = resp.getAsJsonObject("data");
                         accessToken = "Bearer " + data.get("access_token").getAsString();
                         details.setMetaValue("userId", data.get("user_id").getAsString());
+                        int expiredAt = 0;
+                        if(data.has("membership_expired_at")){
+                            expiredAt = data.get("membership_expired_at").getAsInt();
+                            if(expiredAt>0){
+                                BillingManager.Companion.getInstance().setExpiredAt(expiredAt* 1000L);
+                            }
+//                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                            String expiredAtStr = sdf.format(new Date(System.currentTimeMillis()+expiredAt*1000));
+//                            Log.e("BillingManager","expiredAtStr:"+expiredAtStr+","+expiredAt);
+                        }
+                        Logger.error("BillingManager: expiredAt "+expiredAt);
                         emitter.onSuccess(details);
                     } catch (Exception e) {
                         emitter.onError(e);

@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
@@ -40,12 +41,18 @@ import sdk.chat.core.utils.TimeLog;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.WebViewActivity;
 import sdk.chat.demo.robot.adpter.ChatAdapter;
+import sdk.chat.demo.robot.api.model.KeyValuePair;
+import sdk.chat.demo.robot.api.model.MessageEntry;
+import sdk.chat.demo.robot.api.model.ShareRequestKt;
 import sdk.chat.demo.robot.api.model.Song;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
+import sdk.chat.demo.robot.handlers.LogUploader;
+import sdk.chat.demo.robot.handlers.SocialShareHandler;
 import sdk.chat.demo.robot.holder.HolderProvider;
 import sdk.chat.demo.robot.holder.MessageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
 import sdk.chat.demo.robot.holder.WelcomeHolder;
+import sdk.chat.demo.robot.utils.CompatHtmlEscape;
 import sdk.chat.demo.robot.utils.SocialShareUtils;
 import sdk.chat.demo.robot.utils.TemplateUtils;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -114,9 +121,17 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 if (id == R.id.btn_share_text) {
                     holder.setAiSelected(true);
                     messagesListAdapter.setMultiSelectMode(true);
+                    LogUploader.reportEvent(
+                            "mod_share", List.of(
+                                    new KeyValuePair("share_action", "0")
+                            ));
                 } else if (id == R.id.btn_share_user_text) {
                     holder.setUserSelected(true);
                     messagesListAdapter.setMultiSelectMode(true);
+                    LogUploader.reportEvent(
+                            "mod_share", List.of(
+                                    new KeyValuePair("share_action", "0")
+                            ));
                 } else if (id == R.id.ai_text_container || id == R.id.cb_ai_text) {
                     holder.setAiSelected(!holder.isAiSelected());
                     ((CheckBox) view.findViewById(R.id.cb_ai_text)).setChecked(holder.isAiSelected());
@@ -175,20 +190,23 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             if (selectedItems.isEmpty()) {
                 ToastHelper.show(getContext(), "Nothing selected...");
             } else {
-                TextHolder holder = selectedItems.get(0);
-                String dstUrl = "https://grace-word.com/";
-                String text;
-                if (holder.isUserSelected()) {
-                    text = holder.message.getText();
-                } else {
-                    text = holder.getAiFeedback().getFeedbackText();
-                    Markwon md = Markwon.create(getContext());
-                    text = md.render(md.parse(text)).toString();
-                }
-                if (text != null && text.length() > 100) {
-                    text = text.substring(0, 100) + "... 点击链接查看全部:";
-                }
-                SocialShareUtils.showCustomShareDialog(getContext(), SocialShareUtils.targetApps, text, null, dstUrl);
+                LogUploader.reportEvent(
+                        "mod_share", List.of(
+                                new KeyValuePair("share_msg_count", Integer.toString(selectedItems.size())),
+                                new KeyValuePair("share_action", "10")
+                        ));
+                dm.add(SocialShareHandler.batchShare(ShareRequestKt.createShareRequest(selectedItems))
+                        .subscribe(
+                                shareUrl -> {
+                                    // 成功回调（在主线程）
+                                    String summary = selectedItems.get(0).getShareSummary(getContext());
+                                    SocialShareUtils.showCustomShareDialog(getContext(), SocialShareUtils.targetApps, summary, null, shareUrl);
+                                },
+                                error -> {
+                                    // 错误回调（在主线程）
+                                    ToastHelper.show(getContext(), error.getMessage());
+                                }
+                        ));
             }
             messagesListAdapter.setMultiSelectMode(false);
             delegate.onSocialShare(false, 0);
@@ -206,11 +224,12 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 }
 
                 String htmlContent = TemplateUtils.loadTemplate(getContext(), "templates/template_share.html");
-                String aiTemplate = "        <div class=\"content-section\">\n" +
-                        "            <p class=\"main-text\">%s</p>\n" +
+                htmlContent = htmlContent.replace("{{headerUrl}}", SocialShareHandler.getHeaderImage().getUrl());
+                String aiTemplate = "        <div class=\"message-block assistant\">\n" +
+                        "            <div class=\"message-content markdown-content\">%s</div>\n" +
                         "        </div>";
-                String userTemplate = "        <div class=\"action-box\">\n" +
-                        "            <p class=\"action-text\">%s</p>\n" +
+                String userTemplate = "<div class=\"message-block user\">\n" +
+                        "            <div class=\"message-content\">%s</div>\n" +
                         "        </div>";
                 StringBuilder content = new StringBuilder();
                 for (TextHolder holder : selectedItems) {
@@ -223,12 +242,17 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                     List<Song> songs = holder.getSelectedSongs();
                     if (songs != null && !songs.isEmpty()) {
                         for (Song song : songs) {
-                            content.append(String.format(aiTemplate, song.toString()));
+                            content.append(TemplateUtils.buildSongHtml(song));
                         }
                     }
                 }
                 htmlContent = htmlContent.replace("{{shareData}}", content);
                 WebViewActivity.launchWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview));
+                LogUploader.reportEvent(
+                        "mod_share", List.of(
+                                new KeyValuePair("share_msg_count", Integer.toString(selectedItems.size())),
+                                new KeyValuePair("share_action", "20")
+                        ));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -431,8 +455,29 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
      * Start means new messages to bottom of screen
      */
     protected void addNewMessageHolders(Message message) {
-        if (false&&WelcomeHolder.isWelcomeMsg(message)) {
-            messagesListAdapter.addNewMessage(new WelcomeHolder(message), () -> {
+//        if (false&&WelcomeHolder.isWelcomeMsg(message)) {
+//            messagesListAdapter.addNewMessage(new WelcomeHolder(message), () -> {
+//                LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
+//                messagesList.postDelayed(() -> {
+////                    int pos = messagesListAdapter.getItemCount() - 1;
+//                    layoutManager.scrollToPositionWithOffset(messagesListAdapter.getItemCount() - 2, 0);
+//                }, 100);
+//
+//
+//                return Unit.INSTANCE;
+//            });
+//        } else {
+        MessageHolder holder = HolderProvider.INSTANCE.getMessageHolder(message);
+        if (holder != null && !messageHolders.contains(holder)) {
+
+            messageHolders.add(0, holder);
+
+//            updatePreviousMessage(holder);
+//            holder.updateReadStatus();
+//            messagesListAdapter.addNewMessage(holder, null);
+
+            latestMsgId = message.getId();
+            messagesListAdapter.addNewMessage(holder, () -> {
                 LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
                 messagesList.postDelayed(() -> {
 //                    int pos = messagesListAdapter.getItemCount() - 1;
@@ -442,33 +487,11 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 
                 return Unit.INSTANCE;
             });
-        } else {
-            MessageHolder holder = HolderProvider.INSTANCE.getMessageHolder(message);
-            if (holder != null && !messageHolders.contains(holder)) {
-
-                messageHolders.add(0, holder);
-
-//            updatePreviousMessage(holder);
-//            holder.updateReadStatus();
-//            messagesListAdapter.addNewMessage(holder, null);
-
-                latestMsgId = message.getId();
-                messagesListAdapter.addNewMessage(holder, () -> {
-                    LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
-                    messagesList.postDelayed(() -> {
-//                    int pos = messagesListAdapter.getItemCount() - 1;
-                        layoutManager.scrollToPositionWithOffset(messagesListAdapter.getItemCount() - 2, 0);
-                    }, 100);
-
-
-                    return Unit.INSTANCE;
-                });
 //            messagesListAdapter.addToStart(holder, scroll, true);
-            } else {
-                Logger.debug("Exists already");
-            }
+        } else {
+            Logger.debug("Exists already");
         }
-
+//        }
 
     }
 

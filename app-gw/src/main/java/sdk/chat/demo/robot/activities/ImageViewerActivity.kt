@@ -19,10 +19,12 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.ImagePagerAdapter
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.ImageApi
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.TaskDetail
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil.getDateBefore
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.holder.DailyGWHolder
 import sdk.chat.demo.robot.holder.ImageHolder
 import sdk.chat.demo.robot.ui.listener.GWClickListener
@@ -36,14 +38,20 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
     private var dateStr: String? = null
     private lateinit var imageHandler: GWClickListener<ImageHolder>
     private var taskDetail: TaskDetail? = null
+    private var from: String = ""
+    private var previousPosition = 0
+    private var cntSlide = 0
 
     companion object {
         private const val EXTRA_INITIAL_DATA = "initial_data"
+        private const val EXTRA_CHAT_FROM = "chat_from"
+
 
         // 提供静态启动方法（推荐）
-        fun start(context: Context, date: String? = null) {
+        fun start(context: Context, date: String? = null, from: String? = null) {
             val intent = Intent(context, ImageViewerActivity::class.java).apply {
                 putExtra(EXTRA_INITIAL_DATA, date)
+                putExtra(EXTRA_CHAT_FROM, from)
             }
             context.startActivity(intent)
         }
@@ -54,12 +62,13 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(layout)
         dateStr = intent.getStringExtra(EXTRA_INITIAL_DATA)
+        from = intent.getStringExtra(EXTRA_CHAT_FROM) ?: ""
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ImmersionBar.with(this)
                 .titleBar(findViewById<View>(R.id.title_bar))
                 .init()
-        }else{
+        } else {
             ImmersionBar.with(this).init()
         }
         findViewById<View>(R.id.back).setOnClickListener(this)
@@ -79,6 +88,13 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
 //        // 手势滑动退出（可选）
         setupGestureExit()
         imageHandler = GWClickListener<ImageHolder>(this)
+
+        LogUploader.reportEvent(
+            "mod_daily", listOf<KeyValuePair?>(
+                KeyValuePair("daily_action", "0"),
+                KeyValuePair("daily_entrance", from)
+            )
+        )
     }
 
     private fun setAdapter() {
@@ -110,6 +126,22 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                 if (dateStr == null && position <= 2 && !isLoading && !endDateStr!!.isEmpty()) {
                     loadNextPageData()
                 }
+
+
+                val direction = when {
+                    position > previousPosition -> "41"
+                    position < previousPosition -> "40"
+                    else -> ""
+                }
+                previousPosition = position
+                cntSlide+=1
+                LogUploader.reportEvent(
+                    "mod_daily", listOf<KeyValuePair?>(
+                        KeyValuePair("daily_action", direction),
+                        KeyValuePair("daily_slide_count", cntSlide.toString()),
+                        KeyValuePair("daily_entrance", from)
+                    )
+                )
             }
         })
     }
@@ -164,23 +196,25 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                 )
         )
 
-        dm.add(
-            DailyTaskHandler.getTaskProgress()
-                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-                .subscribe(
-                    { data ->
-                        if (data != null) {
-                            taskDetail = data.taskDetail
-                            taskDetail?.completeTaskByIndex(0)
-                            DailyTaskHandler.setTaskDetail(taskDetail)
-                        } else {
-                            throw IllegalArgumentException("获取数据失败")
-                        }
-                    },
-                    this
-                )
-        )
+        if (false) {
+            dm.add(
+                DailyTaskHandler.getTaskProgress()
+                    .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
+                    .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
+                    .subscribe(
+                        { data ->
+                            if (data != null) {
+                                taskDetail = data.taskDetail
+                                taskDetail?.completeTaskByIndex(0)
+                                DailyTaskHandler.setTaskDetail(taskDetail)
+                            } else {
+                                throw IllegalArgumentException("获取数据失败")
+                            }
+                        },
+                        this
+                    )
+            )
+        }
     }
 
     override fun getLayout(): Int {
@@ -207,6 +241,12 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
         when (v?.id) {
 
             R.id.back -> {
+                LogUploader.reportEvent(
+                    "mod_daily", listOf<KeyValuePair?>(
+                        KeyValuePair("daily_action", "50"),
+                        KeyValuePair("daily_entrance", from)
+                    )
+                )
                 finish()
             }
 
@@ -217,17 +257,31 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                     adapter.getUrlAt(currentPosition)
                 )
                 imageHandler.onMessageViewClick(v, data)
+
+                LogUploader.reportEvent(
+                    "mod_daily", listOf<KeyValuePair?>(
+                        KeyValuePair("daily_action", if (v.id == R.id.btn_download) "20" else "30"),
+                        KeyValuePair("daily_entrance", from)
+                    )
+                )
             }
 
             R.id.conversations -> {
-                if (taskDetail != null) {
+                LogUploader.reportEvent(
+                    "mod_daily", listOf<KeyValuePair?>(
+                        KeyValuePair("daily_action", "10"),
+                        KeyValuePair("daily_entrance", from)
+                    )
+                )
+//                if (taskDetail != null) {
                     val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
                     var date = adapter.getUrlAt(viewPager.currentItem)?.date
 
-                    var action = AIExplore.ExploreItem.action_daily_gw
-                    if (!taskDetail!!.isTaskCompleted(TaskDetail.TASK_PRAY_MASK)) {
-                        action = AIExplore.ExploreItem.action_daily_gw_pray
-                    }
+//                    var action = AIExplore.ExploreItem.action_daily_gw
+//                    if (!taskDetail!!.isTaskCompleted(TaskDetail.TASK_PRAY_MASK)) {
+//                        action = AIExplore.ExploreItem.action_daily_gw_pray
+//                    }
+                    var action = AIExplore.ExploreItem.action_daily_gw_pray
 //                threadHandler.aiExplore.contextId
                     threadHandler.sendExploreMessage(
                         "【每日恩语】-${date}",
@@ -235,7 +289,8 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                         action,
                         date
                     ).subscribe();
-                }
+//                }
+                LogUploader.chatEntrance("daily")
                 finish()
             }
         }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -39,7 +40,22 @@ public class LogUploader {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private final static String URL_EVENT = ImageApi.URL2_MAIN + "log/event";
     private static final Gson gson = new Gson();
+    private static final Stack<String> stackChatEntrance = new Stack<>();
 
+    public static void chatEntrance(String from) {
+        if (from != null && !from.isEmpty()) {
+            stackChatEntrance.push(from);
+            LogUploader.reportEvent(
+                    "mod_chat", List.of(
+                            new KeyValuePair("chat_action", "0")
+                    )
+            );
+        }
+    }
+
+    public static void chatExit() {
+        stackChatEntrance.pop();
+    }
 
     private static long fastParseLogTime(String timeStr) {
         // 直接解析数字，避免 SimpleDateFormat 的开销
@@ -180,6 +196,12 @@ public class LogUploader {
 
     public static void reportEvent(String topic, List<KeyValuePair> kvs) {
         List<KeyValuePair> enrichedKvs = new ArrayList<>(kvs);
+        if ("mod_chat".equals(topic)) {
+            String from = stackChatEntrance.peek();
+            if(from!=null&&!from.isEmpty()){
+                enrichedKvs.add(new KeyValuePair("chat_entrance", from));
+            }
+        }
         enrichedKvs.addAll(DeviceInfoUtils.getAllDeviceInfoKvs(MainApp.getContext()));
         String json = gson.toJson(createLogRequest(topic, enrichedKvs));
         // 创建请求体

@@ -12,7 +12,9 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.ImageApi
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.dpToPx
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.holder.WelcomeHolder
 import sdk.chat.demo.robot.utils.ToastHelper
 
@@ -40,6 +42,12 @@ class BeginnerActivity : BaseActivity() {
                 ?: emptyList() // 返回空列表
             addDynamicMaterialButtons(valueList)
         }
+        LogUploader.reportEvent(
+            "mod_guide", listOf<KeyValuePair?>(
+                KeyValuePair("guide_action", "0"),
+                KeyValuePair("guide_type", "new_launch")
+            )
+        )
     }
 
     override fun getLayout(): Int {
@@ -130,6 +138,12 @@ class BeginnerActivity : BaseActivity() {
         animateButtonClick(buttonList[index])
 //        ToastHelper.show(this@BeginnerActivity, text)
         ChatSDK.events().source().accept(NetworkEvent.messageAdded(null,WelcomeHolder.getWelcomeMessage(text)))
+        LogUploader.reportEvent(
+            "mod_guide", listOf<KeyValuePair?>(
+                KeyValuePair("guide_action", "30"),
+                KeyValuePair("guide_option_id", (index+1).toString())
+            )
+        )
         finish()
     }
 

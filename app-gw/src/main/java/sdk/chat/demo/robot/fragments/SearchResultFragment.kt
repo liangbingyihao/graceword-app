@@ -91,7 +91,7 @@ class SearchResultFragment : BaseFragment() {
         recyclerView = root.findViewById<RecyclerView?>(R.id.recyclerView)
         myAdapter = SearchResultAdapter(onItemClick = { item ->
             // 处理普通点击
-            context?.let { ChatActivity.start(it, item.messageId) };
+            context?.let { ChatActivity.start(it, item.messageId,"search_result") };
         })
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = myAdapter

@@ -40,5 +40,6 @@ public enum EventType {
     NetworkStateChanged,
     HideDrawer,
     TaskDone,
+    BillChange,
     Error
 }

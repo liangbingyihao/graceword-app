@@ -60,6 +60,7 @@ public class AIExplore {
         public final static int action_daily_gw_pray = 6;
         public final static int action_search_hymns = 7;
         public final static int action_input_prompt_welcome = 8;
+        public final static int action_guest_talk = 9;
 
         private String text;
         private int action;
