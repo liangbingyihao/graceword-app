@@ -1,10 +1,13 @@
 package sdk.chat.demo.robot.activities
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.content.edit
 import androidx.core.view.GravityCompat
@@ -185,7 +188,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
                             highlightOverlay?.finishGuideBeginner()
                         } else {
-                            if(false){
+                            if (false) {
                                 //FIXME
                                 vTaskMenu.visibility = View.VISIBLE
                             }
@@ -196,7 +199,10 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                                         putBoolean("has_shown_welcome", true)
                                     }
                                 setRedDotView()
-                                checkPreLaunchBill()
+                                vHomeMenu.postDelayed({
+                                    checkPreLaunchBill(force = true)
+                                }, 200L)
+
                             }
                         }
                     })
@@ -230,22 +236,32 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         LogUploader.chatEntrance("app_launch")
     }
 
-    private fun checkPreLaunchBill(){
+    private fun checkPreLaunchBill(force: Boolean = false) {
         if (!BillingManager.getInstance().hasSubscriptions()) {
             cntShowBilling = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .getInt("cnt_show_billing", -1)
             var from = "app_launch_nonfirst"
-            if(cntShowBilling==-1){
+            if (cntShowBilling == -1) {
                 from = "app_launch_first"
                 cntShowBilling = 0
             }
-            if (cntShowBilling % 3 == 1) {
-                BillingActivity.start(this@MainDrawerActivity,from)
-            }
-            getSharedPreferences("app_prefs", MODE_PRIVATE)
-                .edit() {
-                    putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
+
+            Log.e("BillingManager", "checkPreLaunchBill:$cntShowBilling")
+            if (cntShowBilling % 3 == 1 || force) {
+                Log.e("BillingManager", "checkPreLaunchBill.1")
+                if (BillingActivity.start(this@MainDrawerActivity, from)) {
+                    Log.e("BillingManager", "checkPreLaunchBill.2")
+                    getSharedPreferences("app_prefs", MODE_PRIVATE)
+                        .edit() {
+                            putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
+                        }
                 }
+            }else{
+                getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .edit() {
+                        putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
+                    }
+            }
         }
     }
 
@@ -258,7 +274,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             var showDate =
                 getSharedPreferences("app_prefs", MODE_PRIVATE).getString("shown_gw_date", "")
             if (today != showDate) {
-                ImageViewerActivity.start(this@MainDrawerActivity,"","auto_launch");
+                ImageViewerActivity.start(this@MainDrawerActivity, "", "auto_launch");
             }
 
             getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -373,7 +389,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             }
 
             R.id.action_share -> {
-                BillingActivity.start(this@MainDrawerActivity,"main_page_right_corner")
+                BillingActivity.start(this@MainDrawerActivity, "main_page_right_corner")
                 true
             }
 
@@ -455,7 +471,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
             R.id.menu_gw_daily -> {
                 hasShownWelcome = true
-                ImageViewerActivity.start(this@MainDrawerActivity,"","sidebar");
+                ImageViewerActivity.start(this@MainDrawerActivity, "", "sidebar");
                 LogUploader.reportEvent(
                     "mod_sidebar", listOf<KeyValuePair?>(
                         KeyValuePair("sidebar_action", "30")
@@ -478,7 +494,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             }
 
             R.id.menu_vip -> {
-                BillingActivity.start(this@MainDrawerActivity,"main_page_right_corner")
+                BillingActivity.start(this@MainDrawerActivity, "main_page_right_corner")
             }
 
 
@@ -505,7 +521,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     fun setTaskRedDotView() {
-        if(true){
+        if (true) {
             //FIXME
             return
         }
@@ -550,6 +566,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         val redDot3: View = findViewById<View>(R.id.red_dot3)
         if (!hasShownWelcome) {
             redDot.visibility = vHomeMenu.visibility
+            redDot3.visibility = View.VISIBLE
 //            vDgwMenu.post({
 //                val drawables: Array<Drawable?> = vDgwMenu.getCompoundDrawables()
 //                val leftDrawable: Drawable? = drawables[0]

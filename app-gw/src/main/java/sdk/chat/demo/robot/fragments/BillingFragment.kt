@@ -29,6 +29,7 @@ import sdk.chat.demo.robot.activities.WebViewActivity
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.Plan
 import sdk.chat.demo.robot.api.model.Product
+import sdk.chat.demo.robot.extensions.toMeaningfulStr
 import sdk.chat.demo.robot.extensions.toPriceInfo
 import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.LogUploader
@@ -64,7 +65,6 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        getProducts()
     }
 
     override fun onResume() {
@@ -105,7 +105,8 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
 //            title.text = product.offerTitle
 //            price.text = product.offerSubtitle
 
-            val priceInfo = offerDetails.pricingPhases.toPriceInfo(product)
+//            val priceInfo = offerDetails.pricingPhases.toPriceInfo(product)
+            val priceInfo = product.toMeaningfulStr(offerDetails.pricingPhases)
             if (priceInfo.isEmpty()) {
                 return
             }
@@ -263,6 +264,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                 KeyValuePair("purchase_action", "10")
             )
         )
+        getProducts()
         return rootView
     }
 
@@ -337,7 +339,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                             if (BuildConfig.DEBUG) {
                                 Logger.error { "launchPurchaseFlow,dstPurchase:${dstPurchase.originalJson}" }
                             } else {
-                                Logger.error { "launchPurchaseFlow, with dstPurchase:${dstPurchase.packageName}" }
+                                Logger.error { "launchPurchaseFlow, with dstPurchase:${dstPurchase.orderId}" }
                             }
                         } else {
                             Logger.error { "launchPurchaseFlow,dstPurchase is null" }
@@ -347,11 +349,13 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                         billing?.launchPurchaseFlow(
                             it,
                             selectedProduct,
-                            obfuscatedAccountId = obfuscatedAccountId,
+                            obfuscatedAccountId = ChatSDK.currentUserID().replace("user_", ""),
                             isOfferPersonalized = true,
                             subscriptionParams = subscriptionParams
                         )
                     }
+                }else{
+                    ToastHelper.show(activity,"No products...")
                 }
             }
 
@@ -450,9 +454,9 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
     fun acknowledge() {
         var purchaseList = billing?.getPurchasesWithProductName(selectedProduct)
         var purchase = purchaseList?.maxByOrNull { it.purchaseTime }
-        if (BuildConfig.DEBUG && "test" == from && purchase != null) {
-            purchase = Purchase(purchase.originalJson, "test")
-        }
+//        if (BuildConfig.DEBUG && "test" == from && purchase != null) {
+//            purchase = Purchase(purchase.originalJson, "test")
+//        }
         if (purchase != null) {
             dm.add(
                 BillingManager.getInstance().acknowledgePurchase(purchase)
@@ -498,17 +502,18 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
 
 
     fun getProducts() {
-        dm.add(
-            BillingManager.getInstance().getGWProducts()
-                .subscribe({ productRes ->
-                    product = productRes
-                    initProductView()
-                }, { error ->
-//                    hideLoading()
-                    ToastHelper.show(activity, error.message)
-//                    showNetworkError(error)
-                })
-        )
+        product = BillingManager.getInstance().productGW
+//        dm.add(
+//            BillingManager.getInstance().getGWProducts()
+//                .subscribe({ productRes ->
+//                    product = productRes
+//                    initProductView()
+//                }, { error ->
+////                    hideLoading()
+//                    ToastHelper.show(activity, error.message)
+////                    showNetworkError(error)
+//                })
+//        )
 
 
         dm.add(
@@ -516,6 +521,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                 .subscribe({ billingHelper ->
                     billing = billingHelper
                     billing?.addBillingListener(this)
+                    initProductView()
                 }, { error ->
                     // 初始化失败
                 })

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -31,6 +32,7 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
     private lateinit var loadingDialog: AlertDialog
     private var exportInfo: ExportInfo? = null
     private lateinit var vVipHint: View
+    private var contactEmail: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,15 +42,20 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
         findViewById<View>(R.id.config_lang).setOnClickListener(this)
         findViewById<View>(R.id.feedback).setOnClickListener(this)
         findViewById<View>(R.id.my_userid).setOnClickListener(this)
+        findViewById<View>(R.id.contact_email).setOnClickListener(this)
         findViewById<View>(R.id.restore_subscription).setOnClickListener(this)
         vVipHint = findViewById<View>(R.id.export_vip)
         tvLang = findViewById<TextView>(R.id.lang_value)
         initView()
         getSettings()
-        if(BuildConfig.DEBUG){
+        if (BuildConfig.DEBUG) {
             var v = findViewById<View>(R.id.debug)
             v.visibility = View.VISIBLE
             v.setOnClickListener(this)
+        }
+        if (ImageApi.getGwConfigs() != null) {
+            contactEmail = ImageApi.getGwConfigs().contactEmail
+            findViewById<TextView>(R.id.email).setText(contactEmail)
         }
         LogUploader.reportEvent(
             "mod_settings", listOf<KeyValuePair?>(
@@ -84,7 +91,9 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
 
             R.id.export -> {
                 var isVip = "0"
-                if(!BillingManager.getInstance().tryToPay(this@SettingsActivity,"export_graceword")){
+                if (!BillingManager.getInstance()
+                        .tryToPay(this@SettingsActivity, "export_graceword")
+                ) {
                     isVip = "1"
                     getExportInfo()
                 }
@@ -133,7 +142,7 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                 )
             }
 
-            R.id.restore_subscription ->{
+            R.id.restore_subscription -> {
                 showProgressDialog(R.string.processing)
                 dm.add(
                     BillingManager.getInstance().acknowledgePurchase()
@@ -193,7 +202,51 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                     )
                 )
             }
+
+            R.id.contact_email -> {
+                sendEmailWithSendAction(
+                    contactEmail ?: "support@grace-word.com",
+                    "",
+                    "Grace Word UserId:" + ChatSDK.currentUserID() + "..."
+                )
+            }
         }
+    }
+
+    fun sendEmailWithSendAction(to: String, subject: String = "", body: String = "") {
+
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:") // 只处理邮件应用
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
+            putExtra(Intent.EXTRA_SUBJECT, "")
+            putExtra(Intent.EXTRA_TEXT, "Grace Word UserId:" + ChatSDK.currentUserID() + "...")
+        }
+
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+            }
+
+            try {
+                startActivity(Intent.createChooser(intent, "选择邮件应用"))
+            } catch (e: Exception) {
+                Toast.makeText(this, "发送邮件失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val clipboard =
+            getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("恩语", to)
+        clipboard.setPrimaryClip(clip)
+        ToastHelper.show(
+            MainApp.getContext(),
+            MainApp.getContext().getString(R.string.copied)
+        )
     }
 
     fun getSettings() {
@@ -202,7 +255,7 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
                 .getPackageInfo(packageName, 0)
                 .versionName
                 ?: "Unknown"
-            findViewById<TextView>(R.id.version).text = getString(R.string.my_version,versionName)
+            findViewById<TextView>(R.id.version).text = getString(R.string.my_version, versionName)
         } catch (e: Exception) {
             "Unknown"
         }

@@ -1,6 +1,11 @@
 package sdk.chat.demo.robot.activities;
 
 import sdk.chat.demo.pre.R;
+import sdk.chat.demo.robot.api.model.ShareRequest;
+import sdk.chat.demo.robot.api.model.ShareRequestKt;
+import sdk.chat.demo.robot.handlers.SocialShareHandler;
+import sdk.chat.demo.robot.utils.SocialShareUtils;
+import sdk.chat.demo.robot.utils.ToastHelper;
 
 import android.content.Context;
 import android.content.Intent;
@@ -20,15 +25,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 public class WebViewActivity extends BaseActivity implements View.OnClickListener {
 
     public static final String EXTRA_HTML_CONTENT = "html_content";
+    public static final String EXTRA_SHARE_CONTENT = "share_content";
+    public static final String EXTRA_SHARE_SUMMARY = "share_summary";
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_TITLE = "title";
 
     private WebView webView;
     private ProgressBar progressBar;
     private TextView titleView;
+    private ShareRequest request;
+    private String shareSummary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +101,18 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         if (intent.hasExtra(EXTRA_TITLE)) {
             setTitle(intent.getStringExtra(EXTRA_TITLE));
         }
+
+        if (intent.hasExtra(EXTRA_SHARE_CONTENT)) {
+            try {
+                request = (new Gson()).fromJson(intent.getStringExtra(EXTRA_SHARE_CONTENT), ShareRequest.class);
+                View v = findViewById(R.id.share);
+                v.setVisibility(View.VISIBLE);
+                v.setOnClickListener(this);
+                shareSummary = intent.getStringExtra(EXTRA_SHARE_SUMMARY);
+            } catch (Exception ignored) {
+
+            }
+        }
     }
 
     @Override
@@ -97,6 +120,19 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         int vid = view.getId();
         if (vid == R.id.home) {
             finish();
+        } else if (vid == R.id.share) {
+            dm.add(SocialShareHandler.batchShare(request)
+                    .subscribe(
+                            shareUrl -> {
+                                // 成功回调（在主线程）
+                                String summary = shareSummary == null || shareSummary.isEmpty() ? "Share From GraceWord\n" : shareSummary;
+                                SocialShareUtils.showCustomShareDialog(this, SocialShareUtils.targetApps, summary, null, shareUrl);
+                            },
+                            error -> {
+                                // 错误回调（在主线程）
+                                ToastHelper.show(this, error.getMessage());
+                            }
+                    ));
         }
     }
 
@@ -203,6 +239,16 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
     public void setTitle(CharSequence title) {
         super.setTitle(title);
         titleView.setText(title);
+    }
+
+    // 启动Activity的静态方法
+    public static void sharePreviewWithHtml(Context context, String htmlContent, String title, String shareData,String shareSummary) {
+        Intent intent = new Intent(context, WebViewActivity.class);
+        intent.putExtra(EXTRA_HTML_CONTENT, htmlContent);
+        intent.putExtra(EXTRA_TITLE, title);
+        intent.putExtra(EXTRA_SHARE_CONTENT, shareData);
+        intent.putExtra(EXTRA_SHARE_SUMMARY, shareSummary);
+        context.startActivity(intent);
     }
 
     // 启动Activity的静态方法

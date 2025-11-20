@@ -43,6 +43,7 @@ import sdk.chat.demo.robot.activities.WebViewActivity;
 import sdk.chat.demo.robot.adpter.ChatAdapter;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.MessageEntry;
+import sdk.chat.demo.robot.api.model.ShareRequest;
 import sdk.chat.demo.robot.api.model.ShareRequestKt;
 import sdk.chat.demo.robot.api.model.Song;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
@@ -247,7 +248,10 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                     }
                 }
                 htmlContent = htmlContent.replace("{{shareData}}", content);
-                WebViewActivity.launchWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview));
+                ShareRequest request = ShareRequestKt.createShareRequest(selectedItems);
+                String summary = selectedItems.get(0).getShareSummary(getContext());
+
+                WebViewActivity.sharePreviewWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview),(new Gson()).toJson(request,ShareRequest.class),summary);
                 LogUploader.reportEvent(
                         "mod_share", List.of(
                                 new KeyValuePair("share_msg_count", Integer.toString(selectedItems.size())),

@@ -7,17 +7,24 @@ import android.util.Log
 import com.gyf.immersionbar.ImmersionBar
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.fragments.BillingFragment
+import sdk.chat.demo.robot.handlers.BillingManager
+import sdk.chat.demo.robot.utils.ToastHelper
 
 class BillingActivity : BaseActivity() {
     companion object {
         private const val EXTRA_FROM = "chat_from"
 
         // 提供静态启动方法（推荐）
-        fun start(context: Context, from: String? = null) {
+        fun start(context: Context, from: String? = null): Boolean {
+            if(!BillingManager.getInstance().isInitialized()){
+                ToastHelper.show(context,R.string.check_google_play_network)
+                return false
+            }
             val intent = Intent(context, BillingActivity::class.java).apply {
                 putExtra(EXTRA_FROM, from)
             }
             context.startActivity(intent)
+            return true
         }
     }
 

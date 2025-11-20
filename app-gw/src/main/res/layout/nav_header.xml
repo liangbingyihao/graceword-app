@@ -24,18 +24,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/menu_gw_daily"
-                    style="@style/NavMenuHeader"
-                    android:drawableLeft="@mipmap/ic_gw_daily"
-                    android:text="@string/daily_gw" />
-
-                <ImageView
-                    android:id="@+id/red_dot3"
+                <FrameLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:src="@drawable/red_dot" />
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/menu_gw_daily"
+                        style="@style/NavMenuHeader"
+                        android:drawableLeft="@mipmap/ic_gw_daily"
+                        android:text="@string/daily_gw" />
+
+                    <ImageView
+                        android:id="@+id/red_dot3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right|top"
+                        android:layout_margin="12dp"
+                        android:src="@drawable/red_dot" />
+                </FrameLayout>
             </FrameLayout>
 
             <View

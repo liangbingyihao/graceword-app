@@ -170,4 +170,7 @@
     <string name="hint_vip_text_empty">今天回覆次數已用完，升級會員，讓恩語陪你繼續記錄和探討信仰問題</string>
     <string name="hint_complaint">優化建議/回覆內容相關/遇到問題/功能使用</string>
     <string name="vip_already2">訂閱成功，同步訂閱資料異常，建議重啟APP或聯繫客服回報</string>
+
+    <string name="check_google_play_network">請檢查Google Play環境和網路連接</string>
+    <string name="contact_email">客服郵箱</string>
 </resources>

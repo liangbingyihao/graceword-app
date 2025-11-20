@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName
 data class GWConfigs(
     @SerializedName("configs")
     val configs: GWConfigItem? = null,
+    @SerializedName("contact_email")
+    val contactEmail: String? = null,
 
     @SerializedName("default_msg")
     val defaultMsg: MessageDetail? = null,

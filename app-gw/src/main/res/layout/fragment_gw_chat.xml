@@ -106,7 +106,6 @@
                 android:layout_width="316dp"
                 android:layout_height="42dp"
                 android:layout_gravity="center"
-                android:visibility="gone"
                 android:backgroundTint="@color/white"
                 android:stateListAnimator="@null"
                 android:text="@string/share_preview"

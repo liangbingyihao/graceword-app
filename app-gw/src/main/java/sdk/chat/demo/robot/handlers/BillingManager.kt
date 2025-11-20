@@ -58,7 +58,6 @@ class BillingManager private constructor() {
 
     // 内存缓存
     private var billingHelper: BillingHelper? = null
-    private var cachedConfig: GWConfigs? = null
     private var productSubscriptions: List<String>? = null
     private var isInitialized = false
     private var initializationInProgress = false
@@ -66,12 +65,17 @@ class BillingManager private constructor() {
     private var expireAtMs = 0L
     private var gson: Gson = Gson()
 
+    private var _productGW: Product? = null
+    val productGW: Product?
+        get() = _productGW
     // 状态管理
     private val billingStateSubject = BehaviorSubject.create<BillingState>()
 
     init {
         billingStateSubject.onNext(BillingState.NotInitialized)
     }
+
+
 
     // 初始化 BillingHelper（依赖网络配置）
     fun initializeBilling(): Single<BillingHelper> {
@@ -103,7 +107,7 @@ class BillingManager private constructor() {
                         .flatMap { products ->
 
                             // 3. 创建 BillingHelper
-                            createBillingHelper(products.plans.map { it->it.productId })
+                            createBillingHelper(products.plans.map { it -> it.productId })
                         }
                         .doOnSuccess { billingHelper ->
                             synchronized(this) {
@@ -112,8 +116,8 @@ class BillingManager private constructor() {
                                 this.initializationInProgress = false
                                 billingStateSubject.onNext(BillingState.Initialized(billingHelper))
                             }
-                            if(!hasSubscriptions()){
-                                acknowledgePurchase(restore=true)
+                            if (!hasSubscriptions()) {
+                                acknowledgePurchase(restore = true)
                                     .subscribeOn(Schedulers.io())
                                     .subscribe(
                                         { /* 成功，不处理 */ },
@@ -151,7 +155,7 @@ class BillingManager private constructor() {
         ChatSDK.events().source().accept(NetworkEvent(EventType.BillChange));
     }
 
-    fun tryToPay(context: Context,from: String): Boolean {
+    fun tryToPay(context: Context, from: String): Boolean {
         if (!hasSubscriptions()) {
             BillingActivity.start(context, from)
             return true
@@ -169,7 +173,7 @@ class BillingManager private constructor() {
                     it.billingClient.endConnection()
                 }
                 billingHelper = null
-                cachedConfig = null
+                _productGW = null
                 isInitialized = false
 
                 // 重新初始化
@@ -277,30 +281,28 @@ class BillingManager private constructor() {
     // 检查是否已初始化
     fun isInitialized(): Boolean = isInitialized
 
-    // 获取缓存的配置
-    fun getCachedConfig(): GWConfigs? = cachedConfig
-
     // 清空缓存
     fun clearCache() {
         synchronized(this) {
             billingHelper?.billingClient?.endConnection()
             billingHelper = null
-            cachedConfig = null
+            _productGW = null
             isInitialized = false
             billingStateSubject.onNext(BillingState.NotInitialized)
         }
     }
 
-    fun acknowledgePurchase(purchase: Purchase?=null, restore: Boolean = false): Single<Boolean> {
+    fun acknowledgePurchase(purchase: Purchase? = null, restore: Boolean = false): Single<Boolean> {
         return Single.create { emitter ->
             try {
-                val dstPurchase = purchase ?: billingHelper?.getProductNamesForType(BillingClient.ProductType.SUBS)
-                    ?.firstNotNullOfOrNull { product ->
-                        billingHelper!!.getPurchasesWithProductName(product)
-                            .maxByOrNull { it.purchaseTime }
-                    }
+                val dstPurchase = purchase
+                    ?: billingHelper?.getProductNamesForType(BillingClient.ProductType.SUBS)
+                        ?.firstNotNullOfOrNull { product ->
+                            billingHelper!!.getPurchasesWithProductName(product)
+                                .maxByOrNull { it.purchaseTime }
+                        }
 
-                if (dstPurchase==null||dstPurchase.originalJson.isEmpty() || dstPurchase.signature.isEmpty()) {
+                if (dstPurchase == null || dstPurchase.originalJson.isEmpty() || dstPurchase.signature.isEmpty()) {
                     emitter.onError(IllegalArgumentException("Invalid purchase data"))
                     return@create
                 }
@@ -373,8 +375,8 @@ class BillingManager private constructor() {
             .observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun getGWProducts(): Single<Product> {
-        return Single.create { emitter ->
+    fun getGWProducts(): Single<Product?> {
+        return Single.create<Product?> { emitter ->
             try {
 
                 val request = Request.Builder()
@@ -391,10 +393,16 @@ class BillingManager private constructor() {
                     override fun onResponse(call: Call, response: Response) {
                         try {
                             response.use { // 确保 response 被正确关闭
-                                var res: Product = GWApiManager.shared()
+                                var ret = GWApiManager.shared()
                                     .handleResponse(response, Product::class.java)
-                                Log.e("BillingManager", res.toString())
-                                emitter.onSuccess(res)
+                                if(ret!=null){
+                                    _productGW = ret
+                                }
+                                if(_productGW!=null){
+                                    emitter.onSuccess(_productGW!!)
+                                }else{
+                                    emitter.onError(Exception("no products"))
+                                }
                             }
                         } catch (e: Exception) {
                             if (!emitter.isDisposed) {
