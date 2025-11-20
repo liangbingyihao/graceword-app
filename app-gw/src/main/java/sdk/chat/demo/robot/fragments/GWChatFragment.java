@@ -464,9 +464,9 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 .subscribe(networkEvent -> {
                     GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
                     if (handler.pendingMsgId() == null) {
-                        input.onMsgStatusChanged(1);
+                        input.onMsgStatusChanged(2);
                     } else {
-                        input.onMsgStatusChanged(0);
+                        input.onMsgStatusChanged(1);
                     }
                 }));
 

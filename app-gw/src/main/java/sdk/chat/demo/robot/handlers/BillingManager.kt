@@ -312,7 +312,7 @@ class BillingManager private constructor() {
                     put("json_purchase_info", dstPurchase.originalJson)
                     put("signature", dstPurchase.signature)
                     if (restore) {
-                        put("restore", "true")
+                        put("restore", true.toString())
                     }
                 }
 

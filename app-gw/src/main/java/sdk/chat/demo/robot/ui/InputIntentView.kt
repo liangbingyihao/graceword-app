@@ -88,6 +88,7 @@ class InputIntentView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
     var mainMenus: WeakReference<GWMsgInput>? = null
     private var menuSong: View
+    private lateinit var hideSongMenu: View
     private var containerLayout: LinearLayout
     private var searchCriteria = mutableListOf<FieldValue>()
 
@@ -111,6 +112,10 @@ class InputIntentView @JvmOverloads constructor(
                 containerLayout.addView(spinner)
             }
         }
+    }
+
+    fun hideSongMenu(){
+        hideSongMenu.performClick()
     }
 
 
@@ -145,7 +150,8 @@ class InputIntentView @JvmOverloads constructor(
         inflate(context, R.layout.item_input_intent, this)
         menuSong = findViewById(R.id.menuSong)
         containerLayout = findViewById(R.id.containerLayout)
-        findViewById<View?>(R.id.hideSongMenu).setOnClickListener(this)
+        hideSongMenu = findViewById<View?>(R.id.hideSongMenu)
+        hideSongMenu.setOnClickListener(this)
     }
 
     private fun adjustSpinnerWidth(spinner: Spinner, hymnParam: GWConfigs.HymnParam) {
@@ -192,6 +198,7 @@ class InputIntentView @JvmOverloads constructor(
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
                 marginEnd = 16.dpToPx() // 设置右边距
+                minimumWidth = 98.dpToPx()
                 setBackgroundResource(R.drawable.spinner_bg_oval)
             }
 

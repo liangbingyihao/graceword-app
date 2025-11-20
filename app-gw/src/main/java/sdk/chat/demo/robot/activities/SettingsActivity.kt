@@ -145,7 +145,7 @@ class SettingsActivity : BaseActivity(), View.OnClickListener {
             R.id.restore_subscription -> {
                 showProgressDialog(R.string.processing)
                 dm.add(
-                    BillingManager.getInstance().acknowledgePurchase()
+                    BillingManager.getInstance().acknowledgePurchase(restore=true)
                         .subscribe({ success ->
 //                    hideLoading()
                             dismissProgressDialog()

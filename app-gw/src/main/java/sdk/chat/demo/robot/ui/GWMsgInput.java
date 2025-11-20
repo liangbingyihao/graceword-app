@@ -146,10 +146,14 @@ public class GWMsgInput extends RelativeLayout
 
     public void onMsgStatusChanged(int status) {
         //status: 0: pending,1:idle
+        //status: 0: start,1:pending 2:idle
 //        Log.e("sending", "onMsgStatusChanged:" + status);
-        if (status == 0) {
+        if (status <= 1) {
             messageSendButton.setVisibility(GONE);
             stopSendButton.setVisibility(VISIBLE);
+            if(status==0){
+                inputIntentView.hideSongMenu();
+            }
         } else {
             messageSendButton.setVisibility(VISIBLE);
             stopSendButton.setVisibility(GONE);

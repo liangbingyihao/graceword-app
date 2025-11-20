@@ -44,8 +44,8 @@ android {
         official {
             dimension "version"
             applicationId "app.graceword.android"
-            versionName "1.1.0"
-            versionCode 6 as int
+            versionName "1.2.0"
+            versionCode 7 as int
         }
     }
 
