@@ -148,9 +148,9 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
 //                if (id == R.id.btn_share_text || id == R.id.btn_share_user_text) {
 //                    messagesListAdapter.setMultiSelectMode(true);
 //                }
+                delegate.onSocialShare(messagesListAdapter.isMultiSelectMode(), messagesListAdapter.getCntSelected());
             }
 //            shareMenu.setVisibility(View.VISIBLE);
-            delegate.onSocialShare(true, messagesListAdapter.getCntSelected());
 //            tvSelected.setText("已选中1");
         }
     };

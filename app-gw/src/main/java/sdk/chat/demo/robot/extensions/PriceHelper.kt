@@ -83,6 +83,65 @@ fun Plan.toMeaningfulStr(pricingPhases: PricingPhases): List<String> {
 }
 
 fun String.getPriceTitle(mainPrice: PricingPhase, offerPrice: PricingPhase? = null): String {
+//    var currency = mainPrice.formattedPrice.replace(Regex("[0-9.]"), "")
+//    var tmp = this.replace("{formattedPrice}", mainPrice.formattedPrice)
+//    if (offerPrice != null) {
+//        tmp = tmp.replace("{offerFormattedPrice}", offerPrice.formattedPrice)
+//    }
+//
+////    var price = pricingPhase.priceAmountMicros / 1000000.0
+//    listOf(
+//        PlaceholderConfig("{priceAmountPerDay}", 365, mainPrice),
+//        PlaceholderConfig("{priceAmountPerWeek}", 52, mainPrice),
+//        PlaceholderConfig("{priceAmountPerMonth}", 12, mainPrice),
+//        PlaceholderConfig("{offerPriceAmountPerDay}", 365, offerPrice),
+//        PlaceholderConfig("{offerPriceAmountPerWeek}", 52, offerPrice),
+//        PlaceholderConfig("{offerPriceAmountPerMonth}", 12, offerPrice),
+//    ).forEach { config ->
+//        if (config.pricePhase != null) {
+//            var p = currency + "%.2f".format(
+//                config.pricePhase!!.priceAmountMicros / 1000000.0 / config.day,
+//                2
+//            )
+//            tmp = tmp.replace(config.placeholder, p)
+//        }
+//    }
+//
+//
+//    val input =
+//        "商品价格: {price/3}, 商品价格2: {price/6}, 优惠价: {offerPrice/2}, 优惠价2: {offerPrice/3}"
+
+    var currency = mainPrice.formattedPrice.replace(Regex("[0-9.]"), "")
+    var dMainPrice = mainPrice.priceAmountMicros / 1000000.0
+    var dOfferPrice: Double = 0.0
+    if (offerPrice != null) {
+        dOfferPrice = offerPrice.priceAmountMicros / 1000000.0
+    }
+
+    val result = replaceTemplates(this) { key, value ->
+        // 根据不同的key计算具体值
+        when (key) {
+            "price" -> currency+"%.2f".format(dMainPrice / value.toDouble(), 2)
+            "offerPrice" -> currency+"%.2f".format(dOfferPrice / value.toDouble(), 2)  // 优惠价计算逻辑
+            else -> "?"  // 默认处理
+        }
+    }
+
+    return result
+}
+
+fun replaceTemplates(input: String, calculator: (String, Int) -> String): String {
+    val regex = """\{([^}/]+)/(\d+)\}""".toRegex()
+
+    return regex.replace(input) { matchResult ->
+        val (key, valueStr) = matchResult.destructured
+        val value = valueStr.toInt()
+        val calculatedValue = calculator(key, value)
+        calculatedValue.toString()
+    }
+}
+
+fun String.getPriceTitle1(mainPrice: PricingPhase, offerPrice: PricingPhase? = null): String {
     var currency = mainPrice.formattedPrice.replace(Regex("[0-9.]"), "")
     var tmp = this.replace("{formattedPrice}", mainPrice.formattedPrice)
     if (offerPrice != null) {
@@ -98,15 +157,17 @@ fun String.getPriceTitle(mainPrice: PricingPhase, offerPrice: PricingPhase? = nu
         PlaceholderConfig("{offerPriceAmountPerWeek}", 52, offerPrice),
         PlaceholderConfig("{offerPriceAmountPerMonth}", 12, offerPrice),
     ).forEach { config ->
-        if(config.pricePhase!=null){
-            var p = currency + "%.2f".format(config.pricePhase!!.priceAmountMicros / 1000000.0 / config.day, 2)
+        if (config.pricePhase != null) {
+            var p = currency + "%.2f".format(
+                config.pricePhase!!.priceAmountMicros / 1000000.0 / config.day,
+                2
+            )
             tmp = tmp.replace(config.placeholder, p)
         }
     }
 
     return tmp
 }
-
 
 fun String.toMeaningfulStr(pricingPhase: PricingPhase): String {
     var currency = pricingPhase.formattedPrice.replace(Regex("[0-9.]"), "")

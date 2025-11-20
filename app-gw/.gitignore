@@ -17,6 +17,7 @@ build/
 tmp/
 
 # Files for the Dalvik VM
+**/*.aab
 *.dex
 *.log
 # Intellij

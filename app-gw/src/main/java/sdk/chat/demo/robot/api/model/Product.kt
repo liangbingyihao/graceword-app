@@ -47,6 +47,8 @@ data class Plan(
     val title: String,
     val subtitle: String,
     val promotion: String,
+    @SerializedName("start_button")
+    var startButton:String,
 
     @SerializedName("offer_title")
     val offerTitle: String,
@@ -54,7 +56,6 @@ data class Plan(
     val offerSubtitle:String,
     @SerializedName("offer_promotion")
     val offerPromotion: String,
-
     @SerializedName("offer_start_button")
     val offerStartButton:String,
 )

@@ -117,8 +117,11 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                 price.visibility = View.GONE
             }
             var badge = root.findViewById<TextView>(R.id.badge_save)
+            var hasOffer = offerDetails.pricingPhases.pricingPhaseList.size > 1
+            if(hasOffer){
+                product.startButton = product.offerStartButton
+            }
             if (isFirst) {
-                var hasOffer = offerDetails.pricingPhases.pricingPhaseList.size == 1
                 if (hasOffer && !product.offerPromotion.isEmpty()) {
                     badge.text = product.offerPromotion
                     title.setTextColor(ContextCompat.getColor(root.context, R.color.bg_bill_menu))
@@ -284,7 +287,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
         val plan = product?.plans?.getOrNull(index)
         if (plan != null) {
             selectedProduct = plan.productId
-            btStart.text = plan.offerStartButton
+            btStart.text = plan.startButton
 
             LogUploader.reportEvent(
                 "mod_purchase_page", listOf<KeyValuePair?>(
