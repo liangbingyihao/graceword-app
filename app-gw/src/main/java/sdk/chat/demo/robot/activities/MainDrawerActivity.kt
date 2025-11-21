@@ -61,6 +61,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private val chatTag = "tag_chat";
     private var toReloadSessions = false
     private var hasShownWelcome = false
+    private var forceBilling = true
     private var cntShowBilling = 0
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
@@ -181,12 +182,12 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                     .filter(NetworkEvent.filterType(EventType.MessageAdded))
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(Consumer { networkEvent: NetworkEvent? ->
+                        highlightOverlay?.finishGuideBeginner()
                         if (WelcomeHolder.isWelcomeMsg(networkEvent!!.getMessage())) {
                             vHomeMenu.visibility = View.GONE
                             vTaskMenu.visibility = View.GONE
                             findViewById<View>(R.id.red_dot).visibility = View.GONE
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
-                            highlightOverlay?.finishGuideBeginner()
                         } else {
                             if (false) {
                                 //FIXME
@@ -200,7 +201,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                                     }
                                 setRedDotView()
                                 vHomeMenu.postDelayed({
-                                    checkPreLaunchBill(force = true)
+                                    checkPreLaunchBill(force = forceBilling)
                                 }, 200L)
 
                             }
@@ -237,6 +238,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun checkPreLaunchBill(force: Boolean = false) {
+        if(force){
+            forceBilling = false
+        }
         if (!BillingManager.getInstance().hasSubscriptions()) {
             cntShowBilling = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .getInt("cnt_show_billing", -1)

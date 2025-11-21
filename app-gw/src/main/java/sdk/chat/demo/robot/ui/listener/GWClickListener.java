@@ -344,20 +344,24 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 
             }
         } else if (id == R.id.btn_like_ai || id == R.id.btn_like_user_text) {
-            LogUploader.reportEvent(
-                    "mod_msg_interact", List.of(
-                            new KeyValuePair("interact_action", "20")
-                    ));
             if (imessage.getClass() == TextHolder.class && message != null) {
                 Single<Integer> r = id == R.id.btn_like_ai ? threadHandler.toggleAiLikeState(message) : threadHandler.toggleContentLikeState(message);
                 Disposable disposable = r.observeOn(AndroidSchedulers.mainThread())
                         .subscribe(newState -> {
                                     if (newState == 0) {
+                                        LogUploader.reportEvent(
+                                                "mod_msg_interact", List.of(
+                                                        new KeyValuePair("interact_action", "21")
+                                                ));
                                         ToastHelper.show(
                                                 weakContext.get(),
                                                 weakContext.get().getString(R.string.unsaved)
                                         );
                                     } else if (newState == 1) {
+                                        LogUploader.reportEvent(
+                                                "mod_msg_interact", List.of(
+                                                        new KeyValuePair("interact_action", "20")
+                                                ));
                                         ToastHelper.show(
                                                 weakContext.get(),
                                                 weakContext.get().getString(R.string.saved)

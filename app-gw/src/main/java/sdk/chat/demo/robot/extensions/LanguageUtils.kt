@@ -12,8 +12,8 @@ import android.os.Build
 import androidx.annotation.StringRes
 import androidx.core.app.LocaleManagerCompat
 import androidx.core.os.ConfigurationCompat
-import com.zqc.opencc.android.lib.ChineseConverter
-import com.zqc.opencc.android.lib.ConversionType
+//import com.zqc.opencc.android.lib.ChineseConverter
+//import com.zqc.opencc.android.lib.ConversionType
 import org.tinylog.Logger
 import sdk.chat.demo.MainApp
 import java.lang.ref.WeakReference
@@ -48,7 +48,8 @@ object LanguageUtils {
 //        } else {
 //            return ChineseConverter.convert(text,ConversionType.S2T,context)
 //        }
-        return ChineseConverter.convert(text,ConversionType.S2T,context)
+//        return ChineseConverter.convert(text,ConversionType.S2T,context)
+        return ""
     }
 
     private const val PREFS_LANGUAGE_KEY = "app_language"

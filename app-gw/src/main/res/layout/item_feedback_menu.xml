@@ -44,6 +44,7 @@
         <ImageView
             android:id="@+id/btn_play"
             style="@style/FeedOperator"
+            android:visibility="gone"
             android:src="@mipmap/ic_play_black" />
 
         <ImageView

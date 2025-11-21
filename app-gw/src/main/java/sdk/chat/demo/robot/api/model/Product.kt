@@ -58,4 +58,14 @@ data class Plan(
     val offerPromotion: String,
     @SerializedName("offer_start_button")
     val offerStartButton:String,
+
+
+    @SerializedName("default_title")
+    val defaultTitle: String,
+    @SerializedName("default_subtitle")
+    val defaultSubtitle:String,
+    @SerializedName("default_promotion")
+    val defaultPromotion: String,
+    @SerializedName("default_start_button")
+    val defaultStartButton:String,
 )

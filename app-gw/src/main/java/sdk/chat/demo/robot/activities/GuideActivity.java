@@ -7,8 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,7 +25,7 @@ import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
-import sdk.chat.demo.robot.extensions.LogHelper;
+import sdk.chat.demo.robot.extensions.FirebaseReport;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -41,6 +39,16 @@ public class GuideActivity extends BaseActivity {
     private final int[] guideImages = {
             R.mipmap.ic_intro_1,
             R.mipmap.ic_intro_2,
+//            R.mipmap.ic_intro_m3
+    };
+    private final int[] guideImagesHK = {
+            R.mipmap.ic_intro_1_hk,
+            R.mipmap.ic_intro_2_hk,
+//            R.mipmap.ic_intro_m3
+    };
+    private final int[] guideImagesEN = {
+            R.mipmap.ic_intro_1_en,
+            R.mipmap.ic_intro_2_en,
 //            R.mipmap.ic_intro_m3
     };
     private final int[] guideTitles = {
@@ -67,16 +75,15 @@ public class GuideActivity extends BaseActivity {
 
         // 设置适配器
 
-        var lang = Locale.getDefault().toLanguageTag();
+        var lang = Locale.getDefault().toLanguageTag().toLowerCase();
         int h = dpToPx(300);
+
         if (lang.contains("en")) {
-            int[] hs = {h, h * 2, h * 2};
-            GuideViewAdapter adapter = new GuideViewAdapter(guideImages, guideTitles, guideDescriptions, hs);
-            viewPager.setAdapter(adapter);
+            viewPager.setAdapter(new GuideViewAdapter(guideImagesEN));
+        }else if(lang.contains("hant")){
+            viewPager.setAdapter(new GuideViewAdapter(guideImagesHK));
         } else {
-            int[] hs = {h, h, h};
-            GuideViewAdapter adapter = new GuideViewAdapter(guideImages, guideTitles, guideDescriptions, hs);
-            viewPager.setAdapter(adapter);
+            viewPager.setAdapter(new GuideViewAdapter(guideImages));
         }
 
         // 添加指示点
@@ -190,7 +197,7 @@ public class GuideActivity extends BaseActivity {
                                 retrying = false;
                                 btnNext.setText(getString(R.string.retry));
                                 ToastHelper.show(this, R.string.network_error);
-                                LogHelper.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
+                                FirebaseReport.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
                             }
                     ));
         }
@@ -198,15 +205,12 @@ public class GuideActivity extends BaseActivity {
 
     class GuideViewAdapter extends RecyclerView.Adapter<GuideViewAdapter.ViewHolder> {
         private int[] guideImages;
-        private int[] guideTitles;
-        private int[] guideDescriptions;
-        private int[] maskHeights;
+//        private int[] guideTitles;
+//        private int[] guideDescriptions;
+//        private int[] maskHeights;
 
-        public GuideViewAdapter(int[] images, int[] titles, int[] descriptions, int[] maskHeights) {
+        public GuideViewAdapter(int[] images) {
             this.guideImages = images;
-            this.guideTitles = titles;
-            this.guideDescriptions = descriptions;
-            this.maskHeights = maskHeights;
         }
 
         @NonNull

@@ -59,8 +59,13 @@ data class PlaceholderConfig(
 )
 
 
-fun Plan.toMeaningfulStr(pricingPhases: PricingPhases): List<String> {
+fun Plan.toMeaningfulStr(pricingPhases: PricingPhases?): List<String> {
     val phases = mutableListOf<String>()
+    if(pricingPhases==null){
+        phases.add(this.defaultTitle)
+        phases.add(this.defaultSubtitle)
+        return phases
+    }
     if (pricingPhases.pricingPhaseList.size == 1) {
         //no offer
         phases.add(this.title.getPriceTitle(pricingPhases.pricingPhaseList[0]))

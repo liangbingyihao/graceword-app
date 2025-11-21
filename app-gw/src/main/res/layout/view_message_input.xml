@@ -121,6 +121,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|left"
+                    android:visibility="gone"
                     android:layout_marginLeft="12dp">
 
                     <sdk.chat.demo.robot.ui.CircleOverlayView

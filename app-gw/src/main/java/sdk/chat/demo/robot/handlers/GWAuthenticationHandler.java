@@ -1,13 +1,11 @@
 package sdk.chat.demo.robot.handlers;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
 
 import com.bumptech.glide.Glide;
 
 import org.tinylog.Logger;
 
-import java.util.HashMap;
 import java.util.List;
 
 import io.reactivex.Completable;
@@ -16,17 +14,13 @@ import io.reactivex.schedulers.Schedulers;
 import sdk.chat.core.base.AbstractAuthenticationHandler;
 import sdk.chat.core.dao.User;
 import sdk.chat.core.events.NetworkEvent;
-import sdk.chat.core.hook.HookEvent;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.types.AccountDetails;
-import sdk.chat.core.utils.KeyStorage;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.robot.api.GWApiManager;
 import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.ActionLimitConfig;
-import sdk.chat.demo.robot.api.model.ImageDaily;
 import sdk.chat.demo.robot.extensions.DeviceIdHelper;
-import sdk.chat.demo.robot.extensions.LogHelper;
 import sdk.guru.common.RX;
 
 

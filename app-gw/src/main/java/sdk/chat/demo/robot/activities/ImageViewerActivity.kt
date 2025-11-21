@@ -129,19 +129,21 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
 
 
                 val direction = when {
-                    position > previousPosition -> "41"
-                    position < previousPosition -> "40"
+                    position > previousPosition -> "40"
+                    position < previousPosition -> "41"
                     else -> ""
                 }
                 previousPosition = position
                 cntSlide+=1
-                LogUploader.reportEvent(
-                    "mod_daily", listOf<KeyValuePair?>(
-                        KeyValuePair("daily_action", direction),
-                        KeyValuePair("daily_slide_count", cntSlide.toString()),
-                        KeyValuePair("daily_entrance", from)
+                if(cntSlide>1){
+                    LogUploader.reportEvent(
+                        "mod_daily", listOf<KeyValuePair?>(
+                            KeyValuePair("daily_action", direction),
+                            KeyValuePair("daily_slide_count", cntSlide.toString()),
+                            KeyValuePair("daily_entrance", from)
+                        )
                     )
-                )
+                }
             }
         })
     }

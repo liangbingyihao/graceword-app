@@ -111,12 +111,13 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                 } else if (data.action == AIExplore.ExploreItem.action_input_prompt_welcome) {
                     var event =
                         NetworkEvent.messageInputPrompt(null, data.text)
+                    var optionId =(i+1).toString()
                     v.setOnClickListener { view ->
                         ChatSDK.events().source().accept(event)
                         LogUploader.reportEvent(
                             "mod_guide", listOf<KeyValuePair?>(
                                 KeyValuePair("guide_action", "20"),
-                                KeyValuePair("guide_option_id", (i+1).toString())
+                                KeyValuePair("guide_option_id", optionId)
                             )
                         )
                     }
@@ -129,12 +130,12 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                             data.action,
                             data.getParamsStr()
                         ).subscribe();
-                    }
-                    LogUploader.reportEvent(
-                        "mod_chat", listOf<KeyValuePair?>(
-                            KeyValuePair("chat_action", "40")
+                        LogUploader.reportEvent(
+                            "mod_chat", listOf<KeyValuePair?>(
+                                KeyValuePair("chat_action", "40")
+                            )
                         )
-                    )
+                    }
                 }
             } else {
                 v.visibility = View.GONE

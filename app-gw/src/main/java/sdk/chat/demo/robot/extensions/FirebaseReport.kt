@@ -1,13 +1,11 @@
 package sdk.chat.demo.robot.extensions
 
-import android.R.id
 import android.os.Bundle
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import sdk.chat.core.utils.Device.name
 
 
-object LogHelper {
+object FirebaseReport {
 //    private const val LOG_CLEAR_INTERVAL = 120_000L // 2分钟（毫秒）
 //    var logStr = ""
 //        private set // 外部可读不可直接修改
@@ -36,10 +34,6 @@ object LogHelper {
 
 
     fun reportExportEvent(event: String, log: String, throwable: Throwable?) {
-//        appendLog("<$event>:$log")
-//        if (throwable != null) {
-//            appendLog(throwable.toString())
-//        }
         val crashlytics = FirebaseCrashlytics.getInstance()
 
 

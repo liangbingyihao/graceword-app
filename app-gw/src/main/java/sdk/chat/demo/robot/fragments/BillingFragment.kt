@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
@@ -86,27 +87,38 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
         rootView.findViewById<View>(R.id.text_terms).setOnClickListener(this)
         rootView.findViewById<View>(R.id.text_privacy).setOnClickListener(this)
         headerView = rootView.findViewById<ImageView>(R.id.photoView)
+
+        val materialCardView = rootView.findViewById<View>(R.id.products)
+        materialCardView.postDelayed({
+            val scrollView = rootView.findViewById<ScrollView>(R.id.header)
+            val screenHeight = resources.displayMetrics.heightPixels
+            val cardViewHeight = materialCardView.height
+
+            val scrollViewHeight = screenHeight - cardViewHeight
+
+            scrollView.layoutParams.height = scrollViewHeight + 80
+            scrollView.requestLayout()
+        }, 200)
     }
 
     private fun initPlanView(root: View, product: Plan?, isFirst: Boolean) {
         if (product != null) {
             var productDetails = billing?.getProductDetails(product.productId)
             val offerDetails = productDetails?.subscriptionOfferDetails?.getOrNull(0)
-            if (offerDetails == null) {
-                root.visibility = View.GONE
-                return
-            } else {
-                root.visibility = View.VISIBLE
-            }
+//            if (offerDetails == null) {
+//                root.visibility = View.GONE
+//                return
+//            } else {
+//                root.visibility = View.VISIBLE
+//            }
 
 
             var title = root.findViewById<TextView>(R.id.text_title)
             var price = root.findViewById<TextView>(R.id.text_price)
 //            title.text = product.offerTitle
 //            price.text = product.offerSubtitle
-
 //            val priceInfo = offerDetails.pricingPhases.toPriceInfo(product)
-            val priceInfo = product.toMeaningfulStr(offerDetails.pricingPhases)
+            val priceInfo = product.toMeaningfulStr(offerDetails?.pricingPhases)
             if (priceInfo.isEmpty()) {
                 return
             }
@@ -117,22 +129,47 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                 price.visibility = View.GONE
             }
             var badge = root.findViewById<TextView>(R.id.badge_save)
-            var hasOffer = offerDetails.pricingPhases.pricingPhaseList.size > 1
-            if(hasOffer){
-                product.startButton = product.offerStartButton
-            }
-            if (isFirst) {
-                if (hasOffer && !product.offerPromotion.isEmpty()) {
-                    badge.text = product.offerPromotion
-                    title.setTextColor(ContextCompat.getColor(root.context, R.color.bg_bill_menu))
-                } else if (!hasOffer && !product.promotion.isEmpty()) {
-                    badge.text = product.promotion
-                } else {
-                    badge.visibility = View.GONE
+            badge.visibility = View.GONE
+            if (offerDetails != null) {
+                var hasOffer = offerDetails.pricingPhases.pricingPhaseList.size > 1
+                if (hasOffer) {
+                    product.startButton = product.offerStartButton
                 }
-            }else{
-                title.setTextColor(ContextCompat.getColor(root.context, R.color.item_text_normal))
-                badge.visibility = View.GONE
+                if (isFirst) {
+                    if (hasOffer && !product.offerPromotion.isEmpty()) {
+                        badge.visibility = View.VISIBLE
+                        badge.text = product.offerPromotion
+                        title.setTextColor(
+                            ContextCompat.getColor(
+                                root.context,
+                                R.color.bg_bill_menu
+                            )
+                        )
+                    } else if (!hasOffer && !product.promotion.isEmpty()) {
+                        badge.visibility = View.VISIBLE
+                        badge.text = product.promotion
+                        title.setTextColor(
+                            ContextCompat.getColor(
+                                root.context,
+                                R.color.bg_bill_menu
+                            )
+                        )
+                    }
+                }
+            } else {
+                product.startButton = product.defaultStartButton
+                if (isFirst) {
+                    if (!product.defaultPromotion.isEmpty()) {
+                        badge.visibility = View.VISIBLE
+                        badge.text = product.defaultPromotion
+                        title.setTextColor(
+                            ContextCompat.getColor(
+                                root.context,
+                                R.color.bg_bill_menu
+                            )
+                        )
+                    }
+                }
             }
 //            if (!product.promotion.isEmpty()) {
 //                title.setTextColor(ContextCompat.getColor(root.context, R.color.bg_bill_menu))
@@ -212,7 +249,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
             BillingEvent.PURCHASE_CANCELLED
                 -> {
                 val currentActivity = activity ?: return
-                ToastHelper.show(currentActivity, message)
+                ToastHelper.show(currentActivity, message?.takeIf { it.isNotEmpty() } ?: event.name)
                 dismissProgressDialog()
                 var action = ""
                 if (event == BillingEvent.PURCHASE_FAILED) {
@@ -337,8 +374,9 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                                 updateOldToken = dstPurchase.purchaseToken,
                                 updateReplacementMode = BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION
                             )
-                            obfuscatedAccountId = dstPurchase.accountIdentifiers?.obfuscatedAccountId
-                                ?: obfuscatedAccountId
+                            obfuscatedAccountId =
+                                dstPurchase.accountIdentifiers?.obfuscatedAccountId
+                                    ?: obfuscatedAccountId
                             if (BuildConfig.DEBUG) {
                                 Logger.error { "launchPurchaseFlow,dstPurchase:${dstPurchase.originalJson}" }
                             } else {
@@ -357,8 +395,8 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                             subscriptionParams = subscriptionParams
                         )
                     }
-                }else{
-                    ToastHelper.show(activity,"No products...")
+                } else {
+                    ToastHelper.show(activity, "No products...")
                 }
             }
 
@@ -558,7 +596,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
         dialogView.findViewById<View>(R.id.got).setOnClickListener {
             dialog.dismiss()
         }
-        if (autoFinish&&!"test".equals(from)) {
+        if (autoFinish && !"test".equals(from)) {
             dialog.setOnDismissListener { activity?.finish() }
         }
 

@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -29,9 +30,14 @@ class LabelValueSpinnerAdapter(
     context: Context,
     private val items: List<String>
 ) : ArrayAdapter<String>(context, R.layout.item_input_intent_spinner, items) {
-
     private var selectedPosition = -1
     private var label = items[0]
+
+    var isUserInteraction: Boolean = false
+        get() = field
+        set(value) {
+            field = value
+        }
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = convertView ?: LayoutInflater.from(context)
@@ -65,6 +71,7 @@ class LabelValueSpinnerAdapter(
     }
 
     fun getSelectedPosition(): Int = selectedPosition
+
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = super.getView(position, convertView, parent)
@@ -114,8 +121,23 @@ class InputIntentView @JvmOverloads constructor(
         }
     }
 
-    fun hideSongMenu(){
-        hideSongMenu.performClick()
+    fun hideSongMenu() {
+        mainMenus?.get()?.onClick(hideSongMenu)
+        onHideSongMenu()
+    }
+
+    fun onHideSongMenu(){
+
+        menuSong.visibility = GONE
+        for (i in 0 until containerLayout.childCount) {
+            val child = containerLayout.getChildAt(i)
+            // 检查是否为 Spinner
+            if (child is Spinner) {
+//                        Log.e("inputintent","clear.setSelectedPosition 0")
+                (child.adapter as LabelValueSpinnerAdapter).isUserInteraction = false
+                child.setSelection(0, false)
+            }
+        }
     }
 
 
@@ -127,19 +149,13 @@ class InputIntentView @JvmOverloads constructor(
             }
 
             R.id.hideSongMenu -> {
-                menuSong.visibility = GONE
                 mainMenus?.get()?.onClick(view)
-
-
-                for (i in 0 until containerLayout.childCount) {
-                    val child = containerLayout.getChildAt(i)
-                    // 检查是否为 Spinner
-                    if (child is Spinner) {
-//                        Log.e("inputintent","clear.setSelectedPosition 0")
-                        child.setSelection(0, false)
-//                        (child.adapter as LabelValueSpinnerAdapter).setSelectedPosition(0)
-                    }
-                }
+                onHideSongMenu()
+                LogUploader.reportEvent(
+                    "mod_chat", listOf<KeyValuePair?>(
+                        KeyValuePair("chat_action", "63")
+                    )
+                )
                 true
             }
         }
@@ -154,41 +170,41 @@ class InputIntentView @JvmOverloads constructor(
         hideSongMenu.setOnClickListener(this)
     }
 
-    private fun adjustSpinnerWidth(spinner: Spinner, hymnParam: GWConfigs.HymnParam) {
-        // 计算最长的文本（包括label和所有选项）
-        var paint: Paint
-        val textView = spinner.findViewById<TextView>(android.R.id.text1)
-        if (textView != null) {
-            paint = textView.paint
-        } else {
-            // 备用方案：创建新的 Paint 对象
-            paint = Paint().apply {
-                textSize = 14.spToPx() // 设置与 Spinner 相同的字体大小
-                typeface = Typeface.DEFAULT
-            }
-        }
-
-//        val allTexts = listOf(hymnParam.field) + hymnParam.choices
-//        val maxTextWidth = allTexts.maxOf { text ->
-//            paint.measureText(text)
-
-        val maxTextWidth = 0
-        // 计算总宽度（文本宽度 + 内边距 + 箭头区域）
-        val padding = spinner.paddingLeft + spinner.paddingRight
-        val arrowArea = 48.dpToPx()
-        val minWidth = 60.dpToPx()
-        val maxWidth = (resources.displayMetrics.widthPixels * 0.3).toInt()
-
-        val targetWidth = (maxTextWidth + padding + arrowArea + 150).toInt()
-            .coerceAtLeast(minWidth)
-            .coerceAtMost(maxWidth)
-
-        // 应用宽度调整
-        spinner.layoutParams = spinner.layoutParams.apply {
-            width = targetWidth
-        }
-        spinner.requestLayout()
-    }
+//    private fun adjustSpinnerWidth(spinner: Spinner, hymnParam: GWConfigs.HymnParam) {
+//        // 计算最长的文本（包括label和所有选项）
+//        var paint: Paint
+//        val textView = spinner.findViewById<TextView>(android.R.id.text1)
+//        if (textView != null) {
+//            paint = textView.paint
+//        } else {
+//            // 备用方案：创建新的 Paint 对象
+//            paint = Paint().apply {
+//                textSize = 14.spToPx() // 设置与 Spinner 相同的字体大小
+//                typeface = Typeface.DEFAULT
+//            }
+//        }
+//
+////        val allTexts = listOf(hymnParam.field) + hymnParam.choices
+////        val maxTextWidth = allTexts.maxOf { text ->
+////            paint.measureText(text)
+//
+//        val maxTextWidth = 0
+//        // 计算总宽度（文本宽度 + 内边距 + 箭头区域）
+//        val padding = spinner.paddingLeft + spinner.paddingRight
+//        val arrowArea = 48.dpToPx()
+//        val minWidth = 60.dpToPx()
+//        val maxWidth = (resources.displayMetrics.widthPixels * 0.3).toInt()
+//
+//        val targetWidth = (maxTextWidth + padding + arrowArea + 150).toInt()
+//            .coerceAtLeast(minWidth)
+//            .coerceAtMost(maxWidth)
+//
+//        // 应用宽度调整
+//        spinner.layoutParams = spinner.layoutParams.apply {
+//            width = targetWidth
+//        }
+//        spinner.requestLayout()
+//    }
 
     private fun createCustomSpinner(hymnParam: GWConfigs.HymnParam): Spinner {
         // 创建自定义下拉框
@@ -210,7 +226,8 @@ class InputIntentView @JvmOverloads constructor(
                 LabelValueSpinnerAdapter(this.context, list)
 
             // 下拉框点击事件
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            val listener = object : AdapterView.OnItemSelectedListener {
+
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
                     view: View?,
@@ -220,21 +237,41 @@ class InputIntentView @JvmOverloads constructor(
                     // 处理选项选择
 //                    Log.e("inputintent","OnItemSelectedListener $position")
                     val fieldValue = searchCriteria.find { it.field == hymnParam.field }
-                    val selected = (adapter as LabelValueSpinnerAdapter).setSelectedPosition(position)
+                    val selected =
+                        (adapter as LabelValueSpinnerAdapter).setSelectedPosition(position)
                     fieldValue?.value = if (position == 0) null else selected
-                    LogUploader.reportEvent(
-                        "mod_chat", listOf<KeyValuePair?>(
-                            KeyValuePair("chat_action", "62")
+
+                    if ((adapter as LabelValueSpinnerAdapter).isUserInteraction) {
+                        LogUploader.reportEvent(
+                            "mod_chat", listOf<KeyValuePair?>(
+                                KeyValuePair("chat_action", "62")
+                            )
                         )
-                    )
+                    }
+//                    LogUploader.reportEvent(
+//                        "mod_chat", listOf<KeyValuePair?>(
+//                            KeyValuePair("chat_action", "62")
+//                        )
+//                    )
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
+
+            onItemSelectedListener = listener
             // 动态调整宽度
-//            post {
-//                adjustSpinnerWidth(this, hymnParam)
-//            }
+            setOnTouchListener { _, event ->
+                if (event.action == MotionEvent.ACTION_DOWN) {
+                    (adapter as LabelValueSpinnerAdapter).isUserInteraction = true
+
+                    LogUploader.reportEvent(
+                        "mod_chat", listOf<KeyValuePair?>(
+                            KeyValuePair("chat_action", "61")
+                        )
+                    )
+                }
+                false // 不消费事件，让 Spinner 正常处理
+            }
         }
 
         return spinner

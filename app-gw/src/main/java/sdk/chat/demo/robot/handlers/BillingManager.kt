@@ -63,18 +63,19 @@ class BillingManager private constructor() {
     private var initializationInProgress = false
     private var hasSubscriptions = false
     private var expireAtMs = 0L
+    private var lastCheck = 0L
     private var gson: Gson = Gson()
 
     private var _productGW: Product? = null
     val productGW: Product?
         get() = _productGW
+
     // 状态管理
     private val billingStateSubject = BehaviorSubject.create<BillingState>()
 
     init {
         billingStateSubject.onNext(BillingState.NotInitialized)
     }
-
 
 
     // 初始化 BillingHelper（依赖网络配置）
@@ -144,6 +145,34 @@ class BillingManager private constructor() {
 
     fun checkSubscriptions() {
         hasSubscriptions = (billingHelper?.hasSubscriptions() == true)
+        if (!hasSubscriptions && !hasSubscriptions()) {
+            val currentTime = System.currentTimeMillis()
+            val timeThreshold = 4000L // 4秒阈值
+
+            // 检查时间间隔是否小于阈值
+            if (currentTime - lastCheck < timeThreshold) {
+                return // 时间间隔太短，直接返回
+            }
+            lastCheck = currentTime
+
+            if (!isInitialized()) {
+                Log.e("BillingManager","reinitializeBilling 1")
+                reinitializeBilling()
+            } else {
+                if (billingHelper != null
+                    && billingHelper!!.getProductDetails(
+                        _productGW?.plans?.get(0)?.productId ?: defaultProductSubscriptions[0]
+                    ) == null
+                ) {
+                    Log.e("BillingManager","initQuery 2")
+                    billingHelper!!.initQueryProductDetails()
+                    billingHelper!!.initQueryOwnedPurchases()
+                } else if(billingHelper==null) {
+                    Log.e("BillingManager","reinitializeBilling 2")
+                    reinitializeBilling()
+                }
+            }
+        }
     }
 
     fun hasSubscriptions(): Boolean {
@@ -173,7 +202,6 @@ class BillingManager private constructor() {
                     it.billingClient.endConnection()
                 }
                 billingHelper = null
-                _productGW = null
                 isInitialized = false
 
                 // 重新初始化
@@ -279,7 +307,7 @@ class BillingManager private constructor() {
     }
 
     // 检查是否已初始化
-    fun isInitialized(): Boolean = isInitialized
+    fun isInitialized(): Boolean = isInitialized && _productGW != null
 
     // 清空缓存
     fun clearCache() {
@@ -378,6 +406,10 @@ class BillingManager private constructor() {
     fun getGWProducts(): Single<Product?> {
         return Single.create<Product?> { emitter ->
             try {
+                _productGW?.let { cachedProduct ->
+                    emitter.onSuccess(cachedProduct)
+                    return@create
+                }
 
                 val request = Request.Builder()
                     .url(requireNotNull(URL_PRODUCT.toHttpUrlOrNull()))
@@ -395,12 +427,12 @@ class BillingManager private constructor() {
                             response.use { // 确保 response 被正确关闭
                                 var ret = GWApiManager.shared()
                                     .handleResponse(response, Product::class.java)
-                                if(ret!=null){
+                                if (ret != null) {
                                     _productGW = ret
                                 }
-                                if(_productGW!=null){
+                                if (_productGW != null) {
                                     emitter.onSuccess(_productGW!!)
-                                }else{
+                                } else {
                                     emitter.onError(Exception("no products"))
                                 }
                             }

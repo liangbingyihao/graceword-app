@@ -245,11 +245,7 @@ public class GWMsgInput extends RelativeLayout
             messageInput.setHint(R.string.hint_msg_input);
             isSearchingHymns = false;
             if (typingListener != null) typingListener.onHeightChange();
-            LogUploader.reportEvent(
-                    "mod_chat", List.of(
-                            new KeyValuePair("chat_action", "63")
-                    )
-            );
+
         } else if (id == R.id.bible) {
             BibleActivity.Companion.start(this.getContext(), "");
         } else if (id == R.id.hint_vip_msg) {
@@ -555,7 +551,7 @@ public class GWMsgInput extends RelativeLayout
         if (editMode != MODE_FULLSCREEN) {
             if (paramsContract == null) {
                 paramsContract = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                paramsContract.leftMargin = ActivityExtensionsKt.dpToPx(58, this.getContext());
+                paramsContract.leftMargin = ActivityExtensionsKt.dpToPx(8, this.getContext());//58
                 paramsContract.rightMargin = (int) buttonContainer.getWidth() + ActivityExtensionsKt.dpToPx(20, this.getContext());
                 int m = ActivityExtensionsKt.dpToPx(4, this.getContext());
                 paramsContract.topMargin = m;

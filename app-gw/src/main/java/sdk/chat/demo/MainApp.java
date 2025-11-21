@@ -10,10 +10,9 @@ import android.util.Log;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.utils.Device;
 import sdk.chat.demo.robot.ChatSDKGW;
-import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
-import sdk.chat.demo.robot.extensions.LogHelper;
+import sdk.chat.demo.robot.extensions.FirebaseReport;
 import sdk.chat.demo.robot.extensions.TinyLoggerManager;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
@@ -30,9 +29,8 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
-import com.bytedance.speech.speechengine.SpeechEngineGenerator;
+//import com.bytedance.speech.speechengine.SpeechEngineGenerator;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.vojtkovszky.billinghelper.BillingHelper;
 
 import org.tinylog.Logger;
 
@@ -91,7 +89,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         context = getApplicationContext();
         scheduleTokenUpdate();
 
-        SpeechEngineGenerator.PrepareEnvironment(getApplicationContext(), this);
+//        SpeechEngineGenerator.PrepareEnvironment(getApplicationContext(), this);
 
         try {
             // Setup Chat SDK
@@ -110,13 +108,13 @@ public class MainApp extends Application implements Configuration.Provider, Appl
                             },
                             error -> { /* 错误处理 */
                                 Logger.error(error, "authenticate error");
-                                LogHelper.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
+                                FirebaseReport.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
                                 isInitialized = false;
                             }
                     ));
         } catch (Exception e) {
             Logger.error(e, "MainApp.onCreate");
-            LogHelper.INSTANCE.reportExportEvent("app.init", "init error", e);
+            FirebaseReport.INSTANCE.reportExportEvent("app.init", "init error", e);
         }
         setupEnhancedCrashReporting();
         LanguageUtils.INSTANCE.initAppLanguage(this);

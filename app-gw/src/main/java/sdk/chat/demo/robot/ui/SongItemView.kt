@@ -236,19 +236,19 @@ class SongItemView @JvmOverloads constructor(
         if (isLyricsExpanded) {
             tvLyrics.maxLines = Integer.MAX_VALUE
             tvExpandLyrics.text = context.getString(R.string.fold)
-            LogUploader.reportEvent(
-                "mod_msg_interact", listOf<KeyValuePair?>(
-                    KeyValuePair("interact_action", "63")
-                )
-            )
+//            LogUploader.reportEvent(
+//                "mod_msg_interact", listOf<KeyValuePair?>(
+//                    KeyValuePair("interact_action", "63")
+//                )
+//            )
         } else {
             tvLyrics.maxLines = 7
             tvExpandLyrics.text = context.getString(R.string.unfold)
-            LogUploader.reportEvent(
-                "mod_msg_interact", listOf<KeyValuePair?>(
-                    KeyValuePair("interact_action", "64")
-                )
-            )
+//            LogUploader.reportEvent(
+//                "mod_msg_interact", listOf<KeyValuePair?>(
+//                    KeyValuePair("interact_action", "64")
+//                )
+//            )
         }
     }
 

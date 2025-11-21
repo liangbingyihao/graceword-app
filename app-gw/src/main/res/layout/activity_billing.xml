@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
     android:id="@+id/main1"
-    android:orientation="vertical"
-    android:background="@mipmap/bg_beginner">
+    android:orientation="vertical">
 
 
 <!--    &lt;!&ndash; 顶部标题栏 &ndash;&gt;-->

@@ -34,7 +34,7 @@ import sdk.chat.demo.robot.adpter.data.ArticleSession
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
-import sdk.chat.demo.robot.extensions.LogHelper
+import sdk.chat.demo.robot.extensions.FirebaseReport
 import sdk.chat.demo.robot.extensions.showMaterialConfirmationDialog
 import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
@@ -393,7 +393,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     },
                     { error -> // onError
                         swipeRefreshLayout.isRefreshing = false
-                        LogHelper.reportExportEvent("load.err", error.message.toString(), error)
+                        FirebaseReport.reportExportEvent("load.err", error.message.toString(), error)
                         Toast.makeText(
                             this@ArticleListActivity,
                             error.message,

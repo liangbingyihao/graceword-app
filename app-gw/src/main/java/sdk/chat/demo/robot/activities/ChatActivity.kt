@@ -158,9 +158,6 @@ class ChatActivity : BaseActivity(), View.OnClickListener,
 
     override fun stop() {
         TTSHelper.stop()
-//        if (textToSpeech!=null&& textToSpeech!!.isSpeaking) {
-//            textToSpeech!!.stop()
-//        }
     }
 
 

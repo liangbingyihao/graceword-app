@@ -18,6 +18,7 @@ import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import io.reactivex.Single;
@@ -31,6 +32,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.MainApp;
+import sdk.chat.demo.pre.BuildConfig;
 import sdk.chat.demo.robot.api.GWApiManager;
 import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
@@ -204,6 +206,9 @@ public class LogUploader {
         }
         enrichedKvs.addAll(DeviceInfoUtils.getAllDeviceInfoKvs(MainApp.getContext()));
         String json = gson.toJson(createLogRequest(topic, enrichedKvs));
+        if(BuildConfig.DEBUG){
+            Log.e("reportALIEvent",json);
+        }
         // 创建请求体
         RequestBody body = RequestBody.create(json, JSON);
 

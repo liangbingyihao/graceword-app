@@ -78,7 +78,6 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 
                 // 更新当前章节信息
                 currentChapterNumber = adapter.getChapterNumber(position)
-                Log.e("bible_data", "onPageSelected 1,${currentBookId} $currentChapterNumber");
                 // 触发当前页面的数据加载
                 triggerDataLoadForPosition(position)
 
@@ -89,16 +88,17 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             override fun onPageScrollStateChanged(state: Int) {
                 super.onPageScrollStateChanged(state)
 
-                LogUploader.reportEvent(
-                    "mod_bible", listOf<KeyValuePair?>(
-                        KeyValuePair("bible_page_type", "half"),
-                        KeyValuePair("bible_action", "40")
-                    )
-                )
 
                 if (state == ViewPager2.SCROLL_STATE_IDLE) {
                     // 滑动停止后，确保当前页面数据加载
                     triggerDataLoadForPosition(currentPosition)
+
+                    LogUploader.reportEvent(
+                        "mod_bible", listOf<KeyValuePair?>(
+                            KeyValuePair("bible_page_type", "half"),
+                            KeyValuePair("bible_action", "40")
+                        )
+                    )
                 }
             }
         })
