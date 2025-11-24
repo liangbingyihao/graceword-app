@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="8dp">
+
+<!--    android:background="@drawable/chapter_normal_bg"-->
+    <!-- 章节数字容器 -->
+<!--    <FrameLayout-->
+<!--        android:id="@+id/chapter_container"-->
+<!--        android:layout_width="48dp"-->
+<!--        android:layout_height="48dp"-->
+<!--        android:gravity="center">-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/text_chapter"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:text="1"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textColor="#000000" />-->
+
+<!--    </FrameLayout>-->
+
+    <TextView
+        android:id="@+id/text_chapter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="1"
+        android:textSize="16sp"
+        android:textColor="#000000" />
+</LinearLayout>

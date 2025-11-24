@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.BibleActivity
 import sdk.chat.demo.robot.adpter.ChapterPagerAdapter
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.KeyValuePair
@@ -30,18 +31,38 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private var currentBookId = 1
     private var currentChapterNumber = 1
     private var totalChapters = 0
+    private var reference = ""
+    private var fullscreen = false
+    private var pageType = "half"
 
     // 用于防止频繁滑动的变量
     private var isLoading = false
-    private val MIN_SWIPE_INTERVAL = 500 // 最小滑动间隔时间（毫秒）
-    private var lastSwipeTime = 0L
+    private var inited = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_bible_pager, container, false)
+
+
+        arguments?.let {
+            currentBookId = it.getInt(ARG_BOOK_ID, 1)
+            currentChapterNumber = it.getInt(ARG_CHAPTER_NUMBER, 1)
+            reference = it.getString(ARG_REFERENCE, "")
+            fullscreen = it.getBoolean(ARG_FULLSCREEN)
+        } ?: run {
+            currentBookId = 1
+            currentChapterNumber = 1
+            reference = ""
+            fullscreen = false
+        }
+        if(fullscreen){
+            pageType = "full"
+            return inflater.inflate(R.layout.fragment_bible_pager_fullscreen, container, false)
+        }else{
+            return inflater.inflate(R.layout.fragment_bible_pager, container, false)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,18 +75,6 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 
         // 初始化API服务
         bibleApiService = BibleApiService.getInstance()
-
-        // 从arguments获取初始章节参数
-        var reference = ""
-        arguments?.let {
-            currentBookId = it.getInt(ARG_BOOK_ID, 1)
-            currentChapterNumber = it.getInt(ARG_CHAPTER_NUMBER, 1)
-            reference = it.getString(ARG_REFERENCE, "")
-        } ?: run {
-            currentBookId = 1
-            currentChapterNumber = 1
-            reference = ""
-        }
 
         // 加载章节数据
         loadChapter(currentBookId, currentChapterNumber, reference)
@@ -92,19 +101,24 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                 if (state == ViewPager2.SCROLL_STATE_IDLE) {
                     // 滑动停止后，确保当前页面数据加载
                     triggerDataLoadForPosition(currentPosition)
-
-                    LogUploader.reportEvent(
-                        "mod_bible", listOf<KeyValuePair?>(
-                            KeyValuePair("bible_page_type", "half"),
-                            KeyValuePair("bible_action", "40")
+                    if(inited){
+                        LogUploader.reportEvent(
+                            "mod_bible", listOf<KeyValuePair?>(
+                                KeyValuePair("bible_page_type", pageType),
+                                KeyValuePair("bible_action", "40")
+                            )
                         )
-                    )
+                    }else{
+                        inited = true
+                    }
                 }
             }
         })
 
         view.findViewById<View>(R.id.exit).setOnClickListener(this)
-        view.findViewById<View>(R.id.top_room).setOnClickListener(this)
+        if(!fullscreen){
+            view.findViewById<View?>(R.id.top_room)?.setOnClickListener(this)
+        }
 //        // 设置按钮点击事件
 //        prevChapterBtn.setOnClickListener {
 //            navigateToPreviousChapter()
@@ -115,7 +129,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 //        }
         LogUploader.reportEvent(
             "mod_bible", listOf<KeyValuePair?>(
-                KeyValuePair("bible_page_type", "half"),
+                KeyValuePair("bible_page_type", pageType),
                 KeyValuePair("bible_action", "10")
             )
         )
@@ -229,7 +243,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             R.id.exit, R.id.top_room -> {
                 LogUploader.reportEvent(
                     "mod_bible", listOf<KeyValuePair?>(
-                        KeyValuePair("bible_page_type", "half"),
+                        KeyValuePair("bible_page_type", pageType),
                         KeyValuePair("bible_action", "20")
                     )
                 )
@@ -243,19 +257,22 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         private const val ARG_BOOK_ID = "book_id"
         private const val ARG_CHAPTER_NUMBER = "chapter_number"
         private const val ARG_REFERENCE = "reference"
+        private const val ARG_FULLSCREEN = "fullscreen"
         private val versePattern = """\d+:(\d+)""".toRegex()
 
         // 创建新实例，可传入初始章节参数
         fun newInstance(
             bookId: Int = 1,
             chapterNumber: Int = 1,
-            reference: String = ""
+            reference: String = "",
+            fullscreen: Boolean = false,
         ): BiblePagerFragment {
             val fragment = BiblePagerFragment()
             val args = Bundle()
             args.putInt(ARG_BOOK_ID, bookId)
             args.putInt(ARG_CHAPTER_NUMBER, chapterNumber)
             args.putString(ARG_REFERENCE, reference)
+            args.putBoolean(ARG_FULLSCREEN, fullscreen)
             fragment.arguments = args
             return fragment
         }

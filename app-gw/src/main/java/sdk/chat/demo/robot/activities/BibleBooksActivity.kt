@@ -8,7 +8,7 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.fragments.BibleBooksFragment
 import sdk.chat.demo.robot.fragments.BiblePagerFragment
 
-class BibleActivity : BaseActivity() {
+class BibleBooksActivity : BaseActivity() {
     companion object {
         private const val ARG_BOOK = "book_id"
         private const val ARG_REFERENCE = "reference"
@@ -17,15 +17,8 @@ class BibleActivity : BaseActivity() {
         // 提供静态启动方法（推荐）
         fun start(
             context: Context,
-            reference: String = "",
-            fullscreen: Boolean = false,
-            bookId: Int = 0
         ) {
-            val intent = Intent(context, BibleActivity::class.java).apply {
-                putExtra(ARG_BOOK, bookId)
-                putExtra(ARG_REFERENCE, reference)
-                putExtra(ARG_FULLSCREEN, fullscreen)
-            }
+            val intent = Intent(context, BibleBooksActivity::class.java)
             context.startActivity(intent)
         }
     }
@@ -39,28 +32,12 @@ class BibleActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bible)
 
-//        // 设置Toolbar
-//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-//        setSupportActionBar(toolbar)
-        var reference = intent.getStringExtra(ARG_REFERENCE).toString()
-        if (!reference.isEmpty()) {
-            reference = reference.removeSurrounding("(", ")")
-        }
-
-        var fullscreen = intent.getBooleanExtra(ARG_FULLSCREEN, false)
-
-        var bookId = intent.getIntExtra(ARG_BOOK, 0)
-
         // 加载BibleChapterFragment
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
-                    BiblePagerFragment.newInstance(
-                        bookId,
-                        reference = reference,
-                        fullscreen = fullscreen
-                    )
+                    BibleBooksFragment.newInstance()
                 )
                 .commit()
         }

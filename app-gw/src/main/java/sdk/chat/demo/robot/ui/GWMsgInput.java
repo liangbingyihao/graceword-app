@@ -3,6 +3,7 @@ package sdk.chat.demo.robot.ui;
 
 import sdk.chat.core.ui.KeyboardOverlayHandler;
 import sdk.chat.demo.robot.activities.BibleActivity;
+import sdk.chat.demo.robot.activities.BibleBooksActivity;
 import sdk.chat.demo.robot.activities.BillingActivity;
 import sdk.chat.demo.robot.api.model.GWConfigs;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
@@ -247,7 +248,7 @@ public class GWMsgInput extends RelativeLayout
             if (typingListener != null) typingListener.onHeightChange();
 
         } else if (id == R.id.bible) {
-            BibleActivity.Companion.start(this.getContext(), "");
+            BibleBooksActivity.Companion.start(this.getContext());
         } else if (id == R.id.hint_vip_msg) {
             this.getContext().startActivity(
                     new Intent(this.getContext(),
