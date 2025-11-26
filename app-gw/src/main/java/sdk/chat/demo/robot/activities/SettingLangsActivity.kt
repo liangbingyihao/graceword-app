@@ -16,6 +16,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.ArticleListActivity
 import sdk.chat.demo.robot.api.ImageApi
@@ -59,6 +60,7 @@ class SettingLangsActivity : BaseActivity(), View.OnClickListener {
                 JsonCacheManager.save(this, "gwTaskProcess", "")
                 JsonCacheManager.save(this, "gwDaily", "")
                 TTSHelper.resetVoiceType()
+                MainApp.getInstance().bibleDBManager.initializeDefaultDatabase(MainApp.getContext())
                 val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
                 threadHandler.clearThreadCache()
                 dm.add(

@@ -417,11 +417,11 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
 
             R.id.conversations, R.id.conversations1 -> {
                 ChatSDK.events().source().accept(NetworkEvent(EventType.HideDrawer))
-                val intent =
-                    Intent(this@ArticleListActivity, MainDrawerActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                startActivity(intent)
+//                val intent =
+//                    Intent(this@ArticleListActivity, MainDrawerActivity::class.java).apply {
+//                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                    }
+//                startActivity(intent)
 
                 LogUploader.reportEvent(
                     "mod_timeline", mutableListOf(

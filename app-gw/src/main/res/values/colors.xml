@@ -16,6 +16,7 @@
     <color name="bg_special">#FFF8F7</color>
     <color name="text_gray">#B1B1B1</color>
     <color name="text_gray2">#919191</color>
+    <color name="text_gray3">#9D9D9D</color>
     <color name="button_pink">#FBEBEB</color>
     <color name="bg_gray_button">#F5F5F5</color>
     <color name="text_prompt">#69000000</color>

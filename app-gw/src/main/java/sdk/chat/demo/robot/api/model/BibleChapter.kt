@@ -1,17 +1,20 @@
 package sdk.chat.demo.robot.api.model
 
 import com.google.gson.annotations.SerializedName
+import sdk.chat.demo.MainApp
+import sdk.chat.demo.robot.extensions.LanguageUtils
+import java.util.Locale
 
 // 经文章节模型
 data class BibleChapter(
     @SerializedName("book_name")
-    val bookName: String,
+    var bookName: String,
     @SerializedName("book_number")
     val bookId: Int,
     @SerializedName("chapter")
     val chapterNumber: Int,
     @SerializedName("chapter_count")
-    val chapterCount: Int,
+    var chapterCount: Int,
     val verses: List<Verse>
 )
 
@@ -20,7 +23,7 @@ data class Verse(
     @SerializedName("verse")
     val verseNumber: Int,
     val text: String,
-    val referenced: Boolean
+    var referenced: Boolean
 )
 
 // 圣经书卷模型
@@ -338,4 +341,376 @@ object BibleData {
         val allBooks = simplifiedChineseOldTestament + simplifiedChineseNewTestament
         return allBooks.find { it.name == bookName }?.chapterCount ?: 0
     }
+
+    fun isNewTestament(bookId: Int): Boolean{
+        return bookId > 39
+    }
+
+    fun getBookById(bookId: Int): BibleBook {
+        val lang = LanguageUtils.getAppLanguage(MainApp.getContext(), false).lowercase()
+        var m: List<BibleBook> = emptyList()
+        var isNewTestament = isNewTestament(bookId)
+
+        if (lang.contains("en")) {
+            if (isNewTestament) {
+                m = englishNewTestament
+            } else {
+                m = englishOldTestament
+            }
+        } else if (lang.contains("hant")) {
+            if (isNewTestament) {
+                m = traditionalChineseNewTestament
+            } else {
+                m = traditionalChineseOldTestament
+            }
+        } else {
+            if (isNewTestament) {
+                m = simplifiedChineseNewTestament
+            } else {
+                m = simplifiedChineseOldTestament
+            }
+        }
+
+        return m.first { it -> it.id == bookId }
+
+    }
+
+    // 书卷简写映射
+    data class BookAbbreviation(
+        val bookId: Int,
+        val abbreviations: List<String>  // 所有可能的简写（中英繁）
+    )
+
+    // 经文出处解析结果
+    data class ScriptureReference(
+        val bookId: Int,              // 书卷ID
+        val bookName: String,          // 标准书卷名
+        val chapterStart: Int,        // 起始章节
+        val chapterEnd: Int,          // 结束章节（如果是范围）
+        val verseStart: Int? = null,  // 起始节（可选）
+        val verseEnd: Int? = null,    // 结束节（可选）
+        val isValid: Boolean = true,   // 是否有效
+        val errorMessage: String? = null // 错误信息
+    )
+
+    // 统一的书卷简写映射（包含所有语言版本）
+    val bookAbbreviations = listOf(
+        // 旧约
+        BookAbbreviation(1, listOf("创", "创世", "創", "創世", "Gen", "Genesis")),
+        BookAbbreviation(2, listOf("出", "出埃", "出埃及", "Ex", "Exodus")),
+        BookAbbreviation(3, listOf("利", "利未", "Lev", "Leviticus")),
+        BookAbbreviation(4, listOf("民", "民数", "Num", "Numbers")),
+        BookAbbreviation(5, listOf("申", "申命", "Deut", "Deuteronomy")),
+        BookAbbreviation(6, listOf("书", "约书亚", "书亚", "Josh", "Joshua")),
+        BookAbbreviation(7, listOf("士", "士师", "Judg", "Judges")),
+        BookAbbreviation(8, listOf("得", "路得", "Ruth")),
+        BookAbbreviation(9, listOf("撒上", "撒母耳上", "1Sam", "1 Samuel")),
+        BookAbbreviation(10, listOf("撒下", "撒母耳下", "2Sam", "2 Samuel")),
+        BookAbbreviation(11, listOf("王上", "列王上", "1Kgs", "1 Kings")),
+        BookAbbreviation(12, listOf("王下", "列王下", "2Kgs", "2 Kings")),
+        BookAbbreviation(13, listOf("代上", "历代上", "1Chr", "1 Chronicles")),
+        BookAbbreviation(14, listOf("代下", "历代下", "2Chr", "2 Chronicles")),
+        BookAbbreviation(15, listOf("拉", "以斯拉", "Ezra")),
+        BookAbbreviation(16, listOf("尼", "尼希米", "Neh", "Nehemiah")),
+        BookAbbreviation(17, listOf("斯", "以斯帖", "Esth", "Esther")),
+        BookAbbreviation(18, listOf("伯", "约伯", "Job")),
+        BookAbbreviation(19, listOf("诗", "诗篇", "Psa", "Ps", "Psalm", "Psalms")),
+        BookAbbreviation(20, listOf("箴", "箴言", "Prov", "Proverbs")),
+        BookAbbreviation(21, listOf("传", "传道", "Eccl", "Ecclesiastes")),
+        BookAbbreviation(22, listOf("歌", "雅歌", "Song", "Song of Solomon")),
+        BookAbbreviation(23, listOf("赛", "以赛亚", "Isa", "Isaiah")),
+        BookAbbreviation(24, listOf("耶", "耶利米", "Jer", "Jeremiah")),
+        BookAbbreviation(25, listOf("哀", "耶利米哀", "Lam", "Lamentations")),
+        BookAbbreviation(26, listOf("结", "以西结", "Ezek", "Ezekiel")),
+        BookAbbreviation(27, listOf("但", "但以理", "Dan", "Daniel")),
+        BookAbbreviation(28, listOf("何", "何西阿", "Hos", "Hosea")),
+        BookAbbreviation(29, listOf("珥", "约珥", "Joel")),
+        BookAbbreviation(30, listOf("摩", "阿摩司", "Amos")),
+        BookAbbreviation(31, listOf("俄", "俄巴底亚", "Obad", "Obadiah")),
+        BookAbbreviation(32, listOf("拿", "约拿", "Jonah")),
+        BookAbbreviation(33, listOf("弥", "弥迦", "Mic", "Micah")),
+        BookAbbreviation(34, listOf("鸿", "那鸿", "Nah", "Nahum")),
+        BookAbbreviation(35, listOf("哈", "哈巴谷", "Hab", "Habakkuk")),
+        BookAbbreviation(36, listOf("番", "西番雅", "Zeph", "Zephaniah")),
+        BookAbbreviation(37, listOf("该", "哈该", "Hag", "Haggai")),
+        BookAbbreviation(38, listOf("亚", "撒迦利亚", "Zech", "Zechariah")),
+        BookAbbreviation(39, listOf("玛", "玛拉基", "Mal", "Malachi")),
+
+        // 新约
+        BookAbbreviation(40, listOf("太", "马太", "Matt", "Matthew")),
+        BookAbbreviation(41, listOf("可", "马可", "Mark")),
+        BookAbbreviation(42, listOf("路", "路加", "Luke")),
+        BookAbbreviation(43, listOf("约", "约翰", "John")),
+        BookAbbreviation(44, listOf("徒", "使徒行", "Acts")),
+        BookAbbreviation(45, listOf("罗", "罗马", "Rom", "Romans")),
+        BookAbbreviation(46, listOf("林前", "哥前", "1Cor", "1 Corinthians")),
+        BookAbbreviation(47, listOf("林后", "哥后", "2Cor", "2 Corinthians")),
+        BookAbbreviation(48, listOf("加", "加拉太", "Gal", "Galatians")),
+        BookAbbreviation(49, listOf("弗", "以弗所", "Eph", "Ephesians")),
+        BookAbbreviation(50, listOf("腓", "腓立比", "Phil", "Philippians")),
+        BookAbbreviation(51, listOf("西", "歌罗西", "Col", "Colossians")),
+        BookAbbreviation(52, listOf("帖前", "帖撒前", "1Thess", "1 Thessalonians")),
+        BookAbbreviation(53, listOf("帖后", "帖撒后", "2Thess", "2 Thessalonians")),
+        BookAbbreviation(54, listOf("提前", "提摩前", "1Tim", "1 Timothy")),
+        BookAbbreviation(55, listOf("提后", "提摩后", "2Tim", "2 Timothy")),
+        BookAbbreviation(56, listOf("多", "提多", "Titus")),
+        BookAbbreviation(57, listOf("门", "腓利门", "Phlm", "Philemon")),
+        BookAbbreviation(58, listOf("来", "希伯来", "Heb", "Hebrews")),
+        BookAbbreviation(59, listOf("雅", "雅各", "Jas", "James")),
+        BookAbbreviation(60, listOf("彼前", "彼前书", "1Pet", "1 Peter")),
+        BookAbbreviation(61, listOf("彼后", "彼后书", "2Pet", "2 Peter")),
+        BookAbbreviation(62, listOf("约一", "约一书", "1John", "1 John")),
+        BookAbbreviation(63, listOf("约二", "约二书", "2John", "2 John")),
+        BookAbbreviation(64, listOf("约三", "约三书", "3John", "3 John")),
+        BookAbbreviation(65, listOf("犹", "犹大", "Jude")),
+        BookAbbreviation(66, listOf("启", "启示", "Rev", "Revelation"))
+    )
+
+    // 创建简写到书卷ID的快速查找映射
+    private val abbreviationToBookId: Map<String, Int> by lazy {
+        val map = mutableMapOf<String, Int>()
+
+        // 首先添加完整书名
+        var allBooks = listOf(
+            simplifiedChineseOldTestament,
+            simplifiedChineseNewTestament,
+            englishNewTestament,
+            englishOldTestament,
+            traditionalChineseNewTestament,
+            traditionalChineseOldTestament
+        )
+        allBooks.forEach { books ->
+            books.forEach { book -> map[book.name.lowercase()] = book.id }
+        }
+
+        // 然后添加所有简写
+        bookAbbreviations.forEach { abbreviation ->
+            abbreviation.abbreviations.forEach { abbr ->
+                map[abbr.lowercase()] = abbreviation.bookId
+            }
+        }
+
+        map
+    }
+
+    // 主函数：解析经文出处字符串
+    fun parseScriptureReference(reference: String): ScriptureReference {
+        return try {
+            val normalizedRef = normalizeReference(reference)
+            parseNormalizedReference(normalizedRef)
+        } catch (e: Exception) {
+            ScriptureReference(
+                bookId = -1,
+                bookName = "",
+                chapterStart = 1,
+                chapterEnd = 1,
+                isValid = false,
+                errorMessage = "解析失败: ${e.message}"
+            )
+        }
+    }
+
+    // 标准化引用字符串
+    private fun normalizeReference(reference: String): String {
+        return reference
+            .trim()
+            .replace("\\s+".toRegex(), " ") // 多个空格替换为一个
+            .replace("：", ":")             // 中文冒号转英文
+            .replace("，", ",")             // 中文逗号转英文
+            .replace("；", ";")             // 中文分号转英文
+            .replace("－", "-")             // 中文破折号转英文
+            .replace("~", "-")              // 波浪线转破折号
+            .replace("～", "-")             // 中文波浪线转破折号
+            .replace("至", "-")             // "至"转破折号
+            .replace("到", "-")             // "到"转破折号
+    }
+
+    // 解析标准化后的引用
+    private fun parseNormalizedReference(reference: String): ScriptureReference {
+        // 分离书卷名和章节信息
+        val (bookPart, chapterVersePart) = extractBookAndChapterParts(reference)
+
+        if (bookPart.isEmpty()) {
+            return createErrorResult("未找到书卷名")
+        }
+
+        // 查找书卷
+        val bookId = findBookIdByNameOrAbbreviation(bookPart)
+            ?: return createErrorResult("未找到书卷: $bookPart")
+
+        val book = getBookById(bookId) ?: return createErrorResult("书卷ID无效: $bookId")
+
+        // 解析章节和节信息
+        val (chapterStart, chapterEnd, verseStart, verseEnd) = parseChapterVerse(
+            chapterVersePart,
+            book
+        )
+
+        return ScriptureReference(
+            bookId = bookId,
+            bookName = book.name,
+            chapterStart = chapterStart,
+            chapterEnd = chapterEnd,
+            verseStart = verseStart,
+            verseEnd = verseEnd
+        )
+    }
+
+    // 通过名称或简写查找书卷ID
+    private fun findBookIdByNameOrAbbreviation(searchTerm: String): Int? {
+        val normalizedSearch = searchTerm.trim().lowercase()
+
+        // 1. 精确匹配
+        abbreviationToBookId[normalizedSearch]?.let { return it }
+
+        // 2. 包含匹配（宽松匹配）
+        val matchedEntry = abbreviationToBookId.entries.find {
+            it.key.contains(normalizedSearch) || normalizedSearch.contains(it.key)
+        }
+
+        return matchedEntry?.value
+    }
+
+    // 分离书卷名和章节部分
+    private fun extractBookAndChapterParts(reference: String): Pair<String, String> {
+        val patterns = listOf(
+            "(.*?)(\\d+.*)".toRegex(),  // 书卷名 + 数字开头
+            "(.*?)[:：](.*)".toRegex()  // 书卷名 + 冒号 + 章节
+        )
+
+        for (pattern in patterns) {
+            val match = pattern.find(reference)
+            if (match != null) {
+                val bookPart = match.groupValues[1].trim()
+                val chapterPart = match.groupValues[2].trim()
+                if (bookPart.isNotEmpty() && chapterPart.isNotEmpty()) {
+                    return bookPart to chapterPart
+                }
+            }
+        }
+
+        // 如果没有匹配，尝试整个字符串作为书卷名
+        return reference to ""
+    }
+
+    // 解析章节和节信息
+    private fun parseChapterVerse(chapterVersePart: String, book: BibleBook): ChapterVerseInfo {
+        if (chapterVersePart.isEmpty()) {
+            return ChapterVerseInfo(1, 1, null, null)
+        }
+
+        return when {
+            // 格式: "3:16" 或 "3:16-18"
+            chapterVersePart.contains(":") -> parseWithColonFormat(chapterVersePart, book)
+            // 格式: "3-5" 或 "3"
+            chapterVersePart.contains("-") -> parseChapterRange(chapterVersePart, book)
+            // 格式: "3" (只有章节)
+            chapterVersePart.toIntOrNull() != null -> {
+                val chapter = chapterVersePart.toInt()
+                validateChapter(chapter, book)
+                ChapterVerseInfo(chapter, chapter, null, null)
+            }
+
+            else -> throw IllegalArgumentException("无效的章节格式: $chapterVersePart")
+        }
+    }
+
+    // 解析带冒号的格式 (如 "3:16" 或 "3:16-18")
+    private fun parseWithColonFormat(part: String, book: BibleBook): ChapterVerseInfo {
+        val parts = part.split(":")
+        if (parts.size != 2) {
+            throw IllegalArgumentException("无效的章节格式: $part")
+        }
+
+        val chapterStr = parts[0]
+        val versePart = parts[1]
+
+        val chapter = chapterStr.toIntOrNull()
+            ?: throw IllegalArgumentException("无效的章节号: $chapterStr")
+
+        validateChapter(chapter, book)
+
+        return when {
+            // 格式: "3:16-18"
+            versePart.contains("-") -> {
+                val verseParts = versePart.split("-")
+                if (verseParts.size != 2) {
+                    throw IllegalArgumentException("无效的节范围: $versePart")
+                }
+                val verseStart = verseParts[0].toIntOrNull()
+                val verseEnd = verseParts[1].toIntOrNull()
+                if (verseStart == null || verseEnd == null) {
+                    throw IllegalArgumentException("无效的节号: $versePart")
+                }
+                ChapterVerseInfo(chapter, chapter, verseStart, verseEnd)
+            }
+            // 格式: "3:16"
+            else -> {
+                val verse = versePart.toIntOrNull()
+                    ?: throw IllegalArgumentException("无效的节号: $versePart")
+                ChapterVerseInfo(chapter, chapter, verse, verse)
+            }
+        }
+    }
+
+    // 解析章节范围 (如 "3-5")
+    private fun parseChapterRange(part: String, book: BibleBook): ChapterVerseInfo {
+        val parts = part.split("-")
+        if (parts.size != 2) {
+            throw IllegalArgumentException("无效的章节范围: $part")
+        }
+
+        val start = parts[0].toIntOrNull()
+        val end = parts[1].toIntOrNull()
+
+        if (start == null || end == null) {
+            throw IllegalArgumentException("无效的章节号: $part")
+        }
+
+        validateChapter(start, book)
+        validateChapter(end, book)
+
+        if (start > end) {
+            throw IllegalArgumentException("起始章节不能大于结束章节: $part")
+        }
+
+        return ChapterVerseInfo(start, end, null, null)
+    }
+
+    // 验证章节是否有效
+    private fun validateChapter(chapter: Int, book: BibleBook) {
+        if (chapter < 1 || chapter > book.chapterCount) {
+            throw IllegalArgumentException("${book.name} 没有第 $chapter 章 (共 ${book.chapterCount} 章)")
+        }
+    }
+
+//    // 工具函数：通过ID获取书卷
+//    fun getBookById(bookId: Int): BibleBook? {
+//        return allBooks.find { it.id == bookId }
+//    }
+
+    // 工具函数：获取书卷的所有可能简写
+    fun getBookAbbreviations(bookId: Int): List<String> {
+        return bookAbbreviations.find { it.bookId == bookId }?.abbreviations ?: emptyList()
+    }
+
+    // 内部数据类
+    private data class ChapterVerseInfo(
+        val chapterStart: Int,
+        val chapterEnd: Int,
+        val verseStart: Int?,
+        val verseEnd: Int?
+    )
+
+    private fun createErrorResult(message: String): ScriptureReference {
+        return ScriptureReference(
+            bookId = -1,
+            bookName = "",
+            chapterStart = 1,
+            chapterEnd = 1,
+            isValid = false,
+            errorMessage = message
+        )
+    }
+
 }

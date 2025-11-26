@@ -15,10 +15,12 @@ import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
+import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.api.model.Song
 import sdk.chat.demo.robot.extensions.StateStorage
+import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.ui.SongsContainerView
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
@@ -33,6 +35,9 @@ open class SongsContainerViewHolder<T : MessageHolder>(itemView: View) :
     open var processContainer: View? = itemView.findViewById(R.id.process_container)
     open val feedbackMenu: View? = itemView.findViewById(R.id.feedback_menu)
     open val contentMenu: View? = itemView.findViewById(R.id.user_text_menu)
+    open var sessionContainer: View? =
+        itemView.findViewById(R.id.session_container)
+    open var sessionName: TextView? = itemView.findViewById(R.id.session_name)
 
     private val songsContainer: SongsContainerView = itemView.findViewById(R.id.songsContainer)
     private val onSongClickListener: SongsContainerView.OnSongClickListener? = null
@@ -154,6 +159,18 @@ open class SongsContainerViewHolder<T : MessageHolder>(itemView: View) :
             imageLikeContent?.setImageResource(R.mipmap.ic_dislike_black)
         } else {
             imageLikeContent?.setImageResource(R.mipmap.ic_like_black)
+        }
+
+
+        val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
+        var topic = threadHandler.getSessionName(t.message.threadId)
+        if (topic != null) {
+            sessionContainer?.visibility = View.VISIBLE
+            sessionName?.let {
+                it.text = topic
+            }
+        } else {
+            sessionContainer?.visibility = View.GONE
         }
 
         bindSendStatus(t)

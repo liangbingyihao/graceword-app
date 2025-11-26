@@ -54,7 +54,7 @@ class HighlightOverlayView @JvmOverloads constructor(
     private val guidePic = "guide_pic"
     private val guidePray = "guide_pray"
     private val guideBeginner = "guide_beginner"
-    private val allModes = arrayOf(guideBeginner,guidePic, guideDrawer)
+    private val allModes = arrayOf(guideBeginner, guideDrawer, guidePic)
 
     private var onClickListener: OnClickListener = View.OnClickListener { view ->
         // 处理点击事件
@@ -107,25 +107,27 @@ class HighlightOverlayView @JvmOverloads constructor(
 
             var message = weakMessage?.get()
             if (message != null) {
-                val action = message.integerForKey("action")
-                if (action == 0) {
-                    val contextId = message.stringForKey("context_id")
-                    if (contextId == null || contextId.isEmpty()) {
-                        val aiFeedback = GWMsgHandler.getAiFeedback(message)
-                        if (aiFeedback != null) {
-                            val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
-                            var topic = threadHandler.getSessionName(message.threadId)
-                            if (topic != null) {
-                                m = context.findViewById<ImageView>(R.id.menu_home)
-                                highlightTarget.setText(R.string.guide_drawer)
-                                var desc = context.getString(R.string.guide_drawer_desc)
-                                highlightDesc.text = desc
-                                relativeLeft = 20
-                                relativeTop = 8
-                                resId = R.drawable.icon_home
-                            }
-                        }
+//                val action = message.integerForKey("action")
+//                Log.e("MainApp","guideDrawer 2:$action")
+//                if (action == 0) {
+//                    val contextId = message.stringForKey("context_id")
+//                    Log.e("MainApp","guideDrawer 3:$contextId")
+//                    if (contextId == null || contextId.isEmpty()) {
+                val aiFeedback = GWMsgHandler.getAiFeedback(message)
+                if (aiFeedback != null) {
+                    val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
+                    var topic = threadHandler.getSessionName(message.threadId)
+                    if (topic != null) {
+                        m = context.findViewById<ImageView>(R.id.menu_home)
+                        highlightTarget.setText(R.string.guide_drawer)
+                        var desc = context.getString(R.string.guide_drawer_desc)
+                        highlightDesc.text = desc
+                        relativeLeft = 20
+                        relativeTop = 8
+                        resId = R.drawable.icon_home
                     }
+//                        }
+//                    }
                 }
             }
         } else if (mode == guidePic) {
@@ -162,7 +164,7 @@ class HighlightOverlayView @JvmOverloads constructor(
                 .edit() {
                     putBoolean("has_shown_guide_$guideBeginner", true)
                 }
-            this.mode  = null
+            this.mode = null
             return true
         } else {
             return false
@@ -253,10 +255,6 @@ class HighlightOverlayView @JvmOverloads constructor(
      */
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun setHighlightView(relativeLeft: Int, relativeTop: Int, resId: Int) {
-        Log.e(
-            "MainApp",
-            "mode:${mode},relativeX:${relativeLeft},relativeY:${relativeTop}"
-        )
 
         if (resId > 0) {
             val imageDrawable =
@@ -289,7 +287,7 @@ class HighlightOverlayView @JvmOverloads constructor(
 
     fun handleFirst(context: BaseActivity, message: Message?) {
 
-        Log.e("MainApp", "highlight.handleFirst")
+        Log.e("MainApp", "highlight.handleFirst:${this.mode}")
         if (hasShownGuideOverlay(context)) {
             return
         }
@@ -320,16 +318,20 @@ class HighlightOverlayView @JvmOverloads constructor(
 
     fun handleNext() {
 
-        Log.e("MainApp", "highlight.handleNext")
+//        Log.e("MainApp", "highlight.handleNext")
         var done = 0
         for (m in allModes) {
             if (!context.getSharedPreferences("app_prefs", MODE_PRIVATE)
                     .getBoolean("has_shown_guide_$m", false)
             ) {
                 this.mode = m
-                Log.e("MainApp", "highlight.handleNext.${m}")
+//                Log.e("MainApp", "highlight.handleNext.${m}")
                 if (setHighlightMode(m)) {
-                    Log.e("MainApp", "highlight.handleNext.${m} done")
+//                    Log.e("MainApp", "highlight.handleNext.${m} done")
+                    return
+                } else {
+                    this.mode = null
+                    visibility = GONE
                     return
                 }
             } else {

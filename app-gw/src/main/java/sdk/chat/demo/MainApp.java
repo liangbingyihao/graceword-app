@@ -9,6 +9,7 @@ import android.util.Log;
 //import sdk.chat.contact.ContactBookModule;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.utils.Device;
+import sdk.chat.demo.bible.DynamicBibleDatabaseManager;
 import sdk.chat.demo.robot.ChatSDKGW;
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
@@ -38,13 +39,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainApp extends Application implements Configuration.Provider, Application.ActivityLifecycleCallbacks {
-    private static Context context;
+    private static MainApp context;
     private final DisposableMap dm = new DisposableMap();
     private boolean isInitialized = false;
     private Activity currentActivity;
     private ChatSDK chatSDK;
     public long startTimeStamp;
     public static String isNewUser = "0";
+    private DynamicBibleDatabaseManager bibleDBManager;
 
     public static Context getContext() {
         return context;
@@ -86,7 +88,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         registerActivityLifecycleCallbacks(this);
         Log.i("MainApp", getPackageName());
         Logger.error("MainApp.onCreate");
-        context = getApplicationContext();
+        context = this;
         scheduleTokenUpdate();
 
 //        SpeechEngineGenerator.PrepareEnvironment(getApplicationContext(), this);
@@ -126,6 +128,9 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         }
         isNewUser = today.equals(installDay) ? "1" : "0";
 
+        bibleDBManager = DynamicBibleDatabaseManager.Companion.getInstance(this);
+        bibleDBManager.initialize(this);
+
         LogUploader.reportEvent(
                 "app_launch", List.of(
                 )
@@ -133,6 +138,13 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 //        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(true);
     }
 
+    public DynamicBibleDatabaseManager getBibleDBManager() {
+        return bibleDBManager;
+    }
+
+    public static MainApp getInstance(){
+        return context;
+    }
     private void setupEnhancedCrashReporting() {
         Thread.UncaughtExceptionHandler defaultHandler =
                 Thread.getDefaultUncaughtExceptionHandler();

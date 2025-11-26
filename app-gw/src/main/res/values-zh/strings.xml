@@ -169,4 +169,12 @@
     <string name="vip_already2">订阅成功，同步订阅数据异常，建议重启APP或联系客服反馈</string>
     <string name="check_google_play_network">请检查Google Play环境和网络连接</string>
     <string name="contact_email">客服邮箱</string>
+
+
+    <!-- 主界面标题 -->
+    <string name="title_bible">圣经</string>
+
+    <!-- 选项卡 -->
+    <string name="tab_old_testament">旧约</string>
+    <string name="tab_new_testament">新约</string>
 </resources>

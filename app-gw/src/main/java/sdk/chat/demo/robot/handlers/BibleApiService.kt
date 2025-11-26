@@ -3,6 +3,10 @@ package sdk.chat.demo.robot.handlers
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
@@ -10,14 +14,18 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.Response
 import sdk.chat.demo.MainApp
+import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.BibleChapter
+import sdk.chat.demo.robot.api.model.BibleData
+import sdk.chat.demo.robot.api.model.BibleData.ScriptureReference
 import sdk.chat.demo.robot.api.model.TaskHistory
 import sdk.chat.demo.robot.extensions.LanguageUtils
 import java.io.IOException
 import java.util.Locale
 import java.util.Objects
+import kotlin.collections.set
 
 
 class BibleApiService {
@@ -41,12 +49,12 @@ class BibleApiService {
             Objects.requireNonNull<HttpUrl?>((URL_BIBLE_DATA + ENDPOINT_CHAPTER).toHttpUrlOrNull())
                 .newBuilder()
         var lang = LanguageUtils.getAppLanguage(MainApp.getContext())
-        if (lang != null && lang.contains("en")) {
+        if (lang.contains("en")) {
             lang = "en"
         }
-        if(!reference.isEmpty()){
+        if (!reference.isEmpty()) {
             urlBuilder.addQueryParameter("reference", reference)
-        }else if(bookId>0&&chapterNumber>0){
+        } else if (bookId > 0 && chapterNumber > 0) {
             urlBuilder.addQueryParameter("book_number", bookId.toString())
             urlBuilder.addQueryParameter("chapter", chapterNumber.toString())
 
@@ -91,6 +99,61 @@ class BibleApiService {
                 }
             }
         })
+    }
+
+    fun getChapterFromDB(
+        bibleDao: DynamicBibleDao,
+        bookId: Int,
+        chapterNumber: Int,
+        reference: String,
+        callback: (BibleChapter?) -> Unit
+    ) {
+        var bookId2 = bookId
+        var chapterNumber2 = chapterNumber
+        var scriptureReference: ScriptureReference? = null
+        if (!reference.isEmpty() && bookId <= 0) {
+            try {
+                scriptureReference = BibleData.parseScriptureReference(reference)
+                bookId2 = scriptureReference.bookId
+                chapterNumber2 = scriptureReference.chapterStart
+            } catch (e: Exception) {
+                Log.e("bible_data", e.toString())
+            }
+            if (!reference.isEmpty() && bookId2 <= 0) {
+                return getChapter(bookId, chapterNumber, reference, callback)
+            }
+        }
+//        Log.e("bible_data", "getChapterFromDB:$bookId2,$chapterNumber2,$reference")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val verses: BibleChapter = bibleDao.getVerses(bookId2, chapterNumber2)
+                var chapter = BibleData.getBookById(bookId2)
+                verses.bookName = chapter.name
+                verses.chapterCount = chapter.chapterCount
+                if (scriptureReference != null && scriptureReference.isValid) {
+                    var verseStart = scriptureReference.verseStart ?: 0
+                    var verseEnd = scriptureReference.verseEnd ?: verseStart
+                    if (scriptureReference.chapterStart > scriptureReference.chapterEnd) {
+                        verseStart = verseEnd
+                    }
+                    if (verseStart > 0) {
+                        verses.verses.forEach { verse ->
+                            if (verse.verseNumber >= verseStart && verse.verseNumber <= verseEnd) {
+                                verse.referenced = true
+                            }
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    callback(verses)
+                }
+            } catch (e: Exception) {
+                Log.e("bible_data", e.toString())
+                withContext(Dispatchers.Main) {
+                    callback(null)
+                }
+            }
+        }
     }
 
 //    // 获取书卷列表

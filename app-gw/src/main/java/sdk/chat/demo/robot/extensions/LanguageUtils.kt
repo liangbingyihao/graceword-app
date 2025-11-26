@@ -53,7 +53,7 @@ object LanguageUtils {
     }
 
     private const val PREFS_LANGUAGE_KEY = "app_language"
-    private var currentLang: String? = null
+    private var currentLang: String = ""
 
 
     fun initAppLanguage(context: Context) {
@@ -73,8 +73,8 @@ object LanguageUtils {
         }
     }
 
-    fun getAppLanguage(context: Context, refresh: Boolean=false): String? {
-        if (!refresh &&currentLang!=null&& currentLang!!.isNotEmpty()) {
+    fun getAppLanguage(context: Context, refresh: Boolean=false): String {
+        if (!refresh && currentLang.isNotEmpty()) {
             return currentLang
         }
         val savedLang = getSavedLanguage(context)

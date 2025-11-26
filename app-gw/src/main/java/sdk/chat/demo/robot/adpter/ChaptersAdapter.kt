@@ -7,12 +7,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import sdk.chat.demo.pre.R
 import androidx.recyclerview.widget.RecyclerView
 
 class ChaptersAdapter(
-private val chapters: List<String>,
-private val onItemClick: (String) -> Unit
+    private val chapters: List<Int>,
+    private val onItemClick: (Int) -> Unit
 ) : RecyclerView.Adapter<ChaptersAdapter.ViewHolder>() {
 //
     private var selectedPosition = -1
@@ -31,16 +32,19 @@ private val onItemClick: (String) -> Unit
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val chapter = chapters[position]
-        holder.textChapter.text = chapter
+        holder.textChapter.text = chapter.toString()
+        val colorSelected = ContextCompat.getColor(holder.textChapter.context, R.color.item_text_selected)
+        val colorGray = ContextCompat.getColor(holder.textChapter.context, R.color.item_text_normal)
+
 
         // 设置选中状态
         if (position == selectedPosition) {
             // 选中状态 - 红色背景，白色文字
-            holder.textChapter.setTextColor(Color.RED)
+            holder.textChapter.setTextColor(colorSelected)
             holder.textChapter.setTypeface(null, Typeface.BOLD)
         } else {
             // 未选中状态 - 灰色边框，黑色文字
-            holder.textChapter.setTextColor(Color.BLACK)
+            holder.textChapter.setTextColor(colorGray)
             holder.textChapter.setTypeface(null, Typeface.NORMAL)
         }
 
@@ -65,7 +69,7 @@ private val onItemClick: (String) -> Unit
         }
     }
 
-    fun getSelectedChapter(): String? {
+    fun getSelectedChapter(): Int? {
         return if (selectedPosition != -1) chapters[selectedPosition] else null
     }
 

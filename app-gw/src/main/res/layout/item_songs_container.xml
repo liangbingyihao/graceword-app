@@ -14,7 +14,7 @@
     app:flexWrap="wrap">
 
     <include layout="@layout/item_feed_user_text" />
-
+    <include layout="@layout/item_feed_session" />
     <include layout="@layout/item_feed_process" />
 
     <TextView

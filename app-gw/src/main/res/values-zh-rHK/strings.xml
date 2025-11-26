@@ -173,4 +173,12 @@
 
     <string name="check_google_play_network">請檢查Google Play環境和網路連接</string>
     <string name="contact_email">客服郵箱</string>
+
+
+    <!-- 主界面標題 -->
+    <string name="title_bible">聖經</string>
+
+    <!-- 選項卡 -->
+    <string name="tab_old_testament">舊約</string>
+    <string name="tab_new_testament">新約</string>
 </resources>

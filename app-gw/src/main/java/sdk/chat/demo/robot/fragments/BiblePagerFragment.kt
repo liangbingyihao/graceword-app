@@ -8,14 +8,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import sdk.chat.demo.MainApp
+import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.BibleActivity
+import sdk.chat.demo.robot.activities.BibleBooksActivity
 import sdk.chat.demo.robot.adpter.ChapterPagerAdapter
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.handlers.BibleApiService
 import sdk.chat.demo.robot.handlers.LogUploader
-import java.util.List
 
 class BiblePagerFragment : Fragment(), View.OnClickListener {
 
@@ -37,15 +38,25 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 
     // 用于防止频繁滑动的变量
     private var isLoading = false
-    private var inited = false
+    private var hasInited = false
+    private lateinit var dynamicBibleDao: DynamicBibleDao
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        dynamicBibleDao = DynamicBibleDao(MainApp.getInstance().bibleDBManager)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dynamicBibleDao.close()
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-
         arguments?.let {
             currentBookId = it.getInt(ARG_BOOK_ID, 1)
             currentChapterNumber = it.getInt(ARG_CHAPTER_NUMBER, 1)
@@ -57,12 +68,13 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             reference = ""
             fullscreen = false
         }
-        if(fullscreen){
+        if (fullscreen) {
             pageType = "full"
             return inflater.inflate(R.layout.fragment_bible_pager_fullscreen, container, false)
-        }else{
+        } else {
             return inflater.inflate(R.layout.fragment_bible_pager, container, false)
         }
+//        Log.e("bible_data","$currentBookId,$currentChapterNumber")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -101,23 +113,24 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                 if (state == ViewPager2.SCROLL_STATE_IDLE) {
                     // 滑动停止后，确保当前页面数据加载
                     triggerDataLoadForPosition(currentPosition)
-                    if(inited){
+                    if (hasInited) {
                         LogUploader.reportEvent(
                             "mod_bible", listOf<KeyValuePair?>(
                                 KeyValuePair("bible_page_type", pageType),
                                 KeyValuePair("bible_action", "40")
                             )
                         )
-                    }else{
-                        inited = true
+                    } else {
+                        hasInited = true
                     }
                 }
             }
         })
 
         view.findViewById<View>(R.id.exit).setOnClickListener(this)
-        if(!fullscreen){
+        if (!fullscreen) {
             view.findViewById<View?>(R.id.top_room)?.setOnClickListener(this)
+            view.findViewById<View>(R.id.more)?.setOnClickListener(this)
         }
 //        // 设置按钮点击事件
 //        prevChapterBtn.setOnClickListener {
@@ -204,12 +217,17 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         // 显示加载中
         showLoading()
 
-        bibleApiService.getChapter(bookId, chapterNumber, reference) { chapter ->
+        bibleApiService.getChapterFromDB(
+            dynamicBibleDao,
+            bookId,
+            chapterNumber,
+            reference
+        ) { chapter ->
             if (chapter != null) {
                 // 更新当前章节信息
                 currentBookId = chapter.bookId
                 currentChapterNumber = chapter.chapterNumber
-                for (i in 1..chapter.chapterCount + 1) {
+                for (i in 1..chapter.chapterCount) {
                     if (i == chapter.chapterNumber) {
                         chapters.add(chapter)
                     } else {
@@ -247,6 +265,10 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                         KeyValuePair("bible_action", "20")
                     )
                 )
+                activity?.finish()
+            }
+            R.id.more ->{
+                BibleBooksActivity.start(requireContext(),currentBookId,currentChapterNumber)
                 activity?.finish()
             }
         }

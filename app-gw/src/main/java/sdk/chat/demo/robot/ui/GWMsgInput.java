@@ -248,7 +248,7 @@ public class GWMsgInput extends RelativeLayout
             if (typingListener != null) typingListener.onHeightChange();
 
         } else if (id == R.id.bible) {
-            BibleBooksActivity.Companion.start(this.getContext());
+            BibleBooksActivity.Companion.start(this.getContext(),-1,-1);
         } else if (id == R.id.hint_vip_msg) {
             this.getContext().startActivity(
                     new Intent(this.getContext(),

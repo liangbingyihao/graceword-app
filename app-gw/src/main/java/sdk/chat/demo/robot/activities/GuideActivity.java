@@ -97,7 +97,7 @@ public class GuideActivity extends BaseActivity {
 
                 // 改变按钮文字
                 if (position == guideImages.length - 1) {
-                    btnNext.setText(getString(R.string.enter));
+                    btnNext.setText(getString(R.string.next));
 //                    btnSkip.setVisibility(View.GONE);
                 } else {
                     btnNext.setText(getString(R.string.next));

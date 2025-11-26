@@ -177,4 +177,12 @@
 
     <string name="restore_subscription">Restore Purchase</string>
     <string name="check_google_play_network">Please check Google Play environment and network connection</string>
+
+
+    <!-- 主界面标题 -->
+    <string name="title_bible">Bible</string>
+
+    <!-- 选项卡 -->
+    <string name="tab_old_testament">Old Testament</string>
+    <string name="tab_new_testament">New Testament</string>
 </resources>

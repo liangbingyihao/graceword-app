@@ -1,25 +1,30 @@
 package sdk.chat.demo.robot.fragments
 
+import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import sdk.chat.demo.MainApp
+import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.VerseAdapter
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.handlers.BibleApiService
 import java.lang.ref.WeakReference
 
+
 //implements android.view.View.OnClickListener
+
+interface BibleDataProvider {
+    fun isFullScreen(): Boolean
+}
 
 class BibleChapterFragment : Fragment(), View.OnClickListener {
 
@@ -44,13 +49,30 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
     private val MIN_SWIPE_INTERVAL = 800 // 最小滑动间隔时间（毫秒）
     private var lastSwipeTime = 0L
     private var bibleChapter: WeakReference<BibleChapter>? = null
+    private lateinit var dynamicBibleDao: DynamicBibleDao
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        dynamicBibleDao = DynamicBibleDao(MainApp.getInstance().bibleDBManager)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dynamicBibleDao.close()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_bible_chapter, container, false)
+        val resId = if ((activity as? BibleDataProvider)?.isFullScreen() == true) {
+            R.layout.fragment_bible_chapter_fullscreen
+        } else {
+            R.layout.fragment_bible_chapter
+        }
+        return inflater.inflate(resId, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -97,15 +119,15 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
-        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+//        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
     }
 
     fun resetLoadState(chapter: BibleChapter? = null) {
         if (bibleChapter?.get() != null) {
-            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
+//            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
             return
         } else if (chapter != null && !chapter.verses.isEmpty()) {
-            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
+//            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
             bibleChapter = WeakReference(chapter)
             requireView().post {
                 updateChapterUI(chapter)
@@ -113,7 +135,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
             return
         }
         if (!isLoading) {
-            Log.e("bible_data", "resetLoadState 3,${currentBookId} $currentChapterNumber");
+//            Log.e("bible_data", "resetLoadState 3,${currentBookId} $currentChapterNumber");
             loadChapter(currentBookId, currentChapterNumber, "")
         }
     }
@@ -125,7 +147,9 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 显示加载中
         showLoading()
 
-        bibleApiService.getChapter(bookId, chapterNumber, reference) { chapter ->
+        bibleApiService.getChapterFromDB(
+            dynamicBibleDao, bookId, chapterNumber, reference
+        ) { chapter ->
             if (chapter != null) {
                 resetLoadState(chapter)
             } else {
@@ -159,7 +183,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         val initialPosition = chapter.verses.indexOfFirst {
             it.referenced
         }
-        if (initialPosition>=0) {
+        if (initialPosition >= 0) {
             recyclerView.scrollToPosition(initialPosition)
         } else {
             recyclerView.scrollToPosition(0)
