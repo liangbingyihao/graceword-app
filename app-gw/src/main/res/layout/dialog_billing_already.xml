@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@mipmap/bg_billing_success"
     android:gravity="center"
+    android:layout_gravity="center"
     android:minHeight="230dp"
     android:orientation="vertical"
     android:padding="20dp">
@@ -16,14 +17,16 @@
         android:src="@mipmap/ic_crown" />
 
 <!--    &lt;!&ndash; 订阅成功标题 &ndash;&gt;-->
-<!--    <TextView-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="14dp"-->
-<!--        android:text="@string/subscription_success"-->
-<!--        android:textColor="@color/item_text_selected"-->
-<!--        android:textSize="18sp"-->
-<!--        android:textStyle="bold" />-->
+    <TextView
+        android:id="@+id/main_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:visibility="gone"
+        android:text="@string/subscription_success"
+        android:textColor="@color/item_text_selected"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <!-- 恭喜信息 -->
     <TextView

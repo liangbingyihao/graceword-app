@@ -136,7 +136,7 @@
     <string name="congratulations">Congratulations on becoming a VIP Member</string>
     <string name="vip_already">You are already an VIP Member</string>
     <string name="draft">Draft</string>
-    <string name="scripture_image_generated">Scripture image generated</string>
+    <string name="scripture_image_generated">Scripture image generated,Free once daily.</string>
     <string name="upgrade_to_unlock">Upgrade to unlock</string>
     <string name="hint_vip_text_left_msg"><![CDATA[Remaining replies today: %d times, <font color=\'#CF4B41\'>Unlimited use →</font>]]></string>
     <string name="hint_vip_text_empty">Daily replies exhausted. Upgrade to membership to continue recording and discussing faith topics with GraceWords</string>

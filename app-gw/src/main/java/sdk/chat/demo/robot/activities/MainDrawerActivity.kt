@@ -1,13 +1,11 @@
 package sdk.chat.demo.robot.activities
 
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.content.edit
 import androidx.core.view.GravityCompat
@@ -25,6 +23,7 @@ import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.SessionAdapter
+import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.audio.AsrHelper
 import sdk.chat.demo.robot.audio.TTSHelper
@@ -41,7 +40,6 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
-import java.util.List
 
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
@@ -63,6 +61,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private var hasShownWelcome = false
     private var forceBilling = true
     private var cntShowBilling = 0
+    private var isVipDisplayCrown = false
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -221,6 +220,12 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 //            )
         }
 
+
+        val configs = ImageApi.getGwConfigs()
+        if (configs != null) {
+            isVipDisplayCrown = configs.isVipDisplayCrown == true
+        }
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, GWChatFragment(), chatTag).commit()
 
@@ -238,10 +243,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun checkPreLaunchBill(force: Boolean = false) {
-        if(force){
+        if (force) {
             forceBilling = false
         }
-        if (!BillingManager.getInstance().hasSubscriptions()) {
+        var isVip = BillingManager.getInstance().hasSubscriptions()
+        if (!isVip) {
             cntShowBilling = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .getInt("cnt_show_billing", -1)
             var from = "app_launch_nonfirst"
@@ -252,15 +258,15 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
             Log.e("BillingManager", "checkPreLaunchBill:$cntShowBilling")
             if (cntShowBilling % 3 == 1 || force) {
-                Log.e("BillingManager", "checkPreLaunchBill.1")
-                if (BillingActivity.start(this@MainDrawerActivity, from)) {
+                Log.e("BillingManager", "checkPreLaunchBill.1,isvip:${isVip}")
+                if (BillingActivity.start(this@MainDrawerActivity, from, true)) {
                     Log.e("BillingManager", "checkPreLaunchBill.2")
                     getSharedPreferences("app_prefs", MODE_PRIVATE)
                         .edit() {
                             putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
                         }
                 }
-            }else{
+            } else {
                 getSharedPreferences("app_prefs", MODE_PRIVATE)
                     .edit() {
                         putInt("cnt_show_billing", (cntShowBilling + 1) % 3)
@@ -291,7 +297,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun onBillChanged() {
-        if (BillingManager.getInstance().hasSubscriptions()) {
+        if (BillingManager.getInstance().hasSubscriptions() && !isVipDisplayCrown) {
             vBillingMenu.visibility = View.GONE
         } else {
             vBillingMenu.visibility = View.VISIBLE
@@ -428,7 +434,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         setRedDotView()
         threadHandler.reloadTimeoutMsg()
         BillingManager.getInstance().checkSubscriptions()
-        onBillChanged()
+        refreshMembership()
     }
 
     override fun getLayout(): Int {
@@ -517,6 +523,14 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     override fun onDestroy() {
         super.onDestroy()
         TTSHelper.clear()
+    }
+
+    fun refreshMembership() {
+        dm.add(BillingManager.getInstance().getMembership().subscribe { data ->
+            {
+                onBillChanged()
+            }
+        })
     }
 
     fun setRedDotView() {

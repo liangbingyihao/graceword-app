@@ -333,11 +333,11 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if (v == null) {
             return
         }
-        val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_play, R.id.btn_del, R.id.btn_redo)
+        val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_play, R.id.btn_share_text, R.id.btn_redo, R.id.btn_del)
         for (i in ids) {
             var sv = v.findViewById<View>(i)
             if (sv == null || sv.visibility == visible) {
-                break
+                continue
             } else {
                 sv.visibility = visible
             }

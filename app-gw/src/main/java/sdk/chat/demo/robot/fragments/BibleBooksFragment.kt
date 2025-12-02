@@ -1,6 +1,8 @@
 package sdk.chat.demo.robot.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -225,10 +227,14 @@ class BibleBooksFragment : Fragment(), View.OnClickListener {
 //        Log.e("bible_data", "restoreUIState $scrollPosition,$selectedBookPosition")
         switchToTab(currentTab)
         if (scrollPosition > 0) {
-            recyclerViewBooks.postDelayed({
-//                Log.e("bible_data", "restoreUIState scrollPosition to $scrollPosition")
-                recyclerViewBooks.scrollToPosition(scrollPosition)
-            }, 500)
+//            recyclerViewBooks.postDelayed({
+//            }, 5000)
+            Handler(Looper.getMainLooper()).postDelayed(object : Runnable {
+                override fun run() {
+//                    Log.e("bible_data", "restoreUIState scrollPosition to $scrollPosition")
+                    recyclerViewBooks.scrollToPosition(scrollPosition)
+                }
+            }, 100)
         }
 
         adapter.setSelectedPosition(selectedBookPosition)

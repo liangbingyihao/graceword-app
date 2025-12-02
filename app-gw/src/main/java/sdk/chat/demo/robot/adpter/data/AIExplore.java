@@ -150,11 +150,12 @@ public class AIExplore {
         if (messageDetail == null || messageDetail.getFeedback() == null) {
             return null;
         }
-//        List<ExploreItem> itemList = messageDetail.getFeedback().getFunctions();
-//        if(itemList!=null&&!itemList.isEmpty()){
-//            return new AIExplore(message, itemList);
-//        }
-        List<ExploreItem> itemList = new ArrayList<>();
+
+        List<ExploreItem> itemList = messageDetail.getFeedback().getFunctions();
+        if(itemList!=null&&!itemList.isEmpty()){
+            return new AIExplore(message, itemList);
+        }
+        itemList = new ArrayList<>();
         List<String> explores = messageDetail.getFeedback().getExplore();
         if (explores != null && !explores.isEmpty()) {
             int msgAction = message.integerForKey("action");

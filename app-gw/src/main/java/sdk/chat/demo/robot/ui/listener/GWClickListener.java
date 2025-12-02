@@ -436,7 +436,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                 view.setVisibility(View.VISIBLE);
             }).subscribe(weakContext.get());
         } else if (id == R.id.vip_bible_pic || id == R.id.bt_start_vip) {
-            BillingActivity.Companion.start(weakContext.get(), "verse_image");
+            BillingActivity.Companion.start(weakContext.get(), "verse_image",false);
         }
     }
 }

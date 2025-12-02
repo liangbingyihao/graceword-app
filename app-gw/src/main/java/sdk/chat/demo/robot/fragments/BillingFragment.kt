@@ -71,7 +71,21 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
     override fun onResume() {
         super.onResume()
         if (!pendingPurchase && BillingManager.getInstance().hasSubscriptions()) {
-            showCustomDialog(R.layout.dialog_billing_already, true)
+            showMembershipDialog()
+//            var v = showCustomDialog(R.layout.dialog_billing_already, true)
+//            var membership = BillingManager.getInstance().membershipCache
+//            if (v != null && membership != null) {
+//                var content = membership.display
+//                if (content != null && !content.isEmpty()) {
+//                    (v.findViewById<TextView?>(R.id.main_content)).text = content
+//                }
+//                var mainTitle = (v.findViewById<TextView?>(R.id.main_title))
+//                if (mainTitle != null) {
+//                    mainTitle.visibility = View.VISIBLE
+//                    mainTitle.text = content
+//                }
+//
+//            }
         }
     }
 
@@ -576,9 +590,26 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
         }
     }
 
+    fun showMembershipDialog() {
+        var v = showCustomDialog(R.layout.dialog_billing_already, true)
+        var membership = BillingManager.getInstance().membershipCache
+        if (v != null && membership != null) {
+            var content = membership.display
+            if (content != null && !content.isEmpty()) {
+                (v.findViewById<TextView?>(R.id.main_content)).text = content
+            }
+            var mainTitle = (v.findViewById<TextView?>(R.id.main_title))
+            if (mainTitle != null) {
+                mainTitle.visibility = View.VISIBLE
+                mainTitle.text = content
+            }
+
+        }
+    }
+
     fun showCustomDialog(
         resource: Int = R.layout.dialog_billing_success,
-        autoFinish: Boolean = true,
+        autoFinish: Boolean = true
     ): View? {
 
         val currentActivity = activity ?: return null
@@ -590,13 +621,24 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
             .setView(dialogView)
             .create()
 
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+//        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+//        dialog.window?.setBackgroundDrawableResource(R.color.black_translucent)
+//        dialog.window?.apply {
+//            // 设置全屏
+//            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+//
+//            // 设置背景
+//            setBackgroundDrawableResource(R.color.black_translucent)
+//
+//            // 移除动画和遮罩
+//            setDimAmount(0f)
+//        }
 
         // 设置按钮点击事件
         dialogView.findViewById<View>(R.id.got).setOnClickListener {
             dialog.dismiss()
         }
-        if (autoFinish && !"test".equals(from)) {
+        if (autoFinish) {
             dialog.setOnDismissListener { activity?.finish() }
         }
 

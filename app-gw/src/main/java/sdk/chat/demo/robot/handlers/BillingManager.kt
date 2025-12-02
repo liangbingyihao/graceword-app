@@ -1,7 +1,6 @@
 package sdk.chat.demo.robot.handlers
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.Purchase
@@ -17,11 +16,9 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.Response
-import org.tinylog.Logger
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
@@ -30,12 +27,10 @@ import sdk.chat.demo.pre.BuildConfig
 import sdk.chat.demo.robot.activities.BillingActivity
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
-import sdk.chat.demo.robot.api.ImageApi.getServerConfigs
 import sdk.chat.demo.robot.api.model.ActionConfig
-import sdk.chat.demo.robot.api.model.GWConfigs
+import sdk.chat.demo.robot.api.model.Membership
 import sdk.chat.demo.robot.api.model.Product
 import java.io.IOException
-import java.util.Objects
 
 class BillingManager private constructor() {
     companion object {
@@ -54,6 +49,7 @@ class BillingManager private constructor() {
         ).associate { it.actionName to it.dailyLimit }
         private var URL_ACKNOWLEDGE = ImageApi.URL2_MAIN + "purchase/play"
         private var URL_PRODUCT = ImageApi.URL2_MAIN + "purchase/plans"
+        private var URL_MEMBERSHIP = ImageApi.URL2_MAIN + "purchase/membership"
     }
 
     // 内存缓存
@@ -77,6 +73,36 @@ class BillingManager private constructor() {
         billingStateSubject.onNext(BillingState.NotInitialized)
     }
 
+    private var _membership:Membership?=null
+    val membershipCache: Membership?
+        get() = _membership
+
+    private var _cacheTimestamp: Long = 0L
+    private val CACHE_DURATION = 5 * 60 * 1000L
+
+
+    var membership: Membership?
+        get() {
+            val now = System.currentTimeMillis()
+            Log.e("BillingManager","currentTime: $now,_membership.expiredAt:${_membership?.expiredAt},expireAtMs:${expireAtMs}")
+            val m = _membership ?: return null
+
+            // 会员有效期内：直接返回
+            expireAtMs.let { if (it > now) return m }
+
+            // 缓存有效期内：返回缓存（过期后5分钟内）
+            if (now - _cacheTimestamp < CACHE_DURATION) return m
+
+            // 缓存过期：清理并返回null
+            _membership = null
+            return null
+        }
+        set(value) {
+            Log.e("BillingManager","set membership..")
+            _membership = value
+            expireAtMs = _membership?.expiredAt?.times(1000) ?: 0L
+            _cacheTimestamp = System.currentTimeMillis()
+        }
 
     // 初始化 BillingHelper（依赖网络配置）
     fun initializeBilling(): Single<BillingHelper> {
@@ -435,6 +461,53 @@ class BillingManager private constructor() {
                                 } else {
                                     emitter.onError(Exception("no products"))
                                 }
+                            }
+                        } catch (e: Exception) {
+                            if (!emitter.isDisposed) {
+                                emitter.onError(e)
+                            }
+                        }
+                    }
+                })
+            } catch (e: Exception) {
+                if (!emitter.isDisposed) {
+                    emitter.onError(e)
+                }
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    fun getMembership(): Single<Membership?> {
+        return Single.create<Membership?> { emitter ->
+            try {
+                this.membership?.let { cached ->
+                    emitter.onSuccess(cached)
+                    return@create
+                }
+
+                val request = Request.Builder()
+                    .url(requireNotNull(URL_MEMBERSHIP.toHttpUrlOrNull()))
+                    .build()
+
+                GWApiManager.shared().client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        if (!emitter.isDisposed) {
+                            emitter.onError(e)
+                        }
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        try {
+                            response.use { // 确保 response 被正确关闭
+                                var ret = GWApiManager.shared()
+                                    .handleResponse(response, Membership::class.java)
+                                if (ret != null) {
+                                    membership = ret
+                                }
+                                membership?.let { currentMembership ->
+                                    emitter.onSuccess(currentMembership)
+                                } ?: emitter.onError(Exception("no products"))
                             }
                         } catch (e: Exception) {
                             if (!emitter.isDisposed) {

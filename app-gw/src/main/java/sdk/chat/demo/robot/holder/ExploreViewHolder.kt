@@ -66,7 +66,7 @@ open class ExploreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var aiExplore: AIExplore? = t.aiExplore
         val aiFeedback = GWMsgHandler.getAiFeedback(aiExplore?.message)
         var status = t.message?.messageStatus
-        Log.e("AIExplore", "bindExplore:" + t.message?.id + ",status:" + status)
+        Log.e("AIExplore", "bindExplore:" + t.message?.id + ",status:" + status+",size:"+ aiExplore?.itemList?.size)
         if (status != MessageSendStatus.Sent) {
             placeHolderView?.visibility = View.VISIBLE
         } else {

@@ -14,6 +14,9 @@ data class GWConfigs(
     @SerializedName("text_to_speech_voices")
     val dbVoiceTypes: List<DBVoiceType>? = null,
 
+    @SerializedName("is_vip_display_crown")
+    val isVipDisplayCrown: Boolean?=false,
+
     @SerializedName("tts_voice")
     val defaultVoiceTypes: Map<String, String>? = null,
 
@@ -56,7 +59,10 @@ data class GWConfigs(
     data class WelcomeSurvey(
         val question: String? = null,
         val title: String? = null,
-        val options: List<WelcomeSurveyOption>? = null
+        val options: List<WelcomeSurveyOption>? = null,
+        val background: String? = null,
+        @SerializedName("event_page")
+        val eventPage: String? = null,
     ) {
         fun findOptionByValue(value: String?): WelcomeSurveyOption? {
             if (value == null) return null

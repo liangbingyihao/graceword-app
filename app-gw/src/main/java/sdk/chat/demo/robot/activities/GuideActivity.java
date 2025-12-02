@@ -12,11 +12,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.button.MaterialButton;
 import com.gyf.immersionbar.ImmersionBar;
 
 import org.tinylog.Logger;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,6 +28,7 @@ import sdk.chat.core.dao.User;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
+import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.FirebaseReport;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
@@ -36,19 +41,19 @@ public class GuideActivity extends BaseActivity {
     private ViewPager2 viewPager;
     private LinearLayout dotsLayout;
     private MaterialButton btnNext;
-    private final int[] guideImages = {
-            R.mipmap.ic_intro_1,
-            R.mipmap.ic_intro_2,
+    private final GuideImage[] guideImages = {
+            new GuideImage(R.mipmap.ic_intro_1, null),
+            new GuideImage(R.mipmap.ic_intro_2, null),
 //            R.mipmap.ic_intro_m3
     };
-    private final int[] guideImagesHK = {
-            R.mipmap.ic_intro_1_hk,
-            R.mipmap.ic_intro_2_hk,
+    private final GuideImage[] guideImagesHK = {
+            new GuideImage(R.mipmap.ic_intro_1_hk, null),
+            new GuideImage(R.mipmap.ic_intro_2_hk, null),
 //            R.mipmap.ic_intro_m3
     };
-    private final int[] guideImagesEN = {
-            R.mipmap.ic_intro_1_en,
-            R.mipmap.ic_intro_2_en,
+    private final GuideImage[] guideImagesEN = {
+            new GuideImage(R.mipmap.ic_intro_1_en, null),
+            new GuideImage(R.mipmap.ic_intro_2_en, null),
 //            R.mipmap.ic_intro_m3
     };
     private final int[] guideTitles = {
@@ -76,20 +81,30 @@ public class GuideActivity extends BaseActivity {
         // 设置适配器
 
         var lang = Locale.getDefault().toLanguageTag().toLowerCase();
-        int h = dpToPx(300);
+
+        List<GuideImage> list = null;
 
         if (lang.contains("en")) {
-            viewPager.setAdapter(new GuideViewAdapter(guideImagesEN));
-        }else if(lang.contains("hant")){
-            viewPager.setAdapter(new GuideViewAdapter(guideImagesHK));
+            list = new ArrayList<>(Arrays.asList(guideImagesEN));
+        } else if (lang.contains("hant")) {
+            list = new ArrayList<>(Arrays.asList(guideImagesHK));
         } else {
-            viewPager.setAdapter(new GuideViewAdapter(guideImages));
+            list = new ArrayList<>(Arrays.asList(guideImages));
         }
+        var configs = ImageApi.getGwConfigs();
+        if (configs != null && configs.getWelcomeSurvey() != null) {
+            String eventPage = configs.getWelcomeSurvey().getEventPage();
+            if (eventPage != null && !eventPage.isEmpty()) {
+                list.add(new GuideImage(0, eventPage));
+            }
+        }
+        viewPager.setAdapter(new GuideViewAdapter(list));
 
         // 添加指示点
 //        addDots(0);
 
         // 设置ViewPager页面改变监听
+        viewPager.setOffscreenPageLimit(2);
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -110,7 +125,7 @@ public class GuideActivity extends BaseActivity {
 
         btnNext.setOnClickListener(v -> {
             int current = viewPager.getCurrentItem();
-            if (current < guideImages.length - 1) {
+            if (current < viewPager.getAdapter().getItemCount() - 1) {
                 // 移动到下一页
                 viewPager.setCurrentItem(current + 1);
             } else {
@@ -161,6 +176,7 @@ public class GuideActivity extends BaseActivity {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
+
     private boolean retrying = false;
 
     private void launchMainActivity() {
@@ -172,10 +188,10 @@ public class GuideActivity extends BaseActivity {
             Logger.error(e, "currentUser error");
             me = null;
         }
-        if (app.isInitialized()&&me != null) {
+        if (app.isInitialized() && me != null) {
             startActivity(new Intent(this, MainDrawerActivity.class));
             finish();
-        } else if(!retrying){
+        } else if (!retrying) {
             retrying = true;
             btnNext.setText(getString(R.string.retrying));
             ToastHelper.show(this, R.string.network_error);
@@ -203,13 +219,20 @@ public class GuideActivity extends BaseActivity {
         }
     }
 
-    class GuideViewAdapter extends RecyclerView.Adapter<GuideViewAdapter.ViewHolder> {
-        private int[] guideImages;
-//        private int[] guideTitles;
-//        private int[] guideDescriptions;
-//        private int[] maskHeights;
+    class GuideImage {
+        int resId;
+        String url;
 
-        public GuideViewAdapter(int[] images) {
+        public GuideImage(int resId, String url) {
+            this.resId = resId;
+            this.url = url;
+        }
+    }
+
+    class GuideViewAdapter extends RecyclerView.Adapter<GuideViewAdapter.ViewHolder> {
+        private List<GuideImage> guideImages;
+
+        public GuideViewAdapter(List<GuideImage> images) {
             this.guideImages = images;
         }
 
@@ -223,18 +246,22 @@ public class GuideActivity extends BaseActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.imageView.setImageResource(guideImages[position]);
-//            holder.titleView.setText(getString(guideTitles[position]));
-//            holder.descView.setText(getString(guideDescriptions[position]));
-//
-//            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.maskView.getLayoutParams();
-//            params.height = maskHeights[position]; // 设置新高度（单位：像素）
-//            holder.maskView.setLayoutParams(params);
+            GuideImage image = guideImages.get(position);
+            if (image.resId > 0) {
+                holder.imageView.setImageResource(image.resId);
+            } else if (image.url != null && !image.url.isEmpty()) {
+                Glide.with(GuideActivity.this)
+                        .load(image.url)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .placeholder(R.mipmap.ic_splash)
+                        .error(R.mipmap.ic_splash)
+                        .into(holder.imageView);
+            }
         }
 
         @Override
         public int getItemCount() {
-            return guideImages.length;
+            return guideImages.size();
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {

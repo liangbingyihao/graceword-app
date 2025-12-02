@@ -298,8 +298,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //                    aiExplore = AIExplore.loads(tmp);
 ////                    Log.d("onLoadElder", "aiExplore1=" + aiExplore.getMessage().getId());
 //                }
-                if (isVip&&tmp.integerForKey(Keys.Permission) == -1) {
-                    tmp.setMetaValue(Keys.Permission,0);
+                if (isVip && tmp.integerForKey(Keys.Permission) == -1) {
+                    tmp.setMetaValue(Keys.Permission, 0);
                 }
                 if (startId == null || startId == 0) {
                     reloadTimeoutMsg(tmp);
@@ -324,8 +324,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
             boolean isVip = BillingManager.Companion.getInstance().hasSubscriptions();
             while (i < messages.size()) {
                 Message tmp = messages.get(i);
-                if (isVip&&tmp.integerForKey(Keys.Permission) == -1) {
-                    tmp.setMetaValue(Keys.Permission,0);
+                if (isVip && tmp.integerForKey(Keys.Permission) == -1) {
+                    tmp.setMetaValue(Keys.Permission, 0);
                 }
                 ++i;
             }
@@ -1133,17 +1133,18 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //                throw new IOException("Failed to get threads", e);
 //            }
 //        }).subscribeOn(RX.io());
-
-    /// /        return listSessions()
-    /// /                .flatMap(Single::just)
-    /// /                .onErrorResumeNext(error -> {
-    /// /                    // 错误处理逻辑
-    /// /                    if (error instanceof IOException) {
-    /// /                        return Single.error(new IOException("Failed to list sessions", error));
-    /// /                    }
-    /// /                    return Single.error(error);
-    /// /                });
+//
+////    / /        return listSessions()
+////    / /                .flatMap(Single::just)
+////    / /                .onErrorResumeNext(error -> {
+////    / /                    // 错误处理逻辑
+////    / /                    if (error instanceof IOException) {
+////    / /                        return Single.error(new IOException("Failed to list sessions", error));
+////    / /                    }
+////    / /                    return Single.error(error);
+////    / /                });
 //    }
+
     public void updateMessage(Message message, JsonObject json) {
         if (json == null || message == null) {
             return;
