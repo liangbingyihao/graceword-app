@@ -2,6 +2,7 @@ package sdk.chat.demo.robot.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,14 +110,25 @@ public class GuideActivity extends BaseActivity {
             @Override
             public void onPageSelected(int position) {
 //                addDots(position);
-
                 // 改变按钮文字
-                if (position == guideImages.length - 1) {
-                    btnNext.setText(getString(R.string.next));
+                btnNext.setText(getString(R.string.next));
 //                    btnSkip.setVisibility(View.GONE);
-                } else {
-                    btnNext.setText(getString(R.string.next));
-//                    btnSkip.setVisibility(View.VISIBLE);
+//                } else {
+//                    btnNext.setText(getString(R.string.next));
+////                    btnSkip.setVisibility(View.VISIBLE);
+//                }
+                if (position == guideImages.length) {
+                    var configs = ImageApi.getGwConfigs();
+                    if (configs != null && configs.getWelcomeSurvey() != null && configs.getWelcomeSurvey().getBackground() != null) {
+                        String url = configs.getWelcomeSurvey().getBackground();
+                        if (url != null && !url.isEmpty()) {
+                            Log.e("guide", "preload:" + url);
+                            Glide.with(MainApp.getContext())
+                                    .load(url)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .preload();
+                        }
+                    }
                 }
             }
         });
@@ -181,6 +193,7 @@ public class GuideActivity extends BaseActivity {
 
     private void launchMainActivity() {
         MainApp app = (MainApp) getApplication();
+
         User me = null;
         try {
             me = ChatSDK.currentUser();
@@ -253,7 +266,7 @@ public class GuideActivity extends BaseActivity {
                 Glide.with(GuideActivity.this)
                         .load(image.url)
                         .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .placeholder(R.mipmap.ic_splash)
+                        .placeholder(R.color.bg_bill_menu)
                         .error(R.mipmap.ic_splash)
                         .into(holder.imageView);
             }

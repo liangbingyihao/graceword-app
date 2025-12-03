@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.button.MaterialButton
 import com.gyf.immersionbar.ImmersionBar
@@ -41,15 +42,19 @@ class BeginnerActivity : BaseActivity() {
         if (configs == null || configs.welcomeSurvey == null) {
             finish()
         } else {
+            var welcomeSurvey = configs.welcomeSurvey
+
             Glide.with(this@BeginnerActivity)
-                .load(configs.welcomeSurvey.background)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-//                .placeholder(R.mipmap.bg_beginner) // 占位图
+                .load(welcomeSurvey.background)
+                .skipMemoryCache(false)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.color.bg_bill_menu) // 占位图
                 .error(R.mipmap.bg_beginner) // 错误图
+                .priority(Priority.HIGH) // 提高加载优先级
+                .dontTransform() // 避免不必要的转换
                 .into(photoView)
 
 
-            var welcomeSurvey = configs.welcomeSurvey
             txContent.text = welcomeSurvey.question
             txTitle.text = welcomeSurvey.title
             val valueList: List<String> = welcomeSurvey.options

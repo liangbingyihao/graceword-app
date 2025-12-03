@@ -16,7 +16,7 @@ android {
         targetSdk Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
 
         versionName CHAT_SDK_VERSION
-        versionCode CHAT_SDK_BUILD_NUMBER as int
+        versionCode 12
     }
 
 //    flavorDimensions "version"

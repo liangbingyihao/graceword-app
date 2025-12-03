@@ -599,9 +599,10 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
                 (v.findViewById<TextView?>(R.id.main_content)).text = content
             }
             var mainTitle = (v.findViewById<TextView?>(R.id.main_title))
-            if (mainTitle != null) {
+            var title = membership.title
+            if (mainTitle != null && title != null && !title.isEmpty()) {
                 mainTitle.visibility = View.VISIBLE
-                mainTitle.text = content
+                mainTitle.text = title
             }
 
         }
@@ -621,7 +622,7 @@ class BillingFragment : BaseFragment(), BillingListener, View.OnClickListener {
             .setView(dialogView)
             .create()
 
-//        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 //        dialog.window?.setBackgroundDrawableResource(R.color.black_translucent)
 //        dialog.window?.apply {
 //            // 设置全屏

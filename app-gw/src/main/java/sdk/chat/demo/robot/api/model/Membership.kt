@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Membership(
     val display: String? = null,
+    val title: String? = null,
     @SerializedName("is_active")
     val isActive: Boolean? = null,
     @SerializedName("expired_at")

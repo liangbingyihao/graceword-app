@@ -100,8 +100,9 @@ class BillingManager private constructor() {
         set(value) {
             Log.e("BillingManager","set membership..")
             _membership = value
-            expireAtMs = _membership?.expiredAt?.times(1000) ?: 0L
+            expireAtMs = maxOf(expireAtMs, _membership?.expiredAt?.times(1000) ?: 0L)
             _cacheTimestamp = System.currentTimeMillis()
+            ChatSDK.events().source().accept(NetworkEvent(EventType.BillChange));
         }
 
     // 初始化 BillingHelper（依赖网络配置）
