@@ -7,25 +7,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SoftHideKeyBoardUtil {
 
     private static final String TAG = "SoftHideKeyBoardUtil";
 
-    public static void assistActivity(View activity) {
-        new SoftHideKeyBoardUtil(activity);
+    public static SoftHideKeyBoardUtil assistActivity(View activity) {
+        return new SoftHideKeyBoardUtil(activity);
     }
 
-    public static void assistActivity(Activity activity) {
-        new SoftHideKeyBoardUtil(activity);
+    public static SoftHideKeyBoardUtil assistActivity(Activity activity) {
+        return new SoftHideKeyBoardUtil(activity);
     }
 
     private final View mChildOfContent;
     private int usableHeightPrevious;
-    private final FrameLayout.LayoutParams frameLayoutParams;
+    public final FrameLayout.LayoutParams frameLayoutParams;
     //为适应华为小米等手机键盘上方出现黑条或不适配
     private int contentHeight;//获取setContentView本来view的高度
     private boolean isfirst = true;//只用获取一次
     private int statusBarHeight;//状态栏高度
+    public List<Runnable> keyboardListeners = new ArrayList<>();
 
     private SoftHideKeyBoardUtil(View fr) {
         //2､获取到setContentView放进去的View
@@ -87,8 +91,15 @@ public class SoftHideKeyBoardUtil {
                 frameLayoutParams.height = contentHeight;
             }
             Log.d(TAG, "possiblyResizeChildOfContent: frameLayoutParams.height = " + frameLayoutParams.height);
+
             //7､ 重绘Activity的xml布局
-            mChildOfContent.requestLayout();
+            if (!keyboardListeners.isEmpty()) {
+                for (Runnable r : keyboardListeners) {
+                    r.run();
+                }
+            }else{
+                mChildOfContent.requestLayout();
+            }
             usableHeightPrevious = usableHeightNow;
         }
     }

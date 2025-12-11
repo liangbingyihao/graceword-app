@@ -74,7 +74,7 @@
         android:id="@+id/setPrompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="自定义AI提示语" />
+        android:text="动态壁纸" />
 
 
     <TextView

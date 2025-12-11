@@ -1,0 +1,380 @@
+package sdk.chat.demo.robot.ui
+
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.Context
+import android.graphics.*
+import android.os.Build
+import android.util.AttributeSet
+import android.view.DragEvent
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
+import androidx.appcompat.widget.AppCompatEditText
+import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.ViewCompat
+import sdk.chat.demo.MainApp
+import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.extensions.dpToPx
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+/**
+ * 可拖拽的EditText
+ * 支持触摸拖拽、长按拖拽、边界限制、吸附效果
+ */
+class DraggableEditText @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = android.R.attr.editTextStyle
+) : AppCompatEditText(context, attrs, defStyleAttr) {
+
+    // 拖拽相关属性
+    private var lastX = 0f
+    private var lastY = 0f
+    private var isDragging = false
+    private var dragStartX = 0f
+    private var dragStartY = 0f
+
+    // 触摸阈值
+    private val touchSlop = 10f.dpToPx(MainApp.getContext())
+
+    // 边界限制
+    private var boundaryLeft = 0f
+    private var boundaryTop = 0f
+    private var boundaryRight = 0f
+    private var boundaryBottom = 0f
+
+    // 手势检测
+    private val gestureDetector: GestureDetectorCompat
+
+    // 拖拽监听器
+    private var dragListener: OnDragListener? = null
+    private var onPositionChangedListener: OnPositionChangedListener? = null
+    private var onDragStateChangedListener: OnDragStateChangedListener? = null
+
+    // 拖拽配置
+    var isDraggable = true
+    var isBoundaryEnabled = true
+    var isSnapToGrid = false
+    var gridSize = 20f.dpToPx(MainApp.getContext())
+    var enableLongPressDrag = true
+    var enableTouchDrag = true
+
+    // 装饰
+    private var dragBorderPaint: Paint? = null
+    private var dragBorderVisible = false
+
+    init {
+        gestureDetector = GestureDetectorCompat(context, GestureListener())
+
+        // 初始化拖拽边框
+        initDragBorderPaint()
+
+        // 初始化属性
+        initAttributes(attrs)
+
+        // 设置可拖拽
+        setupDraggable()
+    }
+
+    private fun initAttributes(attrs: AttributeSet?) {
+        context.obtainStyledAttributes(attrs, R.styleable.DraggableEditText).apply {
+            isDraggable = getBoolean(R.styleable.DraggableEditText_draggable, true)
+            isBoundaryEnabled = getBoolean(R.styleable.DraggableEditText_boundaryEnabled, true)
+            isSnapToGrid = getBoolean(R.styleable.DraggableEditText_snapToGrid, false)
+            gridSize = getDimension(R.styleable.DraggableEditText_gridSize, 20f.dpToPx(context))
+            enableLongPressDrag = getBoolean(R.styleable.DraggableEditText_enableLongPressDrag, true)
+            enableTouchDrag = getBoolean(R.styleable.DraggableEditText_enableTouchDrag, true)
+
+            // 拖拽边框样式
+            val borderColor = getColor(R.styleable.DraggableEditText_dragBorderColor, Color.BLUE)
+            val borderWidth = getDimension(R.styleable.DraggableEditText_dragBorderWidth, 2f.dpToPx(context))
+            val borderDashWidth = getDimension(R.styleable.DraggableEditText_dragBorderDashWidth, 5f.dpToPx(context))
+            val borderDashGap = getDimension(R.styleable.DraggableEditText_dragBorderDashGap, 5f.dpToPx(context))
+
+            dragBorderPaint?.apply {
+                color = borderColor
+                strokeWidth = borderWidth
+                pathEffect = PathEffect.createDashPathEffect(
+                    floatArrayOf(borderDashWidth, borderDashGap), 0f
+                )
+            }
+
+            recycle()
+        }
+    }
+
+    private fun initDragBorderPaint() {
+        dragBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            color = Color.BLUE
+            strokeWidth = 2f.dpToPx(context)
+            pathEffect = PathEffect.createDashPathEffect(floatArrayOf(5f.dpToPx(), 5f.dpToPx()), 0f)
+        }
+    }
+
+    private fun setupDraggable() {
+        if (isDraggable) {
+            setOnTouchListener { _, event ->
+                handleTouchEvent(event)
+            }
+        } else {
+            setOnTouchListener(null)
+        }
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (isDraggable) {
+            gestureDetector.onTouchEvent(event)
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastX = event.rawX
+                    lastY = event.rawY
+                    dragStartX = x
+                    dragStartY = y
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    if (isDragging) {
+                        endDrag()
+                    }
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    if (isDragging) {
+                        endDrag()
+                    }
+                }
+            }
+        }
+
+        return super.onTouchEvent(event) || isDragging
+    }
+
+    private fun handleTouchEvent(event: MotionEvent): Boolean {
+        if (!isDraggable) return false
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                lastX = event.rawX
+                lastY = event.rawY
+                dragStartX = x
+                dragStartY = y
+                return true
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (!isDragging) {
+                    val dx = abs(event.rawX - lastX)
+                    val dy = abs(event.rawY - lastY)
+
+                    if (dx > touchSlop || dy > touchSlop) {
+                        startDrag()
+                    }
+                }
+
+                if (isDragging) {
+                    val dx = event.rawX - lastX
+                    val dy = event.rawY - lastY
+
+                    moveBy(dx, dy)
+
+                    lastX = event.rawX
+                    lastY = event.rawY
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_UP -> {
+                if (isDragging) {
+                    endDrag()
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                if (isDragging) {
+                    endDrag()
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    private fun startDrag() {
+        if (!isDragging) {
+            isDragging = true
+            dragBorderVisible = true
+            onDragStateChangedListener?.onDragStarted(this)
+            invalidate()
+        }
+    }
+
+    private fun endDrag() {
+        if (isDragging) {
+            isDragging = false
+            dragBorderVisible = false
+            onDragStateChangedListener?.onDragEnded(this)
+            invalidate()
+        }
+    }
+
+    fun moveBy(dx: Float, dy: Float) {
+        if (!isDragging) return
+
+        var newX = x + dx
+        var newY = y + dy
+
+        // 边界限制
+        if (isBoundaryEnabled) {
+            updateBoundary()
+
+            newX = newX.coerceIn(boundaryLeft, boundaryRight - width)
+            newY = newY.coerceIn(boundaryTop, boundaryBottom - height)
+        }
+
+        // 网格吸附
+        if (isSnapToGrid && gridSize > 0) {
+            newX = snapToGrid(newX, gridSize)
+            newY = snapToGrid(newY, gridSize)
+        }
+
+        // 应用新位置
+        x = newX
+        y = newY
+
+        // 回调
+        onPositionChangedListener?.onPositionChanged(this, newX, newY)
+
+        invalidate()
+    }
+
+    fun moveTo(newX: Float, newY: Float) {
+        var finalX = newX
+        var finalY = newY
+
+        // 边界限制
+        if (isBoundaryEnabled) {
+            updateBoundary()
+
+            finalX = finalX.coerceIn(boundaryLeft, boundaryRight - width)
+            finalY = finalY.coerceIn(boundaryTop, boundaryBottom - height)
+        }
+
+        // 网格吸附
+        if (isSnapToGrid && gridSize > 0) {
+            finalX = snapToGrid(finalX, gridSize)
+            finalY = snapToGrid(finalY, gridSize)
+        }
+
+        // 应用新位置
+        x = finalX
+        y = finalY
+
+        // 回调
+        onPositionChangedListener?.onPositionChanged(this, finalX, finalY)
+
+        invalidate()
+    }
+
+    private fun snapToGrid(value: Float, gridSize: Float): Float {
+        return (value / gridSize).roundToInt() * gridSize
+    }
+
+    private fun updateBoundary() {
+        val parent = parent as? View
+        if (parent != null) {
+            boundaryLeft = 0f
+            boundaryTop = 0f
+            boundaryRight = parent.width.toFloat()
+            boundaryBottom = parent.height.toFloat()
+        }
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        // 绘制拖拽边框
+        if (dragBorderVisible) {
+            dragBorderPaint?.let { paint ->
+                canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+            }
+        }
+    }
+
+    fun setOnPositionChangedListener(listener: OnPositionChangedListener) {
+        this.onPositionChangedListener = listener
+    }
+
+    fun setOnDragStateChangedListener(listener: OnDragStateChangedListener) {
+        this.onDragStateChangedListener = listener
+    }
+
+    fun setDragListener(listener: OnDragListener) {
+        this.dragListener = listener
+    }
+
+    fun getPosition(): PointF = PointF(x, y)
+
+    fun setBoundary(left: Float, top: Float, right: Float, bottom: Float) {
+        boundaryLeft = left
+        boundaryTop = top
+        boundaryRight = right
+        boundaryBottom = bottom
+    }
+
+    fun resetBoundary() {
+        updateBoundary()
+    }
+
+    fun savePosition(): Pair<Float, Float> = Pair(x, y)
+
+    fun restorePosition(position: Pair<Float, Float>) {
+        moveTo(position.first, position.second)
+    }
+
+    private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean = true
+
+        override fun onLongPress(e: MotionEvent) {
+            if (enableLongPressDrag && isDraggable) {
+                startDrag()
+            }
+        }
+
+        override fun onScroll(
+            e1: MotionEvent?,
+            e2: MotionEvent?,
+            distanceX: Float,
+            distanceY: Float
+        ): Boolean {
+            if (enableTouchDrag && isDraggable && !isDragging) {
+                startDrag()
+            }
+
+            if (isDragging) {
+                moveBy(-distanceX, -distanceY)
+                return true
+            }
+
+            return false
+        }
+    }
+
+    interface OnPositionChangedListener {
+        fun onPositionChanged(view: DraggableEditText, x: Float, y: Float)
+    }
+
+    interface OnDragStateChangedListener {
+        fun onDragStarted(view: DraggableEditText)
+        fun onDragEnded(view: DraggableEditText)
+    }
+}
+
+//private fun Float.dpToPx(): Float = this * context.resources.displayMetrics.density

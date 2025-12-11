@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
+    android:thumbnail="@mipmap/ic_launcher"
+    android:description="@string/wallpaper_description"
+    android:settingsActivity="sdk.chat.demo.robot.activities.SettingWallpaperActivity">
+    android:showInLockScreenWhenSecure="true"
+    android:showInLockScreenWhenNotSecure="true"
+
+    <!-- Android 12+ 新增 -->
+    android:supportsMultipleDisplays="true"
+    android:shouldUseDefaultUnfoldTransition="true">
+</wallpaper>

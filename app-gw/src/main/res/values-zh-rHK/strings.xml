@@ -181,4 +181,8 @@
     <!-- 選項卡 -->
     <string name="tab_old_testament">舊約</string>
     <string name="tab_new_testament">新約</string>
+
+    <string name="customize_blessings">定製祝福語</string>
+    <string name="click">點擊</string>
+    <string name="switch_or_customize_blessings">切換，或自訂聖誕祝福語</string>
 </resources>

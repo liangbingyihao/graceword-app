@@ -9,7 +9,7 @@ import sdk.chat.demo.robot.fragments.BibleBooksFragment
 import sdk.chat.demo.robot.fragments.BibleDataProvider
 import sdk.chat.demo.robot.fragments.BiblePagerFragment
 
-class BibleActivity : BaseActivity(),BibleDataProvider {
+class BibleActivity : BaseActivity(), BibleDataProvider {
     companion object {
         private const val ARG_BOOK = "book_id"
         private const val ARG_REFERENCE = "reference"
@@ -22,13 +22,17 @@ class BibleActivity : BaseActivity(),BibleDataProvider {
             reference: String = "",
             fullscreen: Boolean = false,
             bookId: Int = 0,
-            chapterNumber: Int = 0
+            chapterNumber: Int = 0,
+            newTask: Boolean = false,
         ) {
             val intent = Intent(context, BibleActivity::class.java).apply {
                 putExtra(ARG_BOOK, bookId)
                 putExtra(ARG_REFERENCE, reference)
                 putExtra(ARG_FULLSCREEN, fullscreen)
                 putExtra(ARG_CHAPTER_NUMBER, chapterNumber)
+            }
+            if(newTask){
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             context.startActivity(intent)
         }
@@ -65,7 +69,7 @@ class BibleActivity : BaseActivity(),BibleDataProvider {
                     R.id.fragment_container,
                     BiblePagerFragment.newInstance(
                         bookId,
-                        chapterNumber=chapterNumber,
+                        chapterNumber = chapterNumber,
                         reference = reference,
                         fullscreen = fullscreen
                     )

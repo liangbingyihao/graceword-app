@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_base">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/home"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center"
+                android:padding="16dp"
+                android:src="@drawable/ic_back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/settings"
+                android:textColor="@color/item_text_normal"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- 动态壁纸选项 -->
+<!--        <RadioGroup-->
+<!--            android:id="@+id/rg_wallpaper_type"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="vertical">-->
+
+            <!-- 动态壁纸 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginLeft="18dp"
+                android:layout_marginRight="18dp"
+                android:padding="8dp"
+                android:background="@drawable/edittext_rounded_white_bg"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/rb_dynamic"
+                        style="@style/LangSettingButton"
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:text="动态壁纸"/>
+
+                    <ImageView
+                        android:id="@+id/export_vip"
+                        android:layout_width="16dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="6dp"
+                        android:src="@mipmap/ic_vip" />
+                </LinearLayout>
+
+                <!-- 一键读经开关 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="18dp"
+                    android:layout_marginRight="18dp"
+                    android:padding="12dp"
+                    android:background="@drawable/edittext_rounded_bg"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="一键读经"
+                            android:textSize="16sp" />
+
+                        <Switch
+                            android:id="@+id/switch_read"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:thumbTint="@color/item_text_selected"
+                            android:trackTint="@color/item_text_selected"
+                            android:checked="true" />
+                    </LinearLayout>
+
+                    <!-- 功能说明 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="点击经文内容可快速阅读对应经文章节"
+                        android:textColor="@color/gray"
+                        android:textSize="14sp" />
+
+                    <!-- 预览图 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal|left"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="120dp"
+                            android:layout_height="240dp"
+                            android:scaleType="centerCrop"
+                            android:src="@mipmap/wallpaper_preview1" />
+
+                        <ImageView
+                            android:layout_width="120dp"
+                            android:layout_height="240dp"
+                            android:scaleType="centerCrop"
+                            android:layout_marginLeft="12dp"
+                            android:src="@mipmap/wallpaper_preview2" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginLeft="18dp"
+                android:layout_marginRight="18dp"
+                android:padding="8dp"
+                android:background="@drawable/edittext_rounded_white_bg"
+                android:orientation="vertical">
+                <!-- 静态壁纸 -->
+                <CheckBox
+                    android:id="@+id/rb_static"
+                    style="@style/LangSettingButton"
+                    android:text="静态壁纸"/>
+
+                <!-- 静态壁纸说明 -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="经文不可点击，需手动更新壁纸"
+                    android:textColor="@color/gray"
+                    android:textSize="14sp" />
+
+                <!-- 屏幕选择 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="40dp"
+                    android:orientation="vertical">
+
+                    <CheckBox
+                        android:id="@+id/rb_home"
+                        style="@style/LangSettingButton"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:text="主屏幕" />
+
+                    <CheckBox
+                        android:id="@+id/rb_lock"
+                        style="@style/LangSettingButton"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textSize="14sp"
+                        android:text="锁屏" />
+                </LinearLayout>
+            </LinearLayout>
+
+<!--        </RadioGroup>-->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/confirm"
+            android:layout_width="316dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:backgroundTint="@color/white"
+            android:stateListAnimator="@null"
+            android:text="@string/confirm"
+            android:textColor="@color/item_text_selected"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            app:cornerRadius="21dp"
+            app:elevation="0dp"
+            app:strokeColor="@color/item_text_selected"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+</ScrollView>

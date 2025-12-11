@@ -22,4 +22,39 @@
         <attr name="dashLength" format="dimension" />
         <attr name="gapLength" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="DraggableEditText">
+        <!-- 是否可拖拽 -->
+        <attr name="draggable" format="boolean" />
+
+        <!-- 边界限制 -->
+        <attr name="boundaryEnabled" format="boolean" />
+
+        <!-- 网格吸附 -->
+        <attr name="snapToGrid" format="boolean" />
+        <attr name="gridSize" format="dimension" />
+
+        <!-- 拖拽方式 -->
+        <attr name="enableLongPressDrag" format="boolean" />
+        <attr name="enableTouchDrag" format="boolean" />
+
+        <!-- 拖拽边框样式 -->
+        <attr name="dragBorderColor" format="color" />
+        <attr name="dragBorderWidth" format="dimension" />
+        <attr name="dragBorderDashWidth" format="dimension" />
+        <attr name="dragBorderDashGap" format="dimension" />
+
+        <!-- 初始位置 -->
+        <attr name="initialX" format="dimension" />
+        <attr name="initialY" format="dimension" />
+
+        <!-- 最小移动阈值 -->
+        <attr name="touchSlop" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="TextLimitEditText">
+        <attr name="maxChineseChars" format="integer" />
+        <attr name="maxEnglishWords" format="integer" />
+        <attr name="showCounter" format="boolean" />
+    </declare-styleable>
 </resources>

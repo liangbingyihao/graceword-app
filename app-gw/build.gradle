@@ -16,7 +16,7 @@ android {
         targetSdk Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
 
         versionName CHAT_SDK_VERSION
-        versionCode 12
+        versionCode 13
     }
 
 //    flavorDimensions "version"
@@ -44,8 +44,7 @@ android {
         official {
             dimension "version"
             applicationId "app.graceword.android"
-            versionName "1.2.1"
-            versionCode 12 as int
+            versionName "1.2.2"
         }
     }
 
@@ -188,7 +187,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:1.6.0"
 //    implementation 'com.github.qichuan:android-opencc:1.2.0'
     implementation "com.android.billingclient:billing-ktx:8.0.0"
-
+    implementation 'com.airbnb.android:lottie:6.4.0'
 //    implementation 'com.bytedance.boringssl.so:boringssl-so:1.3.7-16kb'
 //    implementation('org.chromium.net:cronet:4.2.210.4-tob') {
 //        exclude group: 'com.bytedance.common', module: 'wschannel'
@@ -199,5 +198,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-process:2.0.0'
     implementation 'org.tinylog:tinylog-api:2.4.1'
     runtimeOnly 'org.tinylog:tinylog-impl:2.4.1'
+
+//    implementation "androidx.core:core:1.6.0+"  // 包含字体支持
+//    implementation "androidx.core:core-google-shortcuts:1.0.0"  // 可选，用于 WOFF2
 
 }

@@ -11,6 +11,7 @@
     <color name="bubble_color">#FFF0F0</color>
     <color name="item_text_selected">#FFCF4B40</color>
     <color name="gray_divider">#F7F7F7</color>
+    <color name="gray_base">#FAFAFA</color>
     <color name="item_text_normal">#333333</color>
     <color name="bg_popup_blank">#80000000</color>
     <color name="bg_special">#FFF8F7</color>

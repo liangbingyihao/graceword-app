@@ -6,12 +6,12 @@
     <!-- 外层黑色圆环 -->
     <path
         android:fillColor="@android:color/transparent"
-        android:strokeColor="#FF000000"
+        android:strokeColor="@color/item_text_selected"
         android:strokeWidth="2"
         android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z"/>
 
     <!-- 内层黑色实心圆点 -->
     <path
-        android:fillColor="#FF000000"
+        android:fillColor="@color/item_text_selected"
         android:pathData="M12,17c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z"/>
 </vector>

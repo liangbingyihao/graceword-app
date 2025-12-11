@@ -185,4 +185,10 @@
     <!-- 选项卡 -->
     <string name="tab_old_testament">Old Testament</string>
     <string name="tab_new_testament">New Testament</string>
+
+    <string name="wallpaper_description">My Custom Live Wallpaper</string>
+
+    <string name="customize_blessings">Customize Blessings</string>
+    <string name="click">Switch greetings with a tap on </string>
+    <string name="switch_or_customize_blessings"> Or write your own.</string>
 </resources>

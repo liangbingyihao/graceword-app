@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.handlers;
 
+import android.util.Log
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
@@ -39,6 +40,9 @@ import java.io.IOException
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import sdk.chat.demo.robot.activities.EditCardActivity
+import sdk.chat.demo.robot.utils.FontManager
+import sdk.chat.demo.robot.utils.FontUtils
 
 class CardGenerator private constructor() {
 
@@ -333,14 +337,19 @@ class CardGenerator private constructor() {
         context: Context,
         resId: Int,
         imageDetail: ImageDaily,
+        withQRCode: Boolean = true,
         onSuccess: (Bitmap) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         var cacheKey: String? = null
         var imageUrl: String? = null
-        assert(resId == R.layout.view_popup_image_bible || resId == R.layout.item_image_gw)
+        assert(resId == R.layout.view_popup_image_bible || resId == R.layout.item_image_gw || resId == R.layout.item_image_greeting)
         if (resId == R.layout.item_image_gw) {
             cacheKey = "image_daily_gw_${imageDetail.date}"
+            imageUrl = imageDetail.backgroundUrl
+        } else if (resId == R.layout.item_image_greeting) {
+            cacheKey =
+                "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${imageDetail.greeting}"
             imageUrl = imageDetail.backgroundUrl
         } else {
             cacheKey = "${imageDetail.backgroundUrl}|${imageDetail.scripture}"
@@ -379,16 +388,11 @@ class CardGenerator private constructor() {
                     CoroutineScope(Dispatchers.Main).launch {
                         try {
 
-//                            val deferredBitmaps = listOf(
-//                                async { loadBitmapWithGlide(context, imageUrl) },
-//                                async { loadBitmapWithGlide(context, "https://api-test.kolacdn.xyz") },
-//                            )
-//                            val bitmaps = deferredBitmaps.awaitAll()
-
                             val bitmap = captureLayoutAsync(
                                 context,
                                 resId,
                                 imageDetail,
+                                withQRCode,
                                 resource,
                             )
                             if (bitmap != null) {
@@ -454,52 +458,66 @@ class CardGenerator private constructor() {
         context: Context,
         layoutResId: Int,
         imageDetail: ImageDaily,
+        withQRCode: Boolean = true,
         bitmaps: Bitmap,
     ): Bitmap? = withContext(Dispatchers.Main) {
         val view = LayoutInflater.from(context).inflate(layoutResId, null, false).apply {
             setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         }
 
-
         val img = view.findViewById<ImageView>(R.id.photoView)
         img.setImageBitmap(bitmaps)
-
 
         try {
             view.findViewById<TextView>(R.id.bible).apply {
                 text = imageDetail.scripture + imageDetail.reference?.let { "\n($it)" }.orEmpty()
             }
+            view.findViewById<TextView>(R.id.day).apply {
+                visibility = View.INVISIBLE
+            }
+            view.findViewById<TextView>(R.id.month).apply {
+                visibility = View.INVISIBLE
+            }
+            if (!withQRCode) {
+                view.findViewById<View>(R.id.footer).apply {
+                    visibility = View.INVISIBLE
+                }
+            }
+//            if (layoutResId == R.layout.item_image_gw) {
+//                view.findViewById<TextView>(R.id.day).apply {
+//                    text = imageDetail.date.substring(8)
+//                }
+//                view.findViewById<TextView>(R.id.month).apply {
+//                    text = imageDetail.date.substring(0, 7)
+//                }
+//                view.findViewById<View>(R.id.footer).visibility = View.VISIBLE
+//            } else if (layoutResId == R.layout.item_image_greeting) {
+            if (layoutResId == R.layout.item_image_greeting) {
+                var fontManager = FontManager.getInstance(MainApp.getContext())
+                var font =
+                    fontManager.getCacheFile("https://api-test.kolacdn.xyz/public/zhufu2025.ttf")
+                val typeface = FontUtils.loadFont(
+                    MainApp.getContext(),
+                    font
+                )
+
+                view.findViewById<TextView>(R.id.messageInput).apply {
+                    this.typeface = typeface
+                    text = imageDetail.greeting
+                }
+
+            }
             var viewContent: View = view.findViewById<View>(R.id.content)
-            if (layoutResId == R.layout.item_image_gw) {
-                view.findViewById<TextView>(R.id.day).apply {
-                    text = imageDetail.date.substring(8)
-                }
-                view.findViewById<TextView>(R.id.month).apply {
-                    text = imageDetail.date.substring(0, 7)
-                }
-                view.findViewById<View>(R.id.footer).visibility = View.VISIBLE
-                val widthSpec =
-                    View.MeasureSpec.makeMeasureSpec(
-                        getScreenWidth(context),
-                        View.MeasureSpec.EXACTLY
-                    )
-                val heightSpec = View.MeasureSpec.makeMeasureSpec(
-                    getScreenHeight(context),
+            val widthSpec =
+                View.MeasureSpec.makeMeasureSpec(
+                    getScreenWidth(context),
                     View.MeasureSpec.EXACTLY
                 )
-                viewContent.measure(widthSpec, heightSpec)
-            } else {
-                val widthSpec =
-                    View.MeasureSpec.makeMeasureSpec(
-                        getScreenWidth(context),
-                        View.MeasureSpec.EXACTLY
-                    )
-                val heightSpec = View.MeasureSpec.makeMeasureSpec(
-                    getScreenHeight(context),
-                    View.MeasureSpec.AT_MOST
-                )
-                viewContent.measure(widthSpec, heightSpec)
-            }
+            val heightSpec = View.MeasureSpec.makeMeasureSpec(
+                getScreenHeight(context),
+                View.MeasureSpec.EXACTLY
+            )
+            viewContent.measure(widthSpec, heightSpec)
 
 
             viewContent.layout(0, 0, viewContent.measuredWidth, viewContent.measuredHeight)
@@ -512,8 +530,8 @@ class CardGenerator private constructor() {
                 Canvas(this).run { viewContent.draw(this) }
             }.compressToSafeSize()
         } catch (e: Exception) {
-            null
-        }
+            Log.e("biblewallGlide", "captureLayoutAsync failed $e")
+        } as Bitmap?
     }
 
     private fun Bitmap.compressToSafeSize(maxSizeKB: Int = 500): Bitmap {

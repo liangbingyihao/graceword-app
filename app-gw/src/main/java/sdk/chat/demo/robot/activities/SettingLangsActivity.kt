@@ -9,22 +9,18 @@ import android.os.Bundle
 import android.view.View
 import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.ArticleListActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ExportInfo
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.LanguageUtils
+import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.utils.ToastHelper
@@ -63,6 +59,7 @@ class SettingLangsActivity : BaseActivity(), View.OnClickListener {
                 MainApp.getInstance().bibleDBManager.initializeDefaultDatabase(MainApp.getContext())
                 val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
                 threadHandler.clearThreadCache()
+                CardApiService.clearCache()
                 dm.add(
                     ImageApi.getServerConfigs()
                         .subscribeOn(Schedulers.io())

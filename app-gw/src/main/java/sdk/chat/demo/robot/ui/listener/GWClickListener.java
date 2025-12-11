@@ -55,6 +55,7 @@ import sdk.chat.demo.robot.holder.DailyGWHolder;
 import sdk.chat.demo.robot.holder.ImageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
 import sdk.chat.demo.robot.utils.ToastHelper;
+import sdk.chat.demo.robot.utils.WallpaperUtils;
 import sdk.guru.common.RX;
 
 public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.OnMessageViewClickListener {
@@ -190,6 +191,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                                                 .generateBibleCard(view.getContext(),
                                                         resId,
                                                         imageDaily,
+                                                        true,
                                                         result -> {
                                                             emitter.onNext(result); // 发送成功结果
                                                             emitter.onComplete(); // 完成
@@ -222,6 +224,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                                         weakContext.get().startActivity(Intent.createChooser(shareIntent, "分享图片"));
                                     } else {
                                         ToastHelper.show(weakContext.get(), weakContext.get().getString(R.string.image_saved));
+                                        new WallpaperUtils(weakContext.get()).setHomeScreenWallpaper(bitmap);
                                     }
                                 } else {
                                     ToastHelper.show(weakContext.get(), weakContext.get().getString(R.string.image_save_failed));

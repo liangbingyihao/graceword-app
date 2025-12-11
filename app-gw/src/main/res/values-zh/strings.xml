@@ -177,4 +177,8 @@
     <!-- 选项卡 -->
     <string name="tab_old_testament">旧约</string>
     <string name="tab_new_testament">新约</string>
+
+    <string name="customize_blessings">定制祝福语</string>
+    <string name="click">点击</string>
+    <string name="switch_or_customize_blessings">切换, 或自定义圣诞祝福语</string>
 </resources>

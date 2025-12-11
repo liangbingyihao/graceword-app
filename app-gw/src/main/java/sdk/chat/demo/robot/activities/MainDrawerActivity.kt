@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.lottie.LottieAnimationView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
@@ -40,6 +42,7 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
+import androidx.core.net.toUri
 
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
@@ -50,6 +53,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private lateinit var vBillingMenu: View
     private lateinit var vRedDotTask: View
     private lateinit var vDgwMenu: TextView
+    private lateinit var lottieAnimationView: LottieAnimationView
 //    private lateinit var vErrorHint: TextView
 
     //    private lateinit var sessions: List<Thread>
@@ -207,17 +211,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         }
                     })
             )
-//            dm.add(
-//                threadHandler.welcomeMsg
-//                    .delay(2, TimeUnit.SECONDS)
-//                    .subscribeOn(RX.io())
-//                    .observeOn(RX.main())
-//                    .subscribe(
-//                        {
-//                        },
-//                        this
-//                    )
-//            )
         }
 
 
@@ -238,8 +231,17 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             this@MainDrawerActivity,
             null
         )
+        setLottieAnimationView()
+
 
         LogUploader.chatEntrance("app_launch")
+    }
+
+    private fun setLottieAnimationView() {
+        lottieAnimationView = findViewById<LottieAnimationView>(R.id.ops)
+        lottieAnimationView.setAnimationFromUrl("https://api-test.kolacdn.xyz/public/tree.json")
+        lottieAnimationView.repeatCount = 5
+        lottieAnimationView.setOnClickListener(this)
     }
 
     private fun checkPreLaunchBill(force: Boolean = false) {
@@ -435,6 +437,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         threadHandler.reloadTimeoutMsg()
         BillingManager.getInstance().checkSubscriptions()
         refreshMembership()
+
+//        lottieAnimationView.clearAnimation()
+        lottieAnimationView.playAnimation()
     }
 
     override fun getLayout(): Int {
@@ -442,10 +447,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     override fun onClick(v: View?) {
-        if (v?.id != R.id.menu_task && v?.id != R.id.menu_vip) {
+        var vid = v?.id
+        if (vid != R.id.menu_task && vid != R.id.menu_vip && vid != R.id.ops) {
             toggleDrawer()
         }
-        when (v?.id) {
+        when (vid) {
             R.id.menu_home -> {
                 true
             }
@@ -517,6 +523,19 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 )
                 true
             }
+
+            R.id.ops -> {
+//                WebViewActivity.launchWithUrl(this@MainDrawerActivity,"https://api-test.kolacdn.xyz/public/testops.html","ops")
+//                startActivity(
+//                    Intent(
+//                        this@MainDrawerActivity,
+//                        EditCardActivity::class.java
+//                    )
+//                )
+                startActivity(Intent(Intent.ACTION_VIEW, "graceword://open/card".toUri()))
+                true
+            }
+
         }
     }
 
@@ -527,9 +546,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
     fun refreshMembership() {
         dm.add(BillingManager.getInstance().getMembership().subscribe { data ->
-            {
-                onBillChanged()
-            }
+            onBillChanged()
         })
     }
 

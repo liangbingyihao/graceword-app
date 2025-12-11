@@ -4,6 +4,7 @@ import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.model.ShareRequest;
 import sdk.chat.demo.robot.api.model.ShareRequestKt;
 import sdk.chat.demo.robot.handlers.SocialShareHandler;
+import sdk.chat.demo.robot.ops.AndroidJavaScriptInterface;
 import sdk.chat.demo.robot.utils.SocialShareUtils;
 import sdk.chat.demo.robot.utils.ToastHelper;
 
@@ -55,6 +56,10 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         loadContent();
     }
 
+    public WebView getWebView(){
+        return webView;
+    }
+
     private void setupWebView() {
         WebSettings webSettings = webView.getSettings();
 
@@ -63,6 +68,12 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setAllowFileAccess(false);
+        webSettings.setAllowContentAccess(false);
+
+        webView.addJavascriptInterface(
+                new AndroidJavaScriptInterface(this),
+                "AndroidBridge"
+        );
 
         // 缓存设置
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);

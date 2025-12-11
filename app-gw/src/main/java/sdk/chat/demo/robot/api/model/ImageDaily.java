@@ -16,11 +16,27 @@ public class ImageDaily {
     @SerializedName("background_url")
     private String backgroundUrl;
     private ArrayList<String> explore;
+
+    private String greeting;
 //    private ArrayList<String> prompt;
+
+
+    public ImageDaily(String backgroundUrl, String date, String reference, String scripture) {
+        this.backgroundUrl = backgroundUrl;
+        this.date = date;
+        this.reference = reference;
+        this.scripture = scripture;
+    }
 
     public ImageDaily(String scripture, String backgroundUrl) {
         this.scripture = scripture;
         this.backgroundUrl = backgroundUrl;
+    }
+
+    public ImageDaily(String scripture, String backgroundUrl,String greeting) {
+        this.scripture = scripture;
+        this.backgroundUrl = backgroundUrl;
+        this.greeting = greeting;
     }
 
     public String getScripture() {
@@ -81,6 +97,13 @@ public class ImageDaily {
         return function;
     }
 
+    public String getGreeting() {
+        return greeting;
+    }
+
+    public void setGreeting(String greeting) {
+        this.greeting = greeting;
+    }
 //    public ArrayList<String> getPrompt() {
 //        return prompt;
 //    }

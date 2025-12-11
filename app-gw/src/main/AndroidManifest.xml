@@ -6,6 +6,7 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
+
     <uses-permission android:name="android.permission.REG_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -13,8 +14,11 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <queries>
         <!-- Facebook -->
@@ -50,10 +54,10 @@
     <application
         android:name="sdk.chat.demo.MainApp"
         android:allowBackup="false"
-        android:resizeableActivity="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:resizeableActivity="true"
         android:supportsRtl="true"
         android:theme="@style/GGTheme"
         tools:replace="allowBackup, icon">
@@ -68,7 +72,7 @@
         <!--适配华为（huawei）刘海屏-->
         <meta-data
             android:name="android.notch_support"
-            android:value="true"/>
+            android:value="true" />
         <!--适配小米（xiaomi）刘海屏-->
         <meta-data
             android:name="notch.config"
@@ -83,30 +87,46 @@
 
         <activity
             android:name="sdk.chat.demo.robot.activities.SplashScreenActivity"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity"/>
+        <!--        android:windowSoftInputMode="adjustResize|stateHidden"-->
+        <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
-        <activity android:name="sdk.chat.demo.robot.activities.BibleActivity"/>
-        <activity android:name="sdk.chat.demo.robot.activities.BibleBooksActivity"/>
-        <activity android:name="sdk.chat.demo.robot.activities.BillingActivity"/>
-        <activity android:name="sdk.chat.demo.robot.activities.BeginnerActivity"/>
+        <activity android:name="sdk.chat.demo.robot.activities.BibleActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.SettingWallpaperActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.EditCardActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="graceword"
+                    android:host="open"
+                    android:path="/card" />
+            </intent-filter>
+        </activity>
+        <activity android:name="sdk.chat.demo.robot.activities.BibleBooksActivity" />
+        <activity
+            android:name="sdk.chat.demo.robot.activities.BillingActivity"
+            android:exported="true" />
+        <activity android:name="sdk.chat.demo.robot.activities.BeginnerActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.MainDrawerActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.SettingsActivity" />
-        <activity android:name="sdk.chat.demo.robot.activities.WebViewActivity"/>
+        <activity android:name="sdk.chat.demo.robot.activities.WebViewActivity" />
 
         <activity android:name="sdk.chat.demo.robot.activities.GuideActivity" />
 
         <activity android:name="sdk.chat.demo.robot.activities.SettingPromptActivity" />
 
         <activity android:name="sdk.chat.demo.robot.activities.SettingLangsActivity" />
-        <activity android:name="sdk.chat.demo.robot.activities.ArticleListActivity"/>
-<!--            android:windowSoftInputMode="adjustPan|stateVisible"/>-->
+        <activity android:name="sdk.chat.demo.robot.activities.ArticleListActivity" />
+        <!--            android:windowSoftInputMode="adjustPan|stateVisible"/>-->
 
         <activity android:name="sdk.chat.demo.robot.activities.FavoriteListActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.ImageViewerActivity" />
@@ -119,8 +139,8 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
-            tools:replace="android:authorities"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />  <!-- 确保此文件存在 -->
@@ -133,6 +153,20 @@
             <meta-data
                 android:name="autoStoreLocales"
                 android:value="true" />
+        </service>
+
+
+        <service
+            android:name="sdk.chat.demo.robot.service.BibleWallpaperService"
+            android:exported="true"
+            android:label="我的动态壁纸"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper" />
         </service>
     </application>
 

@@ -36,6 +36,7 @@ import sdk.chat.demo.robot.handlers.SpeechToTextHelper
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
 import sdk.chat.demo.robot.utils.ToastHelper
+import sdk.chat.demo.robot.utils.WallpaperGuideUtil
 import sdk.guru.common.DisposableMap
 import java.util.Locale
 
@@ -224,11 +225,11 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             ) {
                 val selected = languages[position]
                 // 使用selected.value获取实际值
-                Toast.makeText(
-                    this@SpeechToTextActivity,
-                    "Selected value: ${selected.value}",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(
+//                    this@SpeechToTextActivity,
+//                    "Selected value: ${selected.value}",
+//                    Toast.LENGTH_SHORT
+//                ).show()
                 getSharedPreferences("app_prefs", MODE_PRIVATE)
                     .edit() {
                         putString("db_voice_type", selected.value)
@@ -293,6 +294,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             R.id.billing -> {
 //                speechToTextHelper.stopListening()
                 BillingActivity.start(this@SpeechToTextActivity,"test")
+//                EditCardActivity.start(this@SpeechToTextActivity,directUrl="https://api-test.kolacdn.xyz/public/spring.html")
             }
 
             R.id.setPrompt -> {
@@ -302,7 +304,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
 //                        SettingPromptActivity::class.java
 //                    )
 //                )
-                throw RuntimeException("This is a test crash")
+                WallpaperGuideUtil(this@SpeechToTextActivity).guideToSetLiveWallpaper()
             }
 
             R.id.clearCache -> {

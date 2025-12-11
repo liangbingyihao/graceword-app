@@ -103,7 +103,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected ActivityResultLauncher<Intent> launcher;
 
     //    protected AudioBinder audioBinder = null;
-    protected DisposableMap dm = new DisposableMap();
+//    protected DisposableMap dm = new DisposableMap();
 
     protected KeyboardOverlayHelper koh;
     protected View scrollBottom;
