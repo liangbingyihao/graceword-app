@@ -224,7 +224,6 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                                         weakContext.get().startActivity(Intent.createChooser(shareIntent, "分享图片"));
                                     } else {
                                         ToastHelper.show(weakContext.get(), weakContext.get().getString(R.string.image_saved));
-                                        new WallpaperUtils(weakContext.get()).setHomeScreenWallpaper(bitmap);
                                     }
                                 } else {
                                     ToastHelper.show(weakContext.get(), weakContext.get().getString(R.string.image_save_failed));

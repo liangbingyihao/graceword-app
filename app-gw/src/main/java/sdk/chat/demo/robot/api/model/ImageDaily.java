@@ -18,6 +18,7 @@ public class ImageDaily {
     private ArrayList<String> explore;
 
     private String greeting;
+    private String fontUrl;
 //    private ArrayList<String> prompt;
 
 
@@ -104,7 +105,16 @@ public class ImageDaily {
     public void setGreeting(String greeting) {
         this.greeting = greeting;
     }
-//    public ArrayList<String> getPrompt() {
+
+    public String getFontUrl() {
+        return fontUrl;
+    }
+
+    public void setFontUrl(String fontUrl) {
+        this.fontUrl = fontUrl;
+    }
+
+    //    public ArrayList<String> getPrompt() {
 //        return prompt;
 //    }
 //

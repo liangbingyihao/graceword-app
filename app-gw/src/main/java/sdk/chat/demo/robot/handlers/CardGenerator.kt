@@ -9,8 +9,11 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.text.Layout
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.style.UnderlineSpan
 import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
@@ -43,6 +46,7 @@ import kotlinx.coroutines.awaitAll
 import sdk.chat.demo.robot.activities.EditCardActivity
 import sdk.chat.demo.robot.utils.FontManager
 import sdk.chat.demo.robot.utils.FontUtils
+import sdk.chat.demo.robot.utils.ViewCoordinateUtils
 
 class CardGenerator private constructor() {
 
@@ -64,6 +68,9 @@ class CardGenerator private constructor() {
 
     // 内存缓存（缓存生成的卡片）
     private val memoryCache = LruCache<String, Bitmap>(10 * 1024 * 1024) // 10MB
+
+    // 内存缓存（缓存生成的卡片）
+    private val rectCache = LruCache<String, RectF>(2 * 1024)
 
     // 获取缓存目录
     private val cacheDir by lazy {
@@ -327,6 +334,33 @@ class CardGenerator private constructor() {
         return null
     }
 
+    fun getCacheKey(
+        resId: Int,
+        imageDetail: ImageDaily,
+        withQRCode: Boolean = true
+    ): String {
+        if (resId == R.layout.item_image_gw) {
+            return "image_daily_gw_${imageDetail.date}${withQRCode}"
+        } else if (resId == R.layout.item_image_greeting) {
+            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${imageDetail.greeting}|${withQRCode}"
+        } else {
+            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${withQRCode}"
+        }
+        return ""
+    }
+
+    fun getCacheRect(
+        cacheKey: String?
+    ): RectF? {
+        if (cacheKey != null && !cacheKey.isEmpty()) {
+            var r = rectCache.get(cacheKey)
+            if (r != null) {
+                return r
+            }
+        }
+        return null
+    }
+
     /**
      * 从网络图片URL生成卡片（异步）
      * @param imageUrl 网络图片地址
@@ -341,20 +375,14 @@ class CardGenerator private constructor() {
         onSuccess: (Bitmap) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        var cacheKey: String? = null
-        var imageUrl: String? = null
         assert(resId == R.layout.view_popup_image_bible || resId == R.layout.item_image_gw || resId == R.layout.item_image_greeting)
-        if (resId == R.layout.item_image_gw) {
-            cacheKey = "image_daily_gw_${imageDetail.date}"
-            imageUrl = imageDetail.backgroundUrl
-        } else if (resId == R.layout.item_image_greeting) {
-            cacheKey =
-                "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${imageDetail.greeting}"
-            imageUrl = imageDetail.backgroundUrl
-        } else {
-            cacheKey = "${imageDetail.backgroundUrl}|${imageDetail.scripture}"
-            imageUrl = imageDetail.backgroundUrl
+        var cacheKey: String? = getCacheKey(resId, imageDetail, withQRCode)
+        var imageUrl: String? = imageDetail.backgroundUrl
+
+        if (cacheKey == null || cacheKey.isEmpty()) {
+            onFailure(Exception("Bad cache key"))
         }
+
 //        // 1. 检查内存缓存
         memoryCache.get(cacheKey)?.let {
             if (!it.isRecycled) {
@@ -384,7 +412,6 @@ class CardGenerator private constructor() {
                     transition: Transition<in Bitmap>?
                 ) {
                     // 生成卡片
-
                     CoroutineScope(Dispatchers.Main).launch {
                         try {
 
@@ -470,7 +497,18 @@ class CardGenerator private constructor() {
 
         try {
             view.findViewById<TextView>(R.id.bible).apply {
-                text = imageDetail.scripture + imageDetail.reference?.let { "\n($it)" }.orEmpty()
+                text = imageDetail.scripture
+            }
+            view.findViewById<TextView>(R.id.reference).apply {
+                var reference = "(" + imageDetail.reference + ")"
+                val spannable = SpannableString(reference)
+                spannable.setSpan(
+                    UnderlineSpan(),
+                    0, // 开始位置
+                    reference.length, // 结束位置
+                    Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                )
+                text = spannable
             }
             view.findViewById<TextView>(R.id.day).apply {
                 visibility = View.INVISIBLE
@@ -483,23 +521,18 @@ class CardGenerator private constructor() {
                     visibility = View.INVISIBLE
                 }
             }
-//            if (layoutResId == R.layout.item_image_gw) {
-//                view.findViewById<TextView>(R.id.day).apply {
-//                    text = imageDetail.date.substring(8)
-//                }
-//                view.findViewById<TextView>(R.id.month).apply {
-//                    text = imageDetail.date.substring(0, 7)
-//                }
-//                view.findViewById<View>(R.id.footer).visibility = View.VISIBLE
-//            } else if (layoutResId == R.layout.item_image_greeting) {
-            if (layoutResId == R.layout.item_image_greeting) {
-                var fontManager = FontManager.getInstance(MainApp.getContext())
-                var font =
-                    fontManager.getCacheFile("https://api-test.kolacdn.xyz/public/zhufu2025.ttf")
-                val typeface = FontUtils.loadFont(
-                    MainApp.getContext(),
-                    font
-                )
+
+            if (layoutResId == R.layout.item_image_greeting && imageDetail.greeting != null && !imageDetail.greeting.isEmpty()) {
+                var typeface: Typeface? = null
+                if (imageDetail.fontUrl != null && !imageDetail.fontUrl.isEmpty()) {
+                    var fontManager = FontManager.getInstance(MainApp.getContext())
+                    var font =
+                        fontManager.getCacheFile(imageDetail.fontUrl)
+                    typeface = FontUtils.loadFont(
+                        MainApp.getContext(),
+                        font
+                    )
+                }
 
                 view.findViewById<TextView>(R.id.messageInput).apply {
                     this.typeface = typeface
@@ -521,6 +554,14 @@ class CardGenerator private constructor() {
 
 
             viewContent.layout(0, 0, viewContent.measuredWidth, viewContent.measuredHeight)
+            var cacheKey: String? = getCacheKey(layoutResId, imageDetail, withQRCode)
+            if (cacheKey != null && !cacheKey.isEmpty()) {
+                var rect = ViewCoordinateUtils.getViewBoundsInBitmap(
+                    view.findViewById<TextView>(R.id.reference),
+                    viewContent
+                )
+                rectCache.put(cacheKey, rect)
+            }
 
             createBitmap(
                 viewContent.measuredWidth.coerceAtLeast(1),

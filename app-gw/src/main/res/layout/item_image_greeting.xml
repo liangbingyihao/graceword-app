@@ -18,7 +18,7 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
-    <EditText
+    <TextView
         android:id="@id/messageInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -28,7 +28,6 @@
         android:layout_marginRight="28dp"
         android:background="@color/transparent"
         android:gravity="top|center_horizontal"
-        android:hint="定义祝福语"
         android:inputType="textAutoCorrect|textAutoComplete|textMultiLine|textCapSentences"
         android:maxLines="6"
         android:minHeight="48dp"

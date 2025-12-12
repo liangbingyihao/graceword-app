@@ -39,15 +39,16 @@ import kotlinx.coroutines.launch
 import sdk.chat.core.utils.PermissionRequestHandler
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.ImagePagerAdapter
+import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.extensions.ImageSaveUtils
 import sdk.chat.demo.robot.handlers.CardApiService
+import sdk.chat.demo.robot.handlers.CardApiService.shareCardWithBitmap
 import sdk.chat.demo.robot.handlers.CardGenerator.Companion.getInstance
 import sdk.chat.demo.robot.utils.AdvancedChineseEnglishFilter
 import sdk.chat.demo.robot.utils.FontManager
 import sdk.chat.demo.robot.utils.FontUtils
 import sdk.chat.demo.robot.utils.ToastHelper
-import sdk.chat.demo.robot.utils.WallpaperUtils
 
 class EditCardActivity : BaseActivity(), View.OnClickListener {
     private val TAG: String = "EditCardActivity1"
@@ -59,8 +60,10 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
     private lateinit var messageInput1: EditText
     private lateinit var editHint: TextView
     private var lastHeight = 0
-    private var greetings: List<String>? = null
+
+    //    private var greetings: List<String>? = null
     private var lastIndex = 0
+    private var blessData: BlessData? = null
     private val buttonList = mutableListOf<MaterialButton>()
 //    private lateinit var root: KeyboardAwareFrameLayout
 
@@ -89,6 +92,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
         findViewById<View>(R.id.wallpaper).setOnClickListener(this)
         findViewById<View>(R.id.switch_greeting).setOnClickListener(this)
         findViewById<View>(R.id.confirm).setOnClickListener(this)
+        findViewById<View>(R.id.btn_share_image).setOnClickListener(this)
 
         inputContainer = findViewById<View>(R.id.edGreetingContainer)
 
@@ -176,12 +180,10 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
         messageInput1.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 // 文本变化前调用
-                Log.d("TextWatcher", "Before: $s, start: $start, count: $count, after: $after")
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // 文本变化时调用
-                Log.d("TextWatcher", "OnChange: $s, start: $start, before: $before, count: $count")
 
                 // 实时更新TextView
                 messageInput.setText(s.toString())
@@ -189,7 +191,6 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
 
             override fun afterTextChanged(s: Editable?) {
                 // 文本变化后调用
-                Log.d("TextWatcher", "After: ${s.toString()}")
             }
         })
 
@@ -208,7 +209,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
             CardApiService.getBlessData().subscribe(
                 { data ->
                     if (data != null) {
-                        greetings = data.choices
+                        blessData = data
                         downloadFont(messageInput, data.font)
 
 //                        val items: List<ImageDaily> = data.daily.map { dailyItem ->
@@ -246,7 +247,8 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        when (v?.id) {
+        var vid = v?.id
+        when (vid) {
 
             R.id.back -> {
 //                LogUploader.reportEvent(
@@ -263,10 +265,6 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                 showKeyboard()
             }
 
-            R.id.wallpaper -> {
-                download()
-            }
-
             R.id.switch_greeting -> {
                 switchGreetings()
             }
@@ -274,29 +272,34 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
             R.id.confirm -> {
                 hideKeyboard()
             }
+
+            R.id.wallpaper, R.id.btn_download, R.id.btn_share_image -> {
+
+                var imageDaily = adapter.getUrlAt(viewPager.currentItem)
+                if (imageDaily == null) {
+                    return
+                }
+                imageDaily.greeting = messageInput.text.toString()
+                imageDaily.fontUrl = blessData?.font
+
+                if (vid == R.id.wallpaper) {
+                    SettingWallpaperActivity.start(
+                        this@EditCardActivity,
+                        "card",
+                        (Gson()).toJson(imageDaily, ImageDaily::class.java)
+                    )
+                } else if (vid == R.id.btn_share_image) {
+                    share(imageDaily)
+                } else {
+                    download(imageDaily)
+                }
+            }
         }
 
     }
 
-//    fun setKeyboardListeners(){
-//        root.keyboardShownListeners.add {
-//            Log.e("EditCardActivity","keyboardShown:${root.keyboardHeight}")
-//            val params = changeGreetings.layoutParams as FrameLayout.LayoutParams
-//            params.bottomMargin = root.keyboardHeight
-//            changeGreetings.visibility = View.VISIBLE
-//            changeGreetings.layoutParams = params
-//            changeGreetings.requestLayout()
-//        }
-//        root.keyboardHiddenListeners.add(Runnable() {
-//            @Override
-//            fun run() {
-//                Log.e("EditCardActivity", "keyboardHidden: " + root.keyboardHeight);
-//            }
-//        });
-//    }
-
     private fun switchGreetings() {
-        val currentGreetings = greetings
+        val currentGreetings = blessData?.choices
         if (!currentGreetings.isNullOrEmpty()) {
             lastIndex = (lastIndex + 1) % currentGreetings.size
             var g = currentGreetings[lastIndex]
@@ -353,36 +356,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    private fun applyCachedFont(textView: TextView) {
-        val fontUrl = "https://api-test.kolacdn.xyz/public/zhufu2025.ttf"
-
-        // 从缓存加载
-        GlobalScope.launch(Dispatchers.Main) {
-            var font = fontManager.getCacheFile(fontUrl)
-//            File(fontManager.getCacheFile(fontUrl) ?: return@launch
-            val typeface = FontUtils.loadFont(
-                this@EditCardActivity,
-                font
-            )
-
-            if (typeface != null) {
-                textView.typeface = typeface
-                textView.text = "使用缓存字体: Roboto"
-            }
-        }
-    }
-
-    private fun download(mode: Int = 0) {
-        var imageDaily = adapter.getUrlAt(viewPager.currentItem)
-        if(imageDaily==null){
-            return
-        }
-        imageDaily.greeting = messageInput.text.toString()
-        if(mode==0){
-            SettingWallpaperActivity.start(this@EditCardActivity,"card",(Gson()).toJson(imageDaily, ImageDaily::class.java))
-            return
-        }
-
+    private fun download(imageDaily: ImageDaily) {
         val disposable = PermissionRequestHandler
             .requestWriteExternalStorage(this@EditCardActivity)
             .andThen<Bitmap?>( // After permission is granted, execute the following operations
@@ -392,7 +366,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                             this@EditCardActivity,
                             R.layout.item_image_greeting,
                             imageDaily,
-                            false,
+                            true,
                             { result: Bitmap? ->
                                 emitter!!.onNext(result!!) // 发送成功结果
                                 emitter.onComplete() // 完成
@@ -407,18 +381,18 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 Consumer { bitmap: Bitmap? ->
-                    if (mode == 0) {
-                        if (bitmap != null) {
-                            WallpaperUtils(this@EditCardActivity).setHomeScreenWallpaper(bitmap)
-                        }
-                    } else {
+                    if (bitmap != null) {
                         val bitmapURL = ImageSaveUtils.saveBitmapToGallery(
                             this@EditCardActivity,  // context
-                            bitmap!!,
+                            bitmap,
                             "img_" + System.currentTimeMillis(),
                             Bitmap.CompressFormat.JPEG
                         )
                         if (bitmapURL != null) {
+                            ToastHelper.show(
+                                this@EditCardActivity,
+                                getString(R.string.image_saved)
+                            )
 //                        if (id == R.id.btn_share_image) {
 //                            val shareIntent = Intent(Intent.ACTION_SEND)
 //                            shareIntent.setType("image/*") // 或具体类型如 "image/jpeg"
@@ -430,17 +404,54 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
 //                        } else {
 //                            WallpaperUtils(this@EditCardActivity).setHomeScreenWallpaper(bitmap)
 //                        }
-                            WallpaperUtils(this@EditCardActivity).setHomeScreenWallpaper(bitmap)
                         } else {
                             ToastHelper.show(
                                 this@EditCardActivity,
                                 getString(R.string.image_save_failed)
                             )
                         }
+                    } else {
+                        ToastHelper.show(
+                            this@EditCardActivity,
+                            getString(R.string.image_save_failed)
+                        )
                     }
                     bitmap?.recycle()
                 }
             )
+        dm.add(disposable)
+    }
+
+    private fun share(imageDaily: ImageDaily) {
+        val disposable =
+            Observable.create<Bitmap> { emitter ->
+                getInstance()
+                    .generateBibleCard(
+                        this@EditCardActivity,
+                        R.layout.item_image_greeting,
+                        imageDaily,
+                        false,
+                        { result: Bitmap? ->
+                            emitter.onNext(result!!) // 发送成功结果
+                            emitter.onComplete() // 完成
+                            Unit
+                        }, { err: Throwable? ->
+                            emitter.onError(err!!)
+                            Unit
+                        })
+            }.flatMap { bitmap: Bitmap ->
+                shareCardWithBitmap(bitmap, "words").toObservable().doFinally {
+                    // 关键：在 finally 中回收 Bitmap
+                    if (!bitmap.isRecycled) {
+                        bitmap.recycle()
+                        Log.d(TAG, "Bitmap 已回收")
+                    }
+                }
+            }
+                .subscribe(
+                    { result -> Log.e(TAG, result.url) },
+                    { error -> ToastHelper.show(this@EditCardActivity, error.toString()) }
+                )
         dm.add(disposable)
     }
 }

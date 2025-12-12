@@ -2,21 +2,31 @@ package sdk.chat.demo.robot.activities
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
-import android.widget.RadioButton
 import android.widget.Switch
 import com.google.gson.Gson
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.ObservableOnSubscribe
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.Consumer
+import io.reactivex.schedulers.Schedulers
+import sdk.chat.core.utils.PermissionRequestHandler
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.SettingsActivity
+import sdk.chat.demo.robot.activities.SpeechToTextActivity
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.CardApiService
+import sdk.chat.demo.robot.handlers.CardGenerator.Companion.getInstance
 import sdk.chat.demo.robot.handlers.WallpaperConfig
+import sdk.chat.demo.robot.utils.WallpaperGuideUtil
+import sdk.chat.demo.robot.utils.WallpaperUtils
 
 
 class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnCheckedChangeListener {
@@ -106,9 +116,59 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
                     swClickable.isChecked, rbLock.isChecked, rbHome.isChecked, from, request.date
                 )
                 CardApiService.saveWallPaperConfig(config)
+                if (rbDynamic.isChecked) {
+                    onSetDynamic()
+                } else if (rbStatic.isChecked) {
+                    onSetStatic()
+                }
+                finish()
             }
 
         }
+    }
+
+    private fun onSetDynamic() {
+        WallpaperGuideUtil(this@SettingWallpaperActivity).guideToDirectlySetLiveWallpaper()
+    }
+
+    private fun onSetStatic() {
+        showProgressDialog("Setting...")
+        val disposable = PermissionRequestHandler
+            .requestWriteExternalStorage(this@SettingWallpaperActivity)
+            .andThen<Bitmap?>( // After permission is granted, execute the following operations
+                Observable.create<Bitmap?>(ObservableOnSubscribe { emitter: ObservableEmitter<Bitmap?>? ->
+                    getInstance()
+                        .generateBibleCard(
+                            applicationContext,
+                            R.layout.item_image_greeting,
+                            request,
+                            false,
+                            { result: Bitmap? ->
+                                emitter!!.onNext(result!!) // 发送成功结果
+                                emitter.onComplete() // 完成
+                                Unit
+                            }, { err: Throwable? ->
+                                emitter!!.onError(err!!)
+                                Unit
+                            })
+                })
+                    .subscribeOn(Schedulers.io())
+            )
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                Consumer { bitmap: Bitmap? ->
+                    if (bitmap != null) {
+                        WallpaperUtils(this@SettingWallpaperActivity).setHomeScreenWallpaper(bitmap)
+                    }
+                    bitmap?.recycle()
+                },
+                Consumer { e: Throwable? ->
+                    if (e != null) {
+                        onError(e)
+                    }
+                }
+            )
+        dm.add(disposable)
     }
 
     override fun onCheckedChanged(p0: CompoundButton?, isCheck: Boolean) {

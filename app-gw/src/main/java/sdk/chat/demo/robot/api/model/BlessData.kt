@@ -9,9 +9,8 @@ data class BlessData(
     var shareText: String
 )
 
-data class DailyItem(
-    val background: String,
-    val date: String,
-    val reference: String,
-    val verse: String
+data class ShareResult(
+    val url: String,
+    @SerializedName("share_text")
+    var shareText: String
 )

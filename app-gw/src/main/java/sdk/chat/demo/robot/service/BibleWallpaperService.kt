@@ -13,25 +13,19 @@ import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import io.reactivex.disposables.CompositeDisposable
 import org.json.JSONArray
 import org.json.JSONObject
-import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.BibleActivity
 import sdk.chat.demo.robot.api.ImageApi
-import sdk.chat.demo.robot.api.JsonCacheManager.get
-import sdk.chat.demo.robot.api.model.BibleData
+import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
+import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
+import sdk.chat.demo.robot.handlers.WallpaperConfig
 import java.util.concurrent.Executors
 import kotlin.random.Random
 
@@ -42,7 +36,7 @@ class BibleWallpaperService : WallpaperService() {
     }
 
     private inner class BibleWallpaperEngine : Engine() {
-
+        private val TAG = "BibleWallpaperEngine"
         private val handler = Handler(Looper.getMainLooper())
         private val drawRunnable = Runnable { drawFrame() }
         private val executor = Executors.newSingleThreadExecutor()
@@ -52,12 +46,7 @@ class BibleWallpaperService : WallpaperService() {
         private var width = 0
         private var height = 0
 
-        // 图片源管理
-        private val imageSources = mutableListOf<MutableList<String>>()
-
-        private var currentImageSourceIndex = 0
-        private var currentImageUrls = emptyList<String>()
-        private var currentImageIndex = 0
+        private var currentImageData: ImageDaily? = null
 
         // 时间控制
         private var lastImageChangeTime = System.currentTimeMillis()
@@ -65,18 +54,21 @@ class BibleWallpaperService : WallpaperService() {
         private val imageChangeInterval = 60 * 1000L // 1分钟切换图片
         private val sourceChangeInterval = 10 * 60 * 1000L // 10分钟切换图片源
 
-        // 图片缓存
-        private val imageCache = mutableMapOf<String, Bitmap>()
-        private val loadingUrls = mutableSetOf<String>()
-        private val imageDailyCache = mutableMapOf<String, ImageDaily>()
-
-        // 经文数据
-        private val bibleVerses = mutableListOf<BibleVerse>()
-        private var currentVerse: BibleVerse? = null
+//        // 图片缓存
+//        private val imageCache = mutableMapOf<String, Bitmap>()
+//        private val loadingUrls = mutableSetOf<String>()
+//        private val imageDailyCache = mutableMapOf<String, ImageDaily>()
+//
+//        // 经文数据
+//        private val bibleVerses = mutableListOf<BibleVerse>()
+//        private var currentVerse: BibleVerse? = null
 
         // 触摸区域
         private var verseRect: RectF? = null
         private var isVerseAreaTouched = false
+        private var wallpaperConfig: WallpaperConfig? = null
+
+        private val dm = CompositeDisposable()
 
         // 绘图工具
         private val textPaint = Paint().apply {
@@ -109,7 +101,7 @@ class BibleWallpaperService : WallpaperService() {
         override fun onVisibilityChanged(visible: Boolean) {
             this.visible = visible
 
-            Log.e("biblewallGlide", " onVisibilityChanged:${visible}")
+            Log.e(TAG, " onVisibilityChanged:${visible}")
             if (visible) {
                 initializeData()
                 drawFrame()
@@ -132,91 +124,90 @@ class BibleWallpaperService : WallpaperService() {
         /**
          * 初始化数据
          */
+        private var blessData: BlessData? = null
+        private var gwImages: List<ImageDaily> = emptyList()
+
         private fun initializeData() {
-            val imageDailyList = ImageApi.getImageDailyListCache()
-            if (imageDailyList != null) {
-                var imgs: MutableList<ImageDaily> = imageDailyList.imgs
-                var bgList: MutableList<String>? = null
-                imgs.forEachIndexed { index, element ->
-                    if (index % 3 == 0) {
-                        bgList = mutableListOf<String>()
-                        imageSources.add(bgList)
-                    }
-                    var reference = BibleData.parseScriptureReference(element.reference)
-                    bibleVerses.add(
-                        BibleVerse(
-                            book = reference.bookName,
-                            verseStart = reference.verseStart,
-                            verseEnd = reference.verseEnd,
-                            chapter = reference.chapterStart,
-                            text = element.scripture,
-                            translation = ""
-                        )
-                    )
-                    bgList?.add(element.backgroundUrl)
-                    imageDailyCache[element.backgroundUrl] = element
-                }
+            if (wallpaperConfig == null) {
+                wallpaperConfig = CardApiService.getWallPaperConfig();
+                Log.e(TAG, "get wallpaperConfig: ${Gson().toJson(wallpaperConfig)}")
+            } else {
+                Log.e(TAG, "skip get wallpaperConfig")
             }
-//            loadBibleVerses()
-            selectRandomVerse()
-            currentImageUrls = imageSources[currentImageSourceIndex]
-            preloadCurrentSourceImages()
+            var today = formatDayAgo(0)
+            var lastBless = blessData?.daily?.lastOrNull()
+            if (lastBless == null || today > lastBless.date) {
+                dm.add(CardApiService.getBlessData().subscribe { bless ->
+                    blessData = bless
+                    Log.e(TAG, "${today} get blessdata: ${bless?.font}")
+                    drawFrame()
+                })
+            }
+            dm.add(ImageApi.listImageDaily(today).subscribe { data ->
+                gwImages = data
+                Log.e(TAG, "$today get gwImages: ${gwImages.lastOrNull()?.date}")
+            })
+
+//            val imageDailyList = ImageApi.getImageDailyListCache()
+//            if (imageDailyList != null) {
+//                var imgs: MutableList<ImageDaily> = imageDailyList.imgs
+//                var bgList: MutableList<String>? = null
+//                imgs.forEachIndexed { index, element ->
+//                    if (index % 3 == 0) {
+//                        bgList = mutableListOf<String>()
+//                        imageSources.add(bgList)
+//                    }
+//                    var reference = BibleData.parseScriptureReference(element.reference)
+//                    bibleVerses.add(
+//                        BibleVerse(
+//                            book = reference.bookName,
+//                            verseStart = reference.verseStart,
+//                            verseEnd = reference.verseEnd,
+//                            chapter = reference.chapterStart,
+//                            text = element.scripture,
+//                            translation = ""
+//                        )
+//                    )
+//                    bgList?.add(element.backgroundUrl)
+//                    imageDailyCache[element.backgroundUrl] = element
+//                }
+//            }
+////            loadBibleVerses()
+//            selectRandomVerse()
+//            currentImageUrls = imageSources[currentImageSourceIndex]
+//            preloadCurrentSourceImages()
         }
 
-        /**
-         * 加载圣经经文
-         */
-        private fun loadBibleVerses() {
-            try {
-                val inputStream = assets.open("bible_verses.json")
-                val jsonString = inputStream.bufferedReader().use { it.readText() }
-                val jsonArray = JSONArray(jsonString)
+//        /**
+//         * 加载圣经经文
+//         */
+//        private fun loadBibleVerses() {
+//            try {
+//                val inputStream = assets.open("bible_verses.json")
+//                val jsonString = inputStream.bufferedReader().use { it.readText() }
+//                val jsonArray = JSONArray(jsonString)
+//
+//                for (i in 0 until jsonArray.length()) {
+//                    val jsonObject = jsonArray.getJSONObject(i)
+//                    val verse = BibleVerse(
+//                        book = jsonObject.getString("book"),
+//                        chapter = jsonObject.getInt("chapter"),
+//                        verseStart = jsonObject.getInt("verseStart"),
+//                        verseEnd = jsonObject.getInt("verseEnd"),
+//                        text = jsonObject.getString("text"),
+//                        translation = jsonObject.getString("translation")
+//                    )
+//                    bibleVerses.add(verse)
+//                }
+//
+//                selectRandomVerse()
+//
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                currentVerse = BibleVerse.getDefaultVerse()
+//            }
+//        }
 
-                for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-                    val verse = BibleVerse(
-                        book = jsonObject.getString("book"),
-                        chapter = jsonObject.getInt("chapter"),
-                        verseStart = jsonObject.getInt("verseStart"),
-                        verseEnd = jsonObject.getInt("verseEnd"),
-                        text = jsonObject.getString("text"),
-                        translation = jsonObject.getString("translation")
-                    )
-                    bibleVerses.add(verse)
-                }
-
-                selectRandomVerse()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                currentVerse = BibleVerse.getDefaultVerse()
-            }
-        }
-
-        /**
-         * 预加载当前图片源的图片
-         */
-        private fun preloadCurrentSourceImages() {
-            currentImageUrls.forEach { url ->
-                if (!isImageCached(url) && !loadingUrls.contains(url)) {
-                    loadImageWithGlide(url, true) // 预加载
-                }
-            }
-        }
-
-        /**
-         * 预加载下一个图片源
-         */
-        private fun preloadNextSourceImages() {
-            val nextSourceIndex = (currentImageSourceIndex + 1) % imageSources.size
-            val nextSourceUrls = imageSources[nextSourceIndex]
-
-            nextSourceUrls.forEach { url ->
-                if (!isImageCached(url) && !loadingUrls.contains(url)) {
-                    loadImageWithGlide(url, true)
-                }
-            }
-        }
 
         /**
          * 处理触摸事件
@@ -248,8 +239,8 @@ class BibleWallpaperService : WallpaperService() {
             try {
                 BibleActivity.start(
                     applicationContext,
-                    reference = "诗篇 36:7",
-                    fullscreen = true,
+                    reference = currentImageData?.reference ?: "",
+                    fullscreen = false,
                     newTask = true
                 )
             } catch (e: Exception) {
@@ -265,12 +256,12 @@ class BibleWallpaperService : WallpaperService() {
             val rectWidth = width - 2 * padding
             val rectHeight = 200f
 
-            verseRect = RectF(
-                padding,
-                height - rectHeight - padding - 200,
-                padding + rectWidth,
-                height - padding - 200
-            )
+//            verseRect = RectF(
+//                padding,
+//                height - rectHeight - padding - 200,
+//                padding + rectWidth,
+//                height - padding - 200
+//            )
         }
 
         private fun drawFrame() {
@@ -292,157 +283,40 @@ class BibleWallpaperService : WallpaperService() {
 
             handler.removeCallbacks(drawRunnable)
             if (visible) {
-                handler.postDelayed(drawRunnable, 20000)
+                handler.postDelayed(drawRunnable, 60000)
             }
         }
 
         private fun drawWallpaper(canvas: Canvas) {
-            checkAndChangeContent()
+//            checkAndChangeContent()
             drawBackgroundImage(canvas)
 //            drawBibleVerse(canvas)
 //            drawInfoText(canvas)
 
-            if (isVerseAreaTouched) {
-                drawTouchFeedback(canvas)
-            }
+//            if (isVerseAreaTouched) {
+//                drawTouchFeedback(canvas)
+//            }
         }
 
-        /**
-         * 检查并切换内容
-         */
-        private fun checkAndChangeContent() {
-            val currentTime = System.currentTimeMillis()
 
-            // 检查是否需要切换图片源
-            if (currentTime - lastSourceChangeTime >= sourceChangeInterval) {
-                switchToNextImageSource()
-                lastSourceChangeTime = currentTime
-            }
+//        /**
+//         * 随机选择经文
+//         */
+//        private fun selectRandomVerse() {
+//            if (bibleVerses.isNotEmpty()) {
+//                currentVerse = bibleVerses[Random.nextInt(bibleVerses.size)]
+//            } else {
+//                currentVerse = BibleVerse.getDefaultVerse()
+//            }
+//        }
 
-            // 检查是否需要切换图片
-            if (currentTime - lastImageChangeTime >= imageChangeInterval) {
-                switchToNextImage()
-                lastImageChangeTime = currentTime
-            }
-        }
 
-        /**
-         * 切换到下一个图片源
-         */
-        private fun switchToNextImageSource() {
-            currentImageSourceIndex = (currentImageSourceIndex + 1) % imageSources.size
-            currentImageUrls = imageSources[currentImageSourceIndex]
-            currentImageIndex = 0
-
-            // 预加载下一个图片源
-            preloadNextSourceImages()
-
-            // 选择新经文
-            selectRandomVerse()
-        }
-
-        /**
-         * 切换到下一张图片
-         */
-        private fun switchToNextImage() {
-            currentImageIndex = (currentImageIndex + 1) % currentImageUrls.size
-
-            // 预加载当前源的下一个图片
-            val nextIndex = (currentImageIndex + 1) % currentImageUrls.size
-            val nextUrl = currentImageUrls[nextIndex]
-            if (!isImageCached(nextUrl)) {
-                loadImageWithGlide(nextUrl, false)
-            }
-        }
-
-        /**
-         * 随机选择经文
-         */
-        private fun selectRandomVerse() {
-            if (bibleVerses.isNotEmpty()) {
-                currentVerse = bibleVerses[Random.nextInt(bibleVerses.size)]
+        private fun nextImageData(): ImageDaily? {
+            var ret = blessData?.daily?.random()
+            if (ret == null) {
+                return gwImages.random()
             } else {
-                currentVerse = BibleVerse.getDefaultVerse()
-            }
-        }
-
-        /**
-         * 使用Glide加载图片
-         */
-        private fun loadImageWithGlide(url: String, isPreload: Boolean) {
-            if (loadingUrls.contains(url)) return
-
-            loadingUrls.add(url)
-
-            handler.post {
-                Glide.with(applicationContext)
-                    .asBitmap()
-                    .load(url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(width, height)
-                    .listener(object : RequestListener<Bitmap> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Bitmap>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.e("biblewallGlide", e.toString())
-                            loadingUrls.remove(url)
-                            return false
-                        }
-
-                        override fun onResourceReady(
-                            resource: Bitmap?,
-                            model: Any?,
-                            target: Target<Bitmap>?,
-                            dataSource: DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.e("biblewallGlide", "onResourceReady ${resource == null}")
-                            loadingUrls.remove(url)
-                            resource?.let { bitmap ->
-                                Log.e(
-                                    "biblewallGlide",
-                                    "onResourceReady set cache ${bitmap.width}, ${url}"
-                                )
-
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    try {
-                                        var imageDetail = imageDailyCache[url]
-                                        if(imageDetail==null){
-                                            return@launch
-                                        }
-                                        val bitmap = CardGenerator.getInstance().captureLayoutAsync(
-                                            applicationContext,
-                                            R.layout.item_image_gw,
-                                            imageDetail,
-                                            false,
-                                            resource,
-                                        )
-                                        if (bitmap != null) {
-                                            imageCache[url] = bitmap
-                                            if (!isPreload) {
-                                                drawFrame() // 非预加载时请求重绘
-                                            }
-                                        } else {
-                                            Log.e("biblewallGlide","captureLayoutAsync failed bitmap==null")
-                                        }
-                                    } catch (e: Exception) {
-                                        Log.e("biblewallGlide","captureLayoutAsync failed ${e}")
-                                    }
-                                }
-
-
-//                                imageCache[url] = bitmap
-//                                if (!isPreload) {
-//                                    drawFrame() // 非预加载时请求重绘
-//                                }
-                            }
-                            return false
-                        }
-                    })
-                    .preload() // 预加载到缓存
+                return ret
             }
         }
 
@@ -450,71 +324,164 @@ class BibleWallpaperService : WallpaperService() {
          * 绘制背景图片
          */
         private fun drawBackgroundImage(canvas: Canvas) {
-            val currentUrl = currentImageUrls.getOrNull(currentImageIndex) ?: return
-            val bitmap = getCachedImage(currentUrl)
+            var request = nextImageData()
+            Log.e(
+                TAG,
+                "generateBibleCard  ${Thread.currentThread().name} ,${request?.date}, ${request?.backgroundUrl}"
+            )
+            if (request != null) {
+                var generator = CardGenerator.getInstance()
+                var resId =
+                    if (!request.greeting.isNullOrEmpty() && !request.fontUrl.isNullOrEmpty()) R.layout.item_image_greeting else R.layout.item_image_gw
+                var cacheKey = generator.getCacheKey(resId, request, false)
+                val bitmap = generator.getCacheBitmap(cacheKey)
+                val rect = generator.getCacheRect(cacheKey)
 
-            if (bitmap != null && !bitmap.isRecycled) {
-                // 绘制缓存的图片
-                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-                scaledBitmap.recycle()
-            } else {
-                Log.e(
-                    "biblewallGlide",
-                    "drawBackgroundImage getCachedImage ${currentUrl} ${bitmap == null},${bitmap?.isRecycled}"
-                )
-                // 绘制默认背景
-                drawDefaultBackground(canvas)
-
-                // 异步加载图片
-                if (!loadingUrls.contains(currentUrl)) {
-                    loadImageWithGlide(currentUrl, false)
+                if (bitmap != null && !bitmap.isRecycled) {
+                    // 绘制缓存的图片
+                    Log.e(
+                        TAG,
+                        "generateBibleCard  from cache ,${request.date},${rect}"
+                    )
+                    verseRect = rect
+                    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+                    canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+                    scaledBitmap.recycle()
+                    currentImageData = request
+                    return
                 }
-            }
-        }
 
-        /**
-         * 绘制默认背景
-         */
-        private fun drawDefaultBackground(canvas: Canvas) {
-//            val gradient = LinearGradient(
-//                0f, 0f, width.toFloat(), height.toFloat(),
-//                Color.parseColor("#2C3E50"), Color.parseColor("#3498DB"),
-//                Shader.TileMode.CLAMP
-//            )
-//            val paint = Paint().apply {
-//                shader = gradient
-//            }
-//            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+                generator.generateBibleCard(
+                    applicationContext,
+                    resId,
+                    request,
+                    false,
+                    { bitmap: Bitmap? ->
+                        Log.e(
+                            TAG,
+                            "generateBibleCard callback ${Thread.currentThread().name} ,${bitmap != null && !bitmap.isRecycled},$width,$height"
+                        )
+                        if (bitmap != null && !bitmap.isRecycled) {
+                            drawFrame()
+                        }
+                        Unit
+                    }, { err: Throwable? ->
+                        Log.e(
+                            TAG,
+                            "generateBibleCard ${err.toString()}"
+                        )
+                        Unit
+                    })
+            }
+
+//            val disposable = PermissionRequestHandler
+//                .requestWriteExternalStorage(this@SettingWallpaperActivity)
+//                .andThen<Bitmap?>( // After permission is granted, execute the following operations
+//                    Observable.create<Bitmap?>(ObservableOnSubscribe { emitter: ObservableEmitter<Bitmap?>? ->
+//                        getInstance()
+//                            .generateBibleCard(
+//                                applicationContext,
+//                                R.layout.item_image_greeting,
+//                                request,
+//                                false,
+//                                { result: Bitmap? ->
+//                                    emitter!!.onNext(result!!) // 发送成功结果
+//                                    emitter.onComplete() // 完成
+//                                    Unit
+//                                }, { err: Throwable? ->
+//                                    emitter!!.onError(err!!)
+//                                    Unit
+//                                })
+//                    })
+//                        .subscribeOn(Schedulers.io())
+//                )
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    Consumer { bitmap: Bitmap? ->
+//                        if (bitmap != null && !bitmap.isRecycled) {
+//                            // 绘制缓存的图片
+//                            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+//                            canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+//                            scaledBitmap.recycle()
+//                        }
+//                    },
+//                    Consumer { e: Throwable? ->
+//                        if (e != null) {
+//                            Log.e(
+//                                TAG,
+//                                "drawBackgroundImage getCachedImage ${currentUrl} ${bitmap == null},${bitmap?.isRecycled}"
+//                            )
+//                        }
+//                    }
+//                )
+//            dm.add(disposable)
+
+
+//            val currentUrl = currentImageUrls.getOrNull(currentImageIndex) ?: return
+//            val bitmap = getCachedImage(currentUrl)
 //
-//            // 显示加载信息
-//            textPaint.color = Color.WHITE
-//            textPaint.textSize = 36f
-//            canvas.drawText("加载精美图片中...", width / 2f, height / 2f, textPaint)
-            try {
-
-                val bitmap = BitmapFactory.decodeResource(
-                    resources,
-                    R.mipmap.bg_default
-                )
-
-                // 缩放图片以适应屏幕
-                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-
-                // 绘制图片
-                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-
-                // 添加半透明遮罩，让文字更清晰
-                canvas.drawColor(Color.argb(50, 0, 0, 0))
-
-                // 回收bitmap
-                scaledBitmap.recycle()
-                bitmap.recycle()
-            } catch (e: Exception) {
-                // 如果图片加载失败，绘制纯色背景
-                canvas.drawColor(getBackgroundColorByIndex(currentImageIndex))
-            }
+//            if (bitmap != null && !bitmap.isRecycled) {
+//                // 绘制缓存的图片
+//                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+//                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+//                scaledBitmap.recycle()
+//            } else {
+//                Log.e(
+//                    "biblewallGlide",
+//                    "drawBackgroundImage getCachedImage ${currentUrl} ${bitmap == null},${bitmap?.isRecycled}"
+//                )
+//                // 绘制默认背景
+//                drawDefaultBackground(canvas)
+//
+//                // 异步加载图片
+//                if (!loadingUrls.contains(currentUrl)) {
+//                    loadImageWithGlide(currentUrl, false)
+//                }
+//            }
         }
+
+//        /**
+//         * 绘制默认背景
+//         */
+//        private fun drawDefaultBackground(canvas: Canvas) {
+////            val gradient = LinearGradient(
+////                0f, 0f, width.toFloat(), height.toFloat(),
+////                Color.parseColor("#2C3E50"), Color.parseColor("#3498DB"),
+////                Shader.TileMode.CLAMP
+////            )
+////            val paint = Paint().apply {
+////                shader = gradient
+////            }
+////            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+////
+////            // 显示加载信息
+////            textPaint.color = Color.WHITE
+////            textPaint.textSize = 36f
+////            canvas.drawText("加载精美图片中...", width / 2f, height / 2f, textPaint)
+//            try {
+//
+//                val bitmap = BitmapFactory.decodeResource(
+//                    resources,
+//                    R.mipmap.bg_default
+//                )
+//
+//                // 缩放图片以适应屏幕
+//                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+//
+//                // 绘制图片
+//                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+//
+//                // 添加半透明遮罩，让文字更清晰
+//                canvas.drawColor(Color.argb(50, 0, 0, 0))
+//
+//                // 回收bitmap
+//                scaledBitmap.recycle()
+//                bitmap.recycle()
+//            } catch (e: Exception) {
+//                // 如果图片加载失败，绘制纯色背景
+//                canvas.drawColor(getBackgroundColorByIndex(currentImageIndex))
+//            }
+//        }
 
         private fun getBackgroundColorByIndex(index: Int): Int {
             return when (index % 5) {
@@ -527,53 +494,53 @@ class BibleWallpaperService : WallpaperService() {
             }
         }
 
-        /**
-         * 绘制圣经经文
-         */
-        private fun drawBibleVerse(canvas: Canvas) {
-            val verse = currentVerse ?: return
-            val rect = verseRect ?: return
+//        /**
+//         * 绘制圣经经文
+//         */
+//        private fun drawBibleVerse(canvas: Canvas) {
+//            val verse = currentVerse ?: return
+//            val rect = verseRect ?: return
+//
+//            // 绘制背景
+//            canvas.drawRoundRect(rect, 20f, 20f, backgroundPaint)
+//            canvas.drawRoundRect(rect, 20f, 20f, borderPaint)
+//
+//            // 绘制经文
+//            textPaint.color = Color.WHITE
+//            textPaint.textSize = 36f
+//            textPaint.textAlign = Paint.Align.CENTER
+//
+//            drawMultilineText(canvas, verse.getDisplayText(), rect)
+//
+////            // 绘制引用
+////            textPaint.textSize = 24f
+////            textPaint.color = Color.LTGRAY
+////            canvas.drawText(
+////                "${verse.book} ${verse.chapter}:${verse.verseStart}-${verse.verseEnd} (${verse.translation})",
+////                rect.centerX(),
+////                rect.bottom - 480f,
+////                textPaint
+////            )
+//        }
 
-            // 绘制背景
-            canvas.drawRoundRect(rect, 20f, 20f, backgroundPaint)
-            canvas.drawRoundRect(rect, 20f, 20f, borderPaint)
-
-            // 绘制经文
-            textPaint.color = Color.WHITE
-            textPaint.textSize = 36f
-            textPaint.textAlign = Paint.Align.CENTER
-
-            drawMultilineText(canvas, verse.getDisplayText(), rect)
-
-//            // 绘制引用
-//            textPaint.textSize = 24f
-//            textPaint.color = Color.LTGRAY
-//            canvas.drawText(
-//                "${verse.book} ${verse.chapter}:${verse.verseStart}-${verse.verseEnd} (${verse.translation})",
-//                rect.centerX(),
-//                rect.bottom - 480f,
-//                textPaint
-//            )
-        }
-
-        /**
-         * 绘制信息文本
-         */
-        private fun drawInfoText(canvas: Canvas) {
-            val currentTime = System.currentTimeMillis()
-            val nextImageTime = (imageChangeInterval - (currentTime - lastImageChangeTime)) / 1000
-            val nextSourceTime =
-                (sourceChangeInterval - (currentTime - lastSourceChangeTime)) / 1000
-
-            val infoText = "图片源 ${currentImageSourceIndex + 1}/${imageSources.size} | " +
-                    "下张图片: ${nextImageTime}s | " +
-                    "切换主题: ${nextSourceTime / 60}m"
-
-            infoPaint.color = Color.argb(150, 255, 255, 255)
-            canvas.drawText(infoText, width - 20f, 40f, infoPaint.apply {
-                textAlign = Paint.Align.RIGHT
-            })
-        }
+//        /**
+//         * 绘制信息文本
+//         */
+//        private fun drawInfoText(canvas: Canvas) {
+//            val currentTime = System.currentTimeMillis()
+//            val nextImageTime = (imageChangeInterval - (currentTime - lastImageChangeTime)) / 1000
+//            val nextSourceTime =
+//                (sourceChangeInterval - (currentTime - lastSourceChangeTime)) / 1000
+//
+//            val infoText = "图片源 ${currentImageSourceIndex + 1}/${imageSources.size} | " +
+//                    "下张图片: ${nextImageTime}s | " +
+//                    "切换主题: ${nextSourceTime / 60}m"
+//
+//            infoPaint.color = Color.argb(150, 255, 255, 255)
+//            canvas.drawText(infoText, width - 20f, 40f, infoPaint.apply {
+//                textAlign = Paint.Align.RIGHT
+//            })
+//        }
 
         /**
          * 绘制多行文本
@@ -632,19 +599,19 @@ class BibleWallpaperService : WallpaperService() {
             canvas.drawRoundRect(rect, 20f, 20f, highlightPaint)
         }
 
-        /**
-         * 获取缓存的图片
-         */
-        private fun getCachedImage(url: String): Bitmap? {
-            return imageCache[url]
-        }
-
-        /**
-         * 检查图片是否已缓存
-         */
-        private fun isImageCached(url: String): Boolean {
-            return imageCache.containsKey(url)
-        }
+//        /**
+//         * 获取缓存的图片
+//         */
+//        private fun getCachedImage(url: String): Bitmap? {
+//            return imageCache[url]
+//        }
+//
+//        /**
+//         * 检查图片是否已缓存
+//         */
+//        private fun isImageCached(url: String): Boolean {
+//            return imageCache.containsKey(url)
+//        }
 
         override fun onDestroy() {
             super.onDestroy()
@@ -653,9 +620,10 @@ class BibleWallpaperService : WallpaperService() {
             handler.removeCallbacks(drawRunnable)
             executor.shutdown()
 
-            // 清理缓存
-            imageCache.clear()
-            loadingUrls.clear()
+//            // 清理缓存
+//            imageCache.clear()
+//            loadingUrls.clear()
+            dm.clear()
         }
     }
 

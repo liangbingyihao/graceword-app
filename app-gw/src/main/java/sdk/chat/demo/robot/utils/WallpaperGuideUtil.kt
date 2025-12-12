@@ -32,6 +32,18 @@ class WallpaperGuideUtil(private val context: Context) {
     }
 
     /**
+     * 引导用户设置动态壁纸（完整流程）
+     */
+    fun guideToDirectlySetLiveWallpaper() {
+        if (!isLiveWallpaperSupported(context)) {
+            showUnsupportedDialog()
+            return
+        }
+
+        setDirectly()
+    }
+
+    /**
      * 显示壁纸选择对话框
      */
     private fun showWallpaperSelectionDialog() {

@@ -103,7 +103,6 @@ public class ImageApi {
     }
 
     public static ImageDailyList getImageDailyListCache() {
-
         String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_IMG_DAILY);
         return cachedData != null ? gson.fromJson(cachedData, ImageDailyList.class) : null;
     }
