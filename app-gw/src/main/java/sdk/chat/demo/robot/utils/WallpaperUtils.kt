@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.Toast
+import sdk.chat.demo.pre.R
 
 class WallpaperUtils(private val context: Context) {
 
@@ -21,16 +22,16 @@ class WallpaperUtils(private val context: Context) {
         }
     }
 
-    // 设置主屏幕壁纸
-    fun setHomeScreenWallpaper(bitmap: Bitmap): Boolean {
+    // 设置屏幕壁纸
+    fun setScreenWallpaper(bitmap: Bitmap,which:Int): Boolean {
         return try {
             val wallpaperManager = WallpaperManager.getInstance(context)
-            wallpaperManager.setBitmap(bitmap)
-            Toast.makeText(context, "主屏壁纸设置成功", Toast.LENGTH_SHORT).show()
+            wallpaperManager.setBitmap(bitmap, null, true,which)
+            Toast.makeText(context, context.getString(R.string.set_wallpaper_success), Toast.LENGTH_SHORT).show()
             true
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(context, "设置失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.failed_and_retry), Toast.LENGTH_SHORT).show()
             false
         }
     }

@@ -187,20 +187,20 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                     .requestWriteExternalStorage(weakContext.get())
                     .andThen( // After permission is granted, execute the following operations
                             Observable.<Bitmap>create(emitter -> {
-                                        CardGenerator.Companion.getInstance()
-                                                .generateBibleCard(view.getContext(),
-                                                        resId,
-                                                        imageDaily,
-                                                        true,
-                                                        result -> {
-                                                            emitter.onNext(result); // 发送成功结果
-                                                            emitter.onComplete(); // 完成
-                                                            return Unit.INSTANCE;
+                                        CardGenerator.INSTANCE.generateBibleCard(view.getContext(),
+                                                resId,
+                                                imageDaily,
+                                                true,
+                                                false,
+                                                result -> {
+                                                    emitter.onNext(result); // 发送成功结果
+                                                    emitter.onComplete(); // 完成
+                                                    return Unit.INSTANCE;
 
-                                                        }, err -> {
-                                                            emitter.onError(err);
-                                                            return Unit.INSTANCE;
-                                                        });
+                                                }, err -> {
+                                                    emitter.onError(err);
+                                                    return Unit.INSTANCE;
+                                                });
 
                                     })
                                     .subscribeOn(Schedulers.io())
@@ -243,7 +243,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
 //            ImageDaily imageDaily = imageHolder.getImageDaily();
             if (resId == R.layout.item_image_gw) {
                 if (imageDaily != null) {
-                    ImageViewerActivity.Companion.start(this.weakContext.get(), imageDaily.getDate(),"fullscreen");
+                    ImageViewerActivity.Companion.start(this.weakContext.get(), imageDaily.getDate(), "fullscreen");
                 }
             } else if (imageDaily != null) {
                 ImageMessageOnClickHandler.onClick(this.weakContext.get(), view, imageDaily.getBackgroundUrl(), imageDaily.getScripture());
@@ -253,7 +253,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                     "mod_msg_interact", List.of(
                             new KeyValuePair("interact_action", "30")
                     ));
-            if (BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(),"tts")) {
+            if (BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(), "tts")) {
                 return;
             }
             if (imessage.getClass() == TextHolder.class && message != null) {
@@ -328,21 +328,24 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
             if (imessage.getClass() == TextHolder.class && message != null) {
                 Context context = this.weakContext.get();
                 ActivityExtensionsKt.showMaterialConfirmationDialog(context, context.getString(R.string.delete_confirm), null, null, () -> {
-                    Single<Boolean> r = id == R.id.btn_del ? threadHandler.clearFeedbackText(message) : threadHandler.clearUserText(message);
-                    weakContext.get().onSubscribe(r.observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(result -> {
-                                        if (!result) {
-                                            ToastHelper.show(
-                                                    weakContext.get(),
-                                                    weakContext.get().getString(R.string.failed_and_retry)
-                                            );
-                                        }
-                                    },
-                                    error -> {
-                                        weakContext.get().onError(error);
-                                    }));
-                    return Unit.INSTANCE;
-                });
+                            Single<Boolean> r = id == R.id.btn_del ? threadHandler.clearFeedbackText(message) : threadHandler.clearUserText(message);
+                            weakContext.get().onSubscribe(r.observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(result -> {
+                                                if (!result) {
+                                                    ToastHelper.show(
+                                                            weakContext.get(),
+                                                            weakContext.get().getString(R.string.failed_and_retry)
+                                                    );
+                                                }
+                                            },
+                                            error -> {
+                                                weakContext.get().onError(error);
+                                            }));
+                            return Unit.INSTANCE;
+                        },
+                        () -> {
+                            return Unit.INSTANCE;
+                        });
 
             }
         } else if (id == R.id.btn_like_ai || id == R.id.btn_like_user_text) {
@@ -377,12 +380,12 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
             }
         } else if (id == R.id.btn_redo) {
             LogUploader.reportEvent(
-                "mod_msg_interact", List.of(
-                        new KeyValuePair("interact_action", "50")
-                ));
+                    "mod_msg_interact", List.of(
+                            new KeyValuePair("interact_action", "50")
+                    ));
             if (imessage.getClass() == TextHolder.class) {
                 if (!LimitCounter.INSTANCE.canPerformAction(ActionConfig.DAILY_MSG)) {
-                    BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(),"reply_limit");
+                    BillingManager.Companion.getInstance().tryToPay(this.weakContext.get(), "reply_limit");
                     ToastHelper.show(weakContext.get(), R.string.hint_vip_text_empty);
                     return;
                 }
@@ -438,7 +441,7 @@ public class GWClickListener<MESSAGE extends IMessage> implements ChatAdapter.On
                 view.setVisibility(View.VISIBLE);
             }).subscribe(weakContext.get());
         } else if (id == R.id.vip_bible_pic || id == R.id.bt_start_vip) {
-            BillingActivity.Companion.start(weakContext.get(), "verse_image",false);
+            BillingActivity.Companion.start(weakContext.get(), "verse_image", false);
         }
     }
 }

@@ -15,6 +15,7 @@ import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.extensions.FirebaseReport;
 import sdk.chat.demo.robot.extensions.TinyLoggerManager;
+import sdk.chat.demo.robot.handlers.CardApiService;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.push.UpdateTokenWorker;
@@ -130,6 +131,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 
         bibleDBManager = DynamicBibleDatabaseManager.Companion.getInstance(this);
         bibleDBManager.initialize(this);
+        CardApiService.INSTANCE.setLauncherStep(CardApiService.LauncherStep.INIT);
 
         LogUploader.reportEvent(
                 "app_launch", List.of(

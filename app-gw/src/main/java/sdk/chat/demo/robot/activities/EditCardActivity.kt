@@ -32,8 +32,6 @@ import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import sdk.chat.core.utils.PermissionRequestHandler
@@ -44,14 +42,14 @@ import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.extensions.ImageSaveUtils
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardApiService.shareCardWithBitmap
-import sdk.chat.demo.robot.handlers.CardGenerator.Companion.getInstance
+import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.utils.AdvancedChineseEnglishFilter
 import sdk.chat.demo.robot.utils.FontManager
-import sdk.chat.demo.robot.utils.FontUtils
+import sdk.chat.demo.robot.utils.SocialShareUtils
 import sdk.chat.demo.robot.utils.ToastHelper
 
 class EditCardActivity : BaseActivity(), View.OnClickListener {
-    private val TAG: String = "EditCardActivity1"
+    private val TAG: String = "EditCardActivity"
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
     private lateinit var adapter: ImagePagerAdapter
@@ -144,6 +142,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
 
         loadData()
         setupTextWatcher()
+
     }
 
 
@@ -186,7 +185,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                 // 文本变化时调用
 
                 // 实时更新TextView
-                messageInput.setText(s.toString())
+                messageInput.text = s.toString()
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -261,8 +260,12 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
             }
 
             R.id.editHint -> {
+                inputContainer.visibility = View.VISIBLE
                 messageInput1.requestFocus()
-                showKeyboard()
+                messageInput1.postDelayed({
+                    Log.e(TAG, "editHint:showKeyboard()")
+                    showKeyboard()
+                }, 50)
             }
 
             R.id.switch_greeting -> {
@@ -285,7 +288,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                 if (vid == R.id.wallpaper) {
                     SettingWallpaperActivity.start(
                         this@EditCardActivity,
-                        "card",
+                        CardApiService.FROM_CARD,
                         (Gson()).toJson(imageDaily, ImageDaily::class.java)
                     )
                 } else if (vid == R.id.btn_share_image) {
@@ -361,20 +364,20 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
             .requestWriteExternalStorage(this@EditCardActivity)
             .andThen<Bitmap?>( // After permission is granted, execute the following operations
                 Observable.create<Bitmap?>(ObservableOnSubscribe { emitter: ObservableEmitter<Bitmap?>? ->
-                    getInstance()
-                        .generateBibleCard(
-                            this@EditCardActivity,
-                            R.layout.item_image_greeting,
-                            imageDaily,
-                            true,
-                            { result: Bitmap? ->
-                                emitter!!.onNext(result!!) // 发送成功结果
-                                emitter.onComplete() // 完成
-                                Unit
-                            }, { err: Throwable? ->
-                                emitter!!.onError(err!!)
-                                Unit
-                            })
+                    CardGenerator.generateBibleCard(
+                        this@EditCardActivity,
+                        R.layout.item_image_greeting,
+                        imageDaily,
+                        true,
+                        false,
+                        { result: Bitmap? ->
+                            emitter!!.onNext(result!!) // 发送成功结果
+                            emitter.onComplete() // 完成
+                            Unit
+                        }, { err: Throwable? ->
+                            emitter!!.onError(err!!)
+                            Unit
+                        })
                 })
                     .subscribeOn(Schedulers.io())
             )
@@ -393,17 +396,7 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                                 this@EditCardActivity,
                                 getString(R.string.image_saved)
                             )
-//                        if (id == R.id.btn_share_image) {
-//                            val shareIntent = Intent(Intent.ACTION_SEND)
-//                            shareIntent.setType("image/*") // 或具体类型如 "image/jpeg"
-//                            shareIntent.putExtra(Intent.EXTRA_STREAM, bitmapURL)
-//                            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // 临时权限
-//
-//                            weakContext.get()
-//                                .startActivity(Intent.createChooser(shareIntent, "分享图片"))
-//                        } else {
-//                            WallpaperUtils(this@EditCardActivity).setHomeScreenWallpaper(bitmap)
-//                        }
+
                         } else {
                             ToastHelper.show(
                                 this@EditCardActivity,
@@ -425,22 +418,26 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
     private fun share(imageDaily: ImageDaily) {
         val disposable =
             Observable.create<Bitmap> { emitter ->
-                getInstance()
-                    .generateBibleCard(
-                        this@EditCardActivity,
-                        R.layout.item_image_greeting,
-                        imageDaily,
-                        false,
-                        { result: Bitmap? ->
-                            emitter.onNext(result!!) // 发送成功结果
+                CardGenerator.generateBibleCard(
+                    this@EditCardActivity,
+                    R.layout.item_image_greeting,
+                    imageDaily,
+                    false,
+                    false,
+                    { result: Bitmap? ->
+                        if (result != null && !result.isRecycled) {
+                            emitter.onNext(result) // 发送成功结果
                             emitter.onComplete() // 完成
-                            Unit
-                        }, { err: Throwable? ->
-                            emitter.onError(err!!)
-                            Unit
-                        })
+                        } else {
+                            emitter.onError(IllegalStateException("generate card failed"))
+                        }
+                        Unit
+                    }, { err: Throwable? ->
+                        emitter.onError(err ?: IllegalStateException("generate card failed"))
+                        Unit
+                    })
             }.flatMap { bitmap: Bitmap ->
-                shareCardWithBitmap(bitmap, "words").toObservable().doFinally {
+                shareCardWithBitmap(bitmap, imageDaily.greeting).toObservable().doFinally {
                     // 关键：在 finally 中回收 Bitmap
                     if (!bitmap.isRecycled) {
                         bitmap.recycle()
@@ -449,7 +446,28 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                 }
             }
                 .subscribe(
-                    { result -> Log.e(TAG, result.url) },
+                    { result ->
+                        Log.e(TAG, result.url)
+
+                        SocialShareUtils.showCustomShareDialog(
+                            this,
+                            SocialShareUtils.targetApps,
+                            result.shareText,
+                            null,
+                            result.url
+                        )
+                        //                        if (id == R.id.btn_share_image) {
+//                            val shareIntent = Intent(Intent.ACTION_SEND)
+//                            shareIntent.setType("image/*") // 或具体类型如 "image/jpeg"
+//                            shareIntent.putExtra(Intent.EXTRA_STREAM, bitmapURL)
+//                            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // 临时权限
+//
+//                            weakContext.get()
+//                                .startActivity(Intent.createChooser(shareIntent, "分享图片"))
+//                        } else {
+//                            WallpaperUtils(this@EditCardActivity).setHomeScreenWallpaper(bitmap)
+//                        }
+                    },
                     { error -> ToastHelper.show(this@EditCardActivity, error.toString()) }
                 )
         dm.add(disposable)

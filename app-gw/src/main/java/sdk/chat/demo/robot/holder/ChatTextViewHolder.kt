@@ -59,11 +59,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         itemView.findViewById(R.id.session_container)
     open var sessionName: TextView? = itemView.findViewById(R.id.session_name)
 
-    //    open val btnFavorite: IconicsImageView? =
-//        itemView.findViewById(R.id.btn_favorite)
-//    open val btnDelete: IconicsImageView? = itemView.findViewById(R.id.btn_delete)
-    open val btnPlay: ImageView? =
-        itemView.findViewById(R.id.btn_play)
+//    open val btnPlay: ImageView? =
+//        itemView.findViewById(R.id.btn_play)
     open val feedbackMenu: View? = itemView.findViewById(R.id.feedback_menu)
     open val contentMenu: View? = itemView.findViewById(R.id.user_text_menu)
 
@@ -165,11 +162,11 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             imageLikeContent?.setImageResource(R.mipmap.ic_like_black)
         }
 
-        if (t.message.equals(TTSHelper.getPlayingMsg()) && !TTSHelper.isPlayerPaused()) {
-            btnPlay?.setImageResource(R.mipmap.ic_pause_black);
-        } else {
-            btnPlay?.setImageResource(R.mipmap.ic_play_black);
-        }
+//        if (t.message.equals(TTSHelper.getPlayingMsg()) && !TTSHelper.isPlayerPaused()) {
+//            btnPlay?.setImageResource(R.mipmap.ic_pause_black);
+//        } else {
+//            btnPlay?.setImageResource(R.mipmap.ic_play_black);
+//        }
 
         bindSendStatus(t)
 
@@ -333,7 +330,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if (v == null) {
             return
         }
-        val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_play, R.id.btn_share_text, R.id.btn_redo, R.id.btn_del)
+        val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_share_text, R.id.btn_redo, R.id.btn_del)
         for (i in ids) {
             var sv = v.findViewById<View>(i)
             if (sv == null || sv.visibility == visible) {

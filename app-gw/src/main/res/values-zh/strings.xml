@@ -181,4 +181,22 @@
     <string name="customize_blessings">定制祝福语</string>
     <string name="click">点击</string>
     <string name="switch_or_customize_blessings">切换, 或自定义圣诞祝福语</string>
+
+    <string name="other_apps">其他应用</string>
+    <string name="share_to">分享到</string>
+    <string name="share_prefix">来自恩语分享：</string>
+    <string name="restore_wallpaper_message">恩语长期不用被系统强行关闭。\n请点击“一键设置”恢复动态经文壁纸</string>
+    <string name="one_click_setup">一键设置</string>
+    <string name="skip">跳过</string>
+
+    <string name="wallpaper_display_hint">因机型差异，实际壁纸显示可能与所选锁屏或主屏幕设置不一致</string>
+    <string name="dynamic_wallpaper">动态壁纸</string>
+    <string name="one_click_reading">一键读经</string>
+    <string name="reading_feature_desc">点击经文内容可快速阅读对应经文章节</string>
+    <string name="static_wallpaper">静态壁纸</string>
+    <string name="static_wallpaper_desc">经文不可点击，需手动更新壁纸</string>
+    <string name="home_screen">主屏幕</string>
+    <string name="lock_screen">锁屏</string>
+    <string name="set_wallpaper_success">设置壁纸成功</string>
+    <string name="set_wallpaper">设置壁纸</string>
 </resources>

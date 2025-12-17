@@ -17,8 +17,8 @@ public class ImageDaily {
     private String backgroundUrl;
     private ArrayList<String> explore;
 
-    private String greeting;
-    private String fontUrl;
+    private String greeting="";
+    private String fontUrl="";
 //    private ArrayList<String> prompt;
 
 
@@ -99,7 +99,7 @@ public class ImageDaily {
     }
 
     public String getGreeting() {
-        return greeting;
+        return greeting==null?"":greeting;
     }
 
     public void setGreeting(String greeting) {
@@ -107,7 +107,7 @@ public class ImageDaily {
     }
 
     public String getFontUrl() {
-        return fontUrl;
+        return fontUrl==null?"":fontUrl;
     }
 
     public void setFontUrl(String fontUrl) {

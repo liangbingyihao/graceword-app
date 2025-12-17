@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class SocialShareUtils {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
 
         // 同时支持文本和图片
-        shareIntent.setType("*/*");
+        shareIntent.setType("text/plain");
 
 //        // 构建HTML内容
 //        String fullHtml = "<!DOCTYPE html><html><head><meta property=\"og:title\" content=\"" + title + "\">" +
@@ -45,7 +46,7 @@ public class SocialShareUtils {
 //        // 纯文本版本
 //        String fullPlainText = title + "\n\n" + plainText + "\n\n查看更多: https://www.google.com/";
         // 纯文本版本
-        String title = "恩语分享";
+        String title = context.getString(R.string.share_prefix);
         String fullPlainText = title + "\n\n" + text + "\n\n" + dstUrl;
 
         shareIntent.putExtra(Intent.EXTRA_TEXT, fullPlainText);
@@ -65,7 +66,7 @@ public class SocialShareUtils {
 //        }
 
         try {
-            context.startActivity(Intent.createChooser(shareIntent, "分享到"));
+            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_to)));
         } catch (Exception e) {
             Toast.makeText(context, "分享失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -145,13 +146,14 @@ public class SocialShareUtils {
         {
             AppInfo app = new AppInfo();
             app.packageName = "System";
-            app.name = "Other";
+            app.name = context.getString(R.string.other_apps);
+            app.icon = ContextCompat.getDrawable(context, R.drawable.ic_three_dots_min);
             appList.add(app);
         }
 
         // 创建自定义对话框
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("分享到");
+        builder.setTitle(context.getString(R.string.share_to));
 
         // 创建适配器
         ArrayAdapter<AppInfo> adapter = new ArrayAdapter<AppInfo>(
@@ -290,7 +292,7 @@ public class SocialShareUtils {
 //                "</head><body>" + html + "</body></html>";
 
         // 纯文本版本
-        String title = "恩语分享";
+        String title = context.getString(R.string.share_prefix);
         String fullPlainText = "\n" + text + "\n\n" + dstUrl;
 
         intent.putExtra(Intent.EXTRA_TEXT, fullPlainText);

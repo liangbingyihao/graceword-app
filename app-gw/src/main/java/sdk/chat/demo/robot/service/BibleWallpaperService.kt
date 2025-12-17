@@ -1,12 +1,9 @@
 package sdk.chat.demo.robot.service
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.service.wallpaper.WallpaperService
@@ -15,10 +12,16 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import com.google.gson.Gson
 import io.reactivex.disposables.CompositeDisposable
-import org.json.JSONArray
+import io.reactivex.functions.Consumer
 import org.json.JSONObject
+import org.pmw.tinylog.Logger
+import sdk.chat.core.events.EventType
+import sdk.chat.core.events.NetworkEvent
+import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.BibleActivity
+import sdk.chat.demo.robot.activities.EditCardActivity
+import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
@@ -26,17 +29,31 @@ import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
+import sdk.chat.demo.robot.utils.ToastHelper
 import java.util.concurrent.Executors
-import kotlin.random.Random
 
 class BibleWallpaperService : WallpaperService() {
+    private val TAG = "BibleWallpaperEngine"
+    private var isClikable: Boolean = false
+    private var wallpaperConfig: WallpaperConfig? = null
+    private val dm = CompositeDisposable()
 
     override fun onCreateEngine(): Engine {
         return BibleWallpaperEngine()
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        Log.e(TAG, "onCreate")
+        dm.add(
+            ChatSDK.events().sourceOnMain()
+                .filter(NetworkEvent.filterType(EventType.WallpaperConfigChange)).subscribe(Consumer {
+                    Log.e(TAG, " WallpaperConfigChange")
+                })
+        )
+    }
+
     private inner class BibleWallpaperEngine : Engine() {
-        private val TAG = "BibleWallpaperEngine"
         private val handler = Handler(Looper.getMainLooper())
         private val drawRunnable = Runnable { drawFrame() }
         private val executor = Executors.newSingleThreadExecutor()
@@ -66,37 +83,16 @@ class BibleWallpaperService : WallpaperService() {
         // 触摸区域
         private var verseRect: RectF? = null
         private var isVerseAreaTouched = false
-        private var wallpaperConfig: WallpaperConfig? = null
 
-        private val dm = CompositeDisposable()
+//        // 绘图工具
+//        private val textPaint = Paint().apply {
+//            isAntiAlias = true
+//            color = Color.WHITE
+//            textSize = 48f
+//            typeface = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
+//            textAlign = Paint.Align.CENTER
+//        }
 
-        // 绘图工具
-        private val textPaint = Paint().apply {
-            isAntiAlias = true
-            color = Color.WHITE
-            textSize = 48f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
-            textAlign = Paint.Align.CENTER
-        }
-
-        private val backgroundPaint = Paint().apply {
-            color = Color.argb(150, 0, 0, 0)
-            style = Paint.Style.FILL
-            isAntiAlias = true
-        }
-
-        private val borderPaint = Paint().apply {
-            color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-            isAntiAlias = true
-        }
-
-        private val infoPaint = Paint().apply {
-            color = Color.WHITE
-            textSize = 24f
-            isAntiAlias = true
-        }
 
         override fun onVisibilityChanged(visible: Boolean) {
             this.visible = visible
@@ -128,25 +124,44 @@ class BibleWallpaperService : WallpaperService() {
         private var gwImages: List<ImageDaily> = emptyList()
 
         private fun initializeData() {
-            if (wallpaperConfig == null) {
-                wallpaperConfig = CardApiService.getWallPaperConfig();
-                Log.e(TAG, "get wallpaperConfig: ${Gson().toJson(wallpaperConfig)}")
-            } else {
-                Log.e(TAG, "skip get wallpaperConfig")
+            var lastConfig = wallpaperConfig
+
+            wallpaperConfig = CardApiService.getWallPaperConfig();
+            isClikable = wallpaperConfig?.isReadScriptureEnabled == true
+            Log.e(TAG, "get wallpaperConfig: ${Gson().toJson(wallpaperConfig)}")
+            if(lastConfig!=null){
+                if(lastConfig.date!= wallpaperConfig?.date||lastConfig.greeting!=wallpaperConfig?.greeting){
+                    Log.e(TAG, "get wallpaperConfig and reset cache")
+                    currentImageData=null
+                }
             }
+
             var today = formatDayAgo(0)
             var lastBless = blessData?.daily?.lastOrNull()
             if (lastBless == null || today > lastBless.date) {
-                dm.add(CardApiService.getBlessData().subscribe { bless ->
+                dm.add(CardApiService.getBlessData().subscribe({ bless ->
                     blessData = bless
-                    Log.e(TAG, "${today} get blessdata: ${bless?.font}")
-                    drawFrame()
-                })
+                    Log.e(TAG, "${today} get blessdata: ${bless?.daily?.lastOrNull()?.date}")
+                    Logger.error("${TAG}:${today} get blessdata: ${bless?.font}")
+                    if (currentImageData == null && blessData != null) {
+                        drawFrame()
+                    }
+                },
+                    Consumer { e: Throwable? ->
+                        Log.e(TAG, "${today} get blessdata error: ${e.toString()}")
+                    }))
             }
-            dm.add(ImageApi.listImageDaily(today).subscribe { data ->
+            dm.add(ImageApi.listImageDaily(today).subscribe ({ data ->
                 gwImages = data
-                Log.e(TAG, "$today get gwImages: ${gwImages.lastOrNull()?.date}")
-            })
+//                Log.e(TAG, "$today get gwImages: ${gwImages?.lastOrNull()?.date}")
+                Logger.error("${TAG}:$today get gwImages: ${gwImages.lastOrNull()?.date}")
+                if (currentImageData == null) {
+                    drawFrame()
+                }
+            },
+                Consumer { e: Throwable? ->
+                    Log.e(TAG, "${today} get listImageDaily error: ${e.toString()}")
+                }))
 
 //            val imageDailyList = ImageApi.getImageDailyListCache()
 //            if (imageDailyList != null) {
@@ -217,16 +232,15 @@ class BibleWallpaperService : WallpaperService() {
                 MotionEvent.ACTION_DOWN -> {
                     val x = event.x
                     val y = event.y
-                    isVerseAreaTouched = verseRect?.contains(x, y) == true
-                    Log.e("biblewallGlide", " ACTION_DOWN isVerseAreaTouched:${isVerseAreaTouched}")
+                    isVerseAreaTouched = isClikable && verseRect?.contains(x, y) == true
                 }
 
                 MotionEvent.ACTION_UP -> {
                     if (isVerseAreaTouched) {
+                        Log.e("isVerseAreaTouched", "isVerseAreaTouched...")
                         handleVerseClick()
                     }
                     isVerseAreaTouched = false
-                    Log.e("biblewallGlide", " ACTION_UP isVerseAreaTouched:${isVerseAreaTouched}")
                 }
             }
 //            drawFrame()
@@ -237,11 +251,9 @@ class BibleWallpaperService : WallpaperService() {
          */
         private fun handleVerseClick() {
             try {
-                BibleActivity.start(
+                MainDrawerActivity.startBibleActivity(
                     applicationContext,
                     reference = currentImageData?.reference ?: "",
-                    fullscreen = false,
-                    newTask = true
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -283,7 +295,7 @@ class BibleWallpaperService : WallpaperService() {
 
             handler.removeCallbacks(drawRunnable)
             if (visible) {
-                handler.postDelayed(drawRunnable, 60000)
+                handler.postDelayed(drawRunnable, 300000)
             }
         }
 
@@ -299,7 +311,7 @@ class BibleWallpaperService : WallpaperService() {
         }
 
 
-//        /**
+        //        /**
 //         * 随机选择经文
 //         */
 //        private fun selectRandomVerse() {
@@ -310,14 +322,38 @@ class BibleWallpaperService : WallpaperService() {
 //            }
 //        }
 
+        private fun List<ImageDaily>?.findByDate(date: String, today: String): ImageDaily? {
+            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
+        }
 
         private fun nextImageData(): ImageDaily? {
-            var ret = blessData?.daily?.random()
-            if (ret == null) {
-                return gwImages.random()
-            } else {
-                return ret
+//            if (currentImageData != null && System.currentTimeMillis() - lastImageChangeTime <= 10000) {
+//                Log.e(TAG, "get nextImageData:from cache:,got:${currentImageData?.date}")
+//                return currentImageData
+//            }
+//            var ret: ImageDaily = blessData?.daily?.random()
+//            if (ret == null && !gwImages.isNullOrEmpty()) {
+//                ret = gwImages?.random()
+//            }
+            var ret: ImageDaily? = null
+            var config = wallpaperConfig
+            var bless = blessData
+            var today = formatDayAgo(0)
+
+            ret = config?.let { cfg ->
+                when (cfg.from) {
+                    CardApiService.FROM_CARD -> bless?.daily.findByDate(cfg.date, today)
+                    CardApiService.FROM_DAILY -> gwImages.findByDate(cfg.date, today)
+                    else -> null
+                }
             }
+            Log.e(TAG, "${today},${config?.from} get new nextImageData: ${config?.date},got:${ret?.date}")
+
+            if (ret != null && wallpaperConfig != null) {
+                ret.greeting = wallpaperConfig!!.greeting
+                ret.fontUrl = wallpaperConfig!!.font
+            }
+            return ret
         }
 
         /**
@@ -325,44 +361,56 @@ class BibleWallpaperService : WallpaperService() {
          */
         private fun drawBackgroundImage(canvas: Canvas) {
             var request = nextImageData()
-            Log.e(
-                TAG,
-                "generateBibleCard  ${Thread.currentThread().name} ,${request?.date}, ${request?.backgroundUrl}"
-            )
+//            Log.e(
+//                TAG,
+//                "generateBibleCard  ${Thread.currentThread().name} ,${request?.date}, ${request?.backgroundUrl}"
+//            )
             if (request != null) {
-                var generator = CardGenerator.getInstance()
                 var resId =
                     if (!request.greeting.isNullOrEmpty() && !request.fontUrl.isNullOrEmpty()) R.layout.item_image_greeting else R.layout.item_image_gw
-                var cacheKey = generator.getCacheKey(resId, request, false)
-                val bitmap = generator.getCacheBitmap(cacheKey)
-                val rect = generator.getCacheRect(cacheKey)
+
+                var isUnderline = wallpaperConfig?.isReadScriptureEnabled ?: false
+                var cacheKey = CardGenerator.getCacheKey(
+                    resId, request, false,
+                    isUnderline
+                )
+                val bitmap = CardGenerator.getCacheBitmap(cacheKey)
 
                 if (bitmap != null && !bitmap.isRecycled) {
                     // 绘制缓存的图片
-                    Log.e(
-                        TAG,
-                        "generateBibleCard  from cache ,${request.date},${rect}"
-                    )
-                    verseRect = rect
+//                    Log.e(
+//                        TAG,
+//                        "generateBibleCard  from cache ,${request.date}"
+//                    )
+                    if (isClikable) {
+                        val rect = CardGenerator.getCacheRect(cacheKey)
+                        verseRect = rect
+//                        Log.e(
+//                            TAG,
+//                            "generateBibleCard  from cache ,verseRect:${verseRect}"
+//                        )
+                    }
                     val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
                     canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
                     scaledBitmap.recycle()
                     currentImageData = request
+                    lastImageChangeTime = System.currentTimeMillis()
                     return
                 }
 
-                generator.generateBibleCard(
+                CardGenerator.generateBibleCard(
                     applicationContext,
                     resId,
                     request,
                     false,
+                    isClikable,
                     { bitmap: Bitmap? ->
                         Log.e(
                             TAG,
                             "generateBibleCard callback ${Thread.currentThread().name} ,${bitmap != null && !bitmap.isRecycled},$width,$height"
                         )
                         if (bitmap != null && !bitmap.isRecycled) {
-                            drawFrame()
+                            handler.post(drawRunnable)
                         }
                         Unit
                     }, { err: Throwable? ->
@@ -541,63 +589,63 @@ class BibleWallpaperService : WallpaperService() {
 //                textAlign = Paint.Align.RIGHT
 //            })
 //        }
+//
+//        /**
+//         * 绘制多行文本
+//         */
+//        private fun drawMultilineText(canvas: Canvas, text: String, rect: RectF) {
+//            val maxWidth = rect.width() - 40f
+//            val lines = breakTextIntoLines(text, maxWidth)
+//            val lineHeight = 50f
+//            val startY = rect.top + 60f
+//
+//            for ((index, line) in lines.withIndex()) {
+//                if (index >= 3) break
+//                canvas.drawText(line, rect.centerX(), startY + index * lineHeight, textPaint)
+//            }
+//        }
 
-        /**
-         * 绘制多行文本
-         */
-        private fun drawMultilineText(canvas: Canvas, text: String, rect: RectF) {
-            val maxWidth = rect.width() - 40f
-            val lines = breakTextIntoLines(text, maxWidth)
-            val lineHeight = 50f
-            val startY = rect.top + 60f
+//        /**
+//         * 文本自动换行
+//         */
+//        private fun breakTextIntoLines(text: String, maxWidth: Float): List<String> {
+//            val lines = mutableListOf<String>()
+//            val words = text.split(" ")
+//            var currentLine = StringBuilder()
+//
+//            for (word in words) {
+//                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
+//                val testWidth = textPaint.measureText(testLine)
+//
+//                if (testWidth <= maxWidth) {
+//                    currentLine.append(if (currentLine.isEmpty()) word else " $word")
+//                } else {
+//                    if (currentLine.isNotEmpty()) {
+//                        lines.add(currentLine.toString())
+//                    }
+//                    currentLine = StringBuilder(word)
+//                }
+//            }
+//
+//            if (currentLine.isNotEmpty()) {
+//                lines.add(currentLine.toString())
+//            }
+//
+//            return lines
+//        }
 
-            for ((index, line) in lines.withIndex()) {
-                if (index >= 3) break
-                canvas.drawText(line, rect.centerX(), startY + index * lineHeight, textPaint)
-            }
-        }
-
-        /**
-         * 文本自动换行
-         */
-        private fun breakTextIntoLines(text: String, maxWidth: Float): List<String> {
-            val lines = mutableListOf<String>()
-            val words = text.split(" ")
-            var currentLine = StringBuilder()
-
-            for (word in words) {
-                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
-                val testWidth = textPaint.measureText(testLine)
-
-                if (testWidth <= maxWidth) {
-                    currentLine.append(if (currentLine.isEmpty()) word else " $word")
-                } else {
-                    if (currentLine.isNotEmpty()) {
-                        lines.add(currentLine.toString())
-                    }
-                    currentLine = StringBuilder(word)
-                }
-            }
-
-            if (currentLine.isNotEmpty()) {
-                lines.add(currentLine.toString())
-            }
-
-            return lines
-        }
-
-        /**
-         * 绘制触摸反馈
-         */
-        private fun drawTouchFeedback(canvas: Canvas) {
-            val rect = verseRect ?: return
-            val highlightPaint = Paint().apply {
-                color = Color.argb(80, 255, 255, 255)
-                style = Paint.Style.FILL
-                isAntiAlias = true
-            }
-            canvas.drawRoundRect(rect, 20f, 20f, highlightPaint)
-        }
+//        /**
+//         * 绘制触摸反馈
+//         */
+//        private fun drawTouchFeedback(canvas: Canvas) {
+//            val rect = verseRect ?: return
+//            val highlightPaint = Paint().apply {
+//                color = Color.argb(80, 255, 255, 255)
+//                style = Paint.Style.FILL
+//                isAntiAlias = true
+//            }
+//            canvas.drawRoundRect(rect, 20f, 20f, highlightPaint)
+//        }
 
 //        /**
 //         * 获取缓存的图片
@@ -616,7 +664,7 @@ class BibleWallpaperService : WallpaperService() {
         override fun onDestroy() {
             super.onDestroy()
 
-            Log.e("biblewallGlide", "onDestroy clear imageCache")
+            Log.e(TAG, "onDestroy clear imageCache")
             handler.removeCallbacks(drawRunnable)
             executor.shutdown()
 

@@ -112,8 +112,7 @@ public class PopupImageView extends RelativeLayout {
         }, throwable -> ToastHelper.show(activity, throwable.getLocalizedMessage())));
         share.setOnClickListener(v -> {
             if (this.cacheKey != null && !cacheKey.isEmpty()) {
-                CardGenerator generator = CardGenerator.Companion.getInstance();
-                Uri imageUri = generator.getCachedCardUri(cacheKey);
+                Uri imageUri = CardGenerator.INSTANCE.getCachedCardUri(cacheKey);
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("image/*"); // 或具体类型如 "image/jpeg"
                 shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);

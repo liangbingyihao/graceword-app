@@ -46,8 +46,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 用于防止频繁滑动的变量
     private var isLoading = false
-    private val MIN_SWIPE_INTERVAL = 800 // 最小滑动间隔时间（毫秒）
-    private var lastSwipeTime = 0L
+    private var viewCreated = false
     private var bibleChapter: WeakReference<BibleChapter>? = null
     private lateinit var dynamicBibleDao: DynamicBibleDao
 
@@ -72,6 +71,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         } else {
             R.layout.fragment_bible_chapter
         }
+        viewCreated = true
         return inflater.inflate(resId, container, false)
     }
 
@@ -129,8 +129,10 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         } else if (chapter != null && !chapter.verses.isEmpty()) {
 //            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
             bibleChapter = WeakReference(chapter)
-            requireView().post {
-                updateChapterUI(chapter)
+            if(viewCreated){
+                requireView().post {
+                    updateChapterUI(chapter)
+                }
             }
             return
         }
@@ -198,8 +200,10 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 显示加载中
     private fun showLoading() {
-        requireView().post {
-            chapterProgress.text = "..."
+        if(viewCreated){
+            requireView().post {
+                chapterProgress.text = "..."
+            }
         }
     }
 
@@ -210,6 +214,9 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 显示错误
     private fun showError() {
+        if(!viewCreated){
+            return
+        }
         requireView().post {
             chapterProgress.setText(R.string.error_loading_chapter)
             // 如果有被滑动的位置，恢复该位置的视图

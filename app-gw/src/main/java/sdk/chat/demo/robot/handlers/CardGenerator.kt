@@ -48,19 +48,19 @@ import sdk.chat.demo.robot.utils.FontManager
 import sdk.chat.demo.robot.utils.FontUtils
 import sdk.chat.demo.robot.utils.ViewCoordinateUtils
 
-class CardGenerator private constructor() {
+object CardGenerator {
 
-    // 单例模式
-    companion object {
-        @Volatile
-        private var instance: CardGenerator? = null
-
-        fun getInstance(): CardGenerator {
-            return instance ?: synchronized(this) {
-                instance ?: CardGenerator().also { instance = it }
-            }
-        }
-    }
+//    // 单例模式
+//    companion object {
+//        @Volatile
+//        private var instance: CardGenerator? = null
+//
+//        fun getInstance(): CardGenerator {
+//            return instance ?: synchronized(this) {
+//                instance ?: CardGenerator().also { instance = it }
+//            }
+//        }
+//    }
 
     // 线程池（避免频繁创建线程）
     private val executor = Executors.newSingleThreadExecutor()
@@ -337,14 +337,15 @@ class CardGenerator private constructor() {
     fun getCacheKey(
         resId: Int,
         imageDetail: ImageDaily,
-        withQRCode: Boolean = true
+        withQRCode: Boolean = true,
+        isUnderline:Boolean = false
     ): String {
         if (resId == R.layout.item_image_gw) {
-            return "image_daily_gw_${imageDetail.date}${withQRCode}"
+            return "image_daily_gw_${imageDetail.date}${withQRCode}${isUnderline}"
         } else if (resId == R.layout.item_image_greeting) {
-            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${imageDetail.greeting}|${withQRCode}"
+            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${imageDetail.greeting}|${withQRCode}|${isUnderline}"
         } else {
-            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${withQRCode}"
+            return "${imageDetail.backgroundUrl}|${imageDetail.scripture}|${withQRCode}|${isUnderline}"
         }
         return ""
     }
@@ -372,11 +373,12 @@ class CardGenerator private constructor() {
         resId: Int,
         imageDetail: ImageDaily,
         withQRCode: Boolean = true,
+        isUnderline: Boolean = false,
         onSuccess: (Bitmap) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         assert(resId == R.layout.view_popup_image_bible || resId == R.layout.item_image_gw || resId == R.layout.item_image_greeting)
-        var cacheKey: String? = getCacheKey(resId, imageDetail, withQRCode)
+        var cacheKey: String? = getCacheKey(resId, imageDetail, withQRCode,isUnderline)
         var imageUrl: String? = imageDetail.backgroundUrl
 
         if (cacheKey == null || cacheKey.isEmpty()) {
@@ -420,6 +422,7 @@ class CardGenerator private constructor() {
                                 resId,
                                 imageDetail,
                                 withQRCode,
+                                isUnderline,
                                 resource,
                             )
                             if (bitmap != null) {
@@ -486,6 +489,7 @@ class CardGenerator private constructor() {
         layoutResId: Int,
         imageDetail: ImageDaily,
         withQRCode: Boolean = true,
+        isUnderline: Boolean = false,
         bitmaps: Bitmap,
     ): Bitmap? = withContext(Dispatchers.Main) {
         val view = LayoutInflater.from(context).inflate(layoutResId, null, false).apply {
@@ -499,21 +503,25 @@ class CardGenerator private constructor() {
             view.findViewById<TextView>(R.id.bible).apply {
                 text = imageDetail.scripture
             }
-            view.findViewById<TextView>(R.id.reference).apply {
-                var reference = "(" + imageDetail.reference + ")"
-                val spannable = SpannableString(reference)
-                spannable.setSpan(
-                    UnderlineSpan(),
-                    0, // 开始位置
-                    reference.length, // 结束位置
-                    Spannable.SPAN_INCLUSIVE_INCLUSIVE
-                )
-                text = spannable
+            view.findViewById<TextView>(R.id.reference)?.apply {
+                var reference = imageDetail.reference?.let { "($it)" }.orEmpty()
+                if(isUnderline){
+                    val spannable = SpannableString(reference)
+                    spannable.setSpan(
+                        UnderlineSpan(),
+                        0, // 开始位置
+                        reference.length, // 结束位置
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                    text = spannable
+                }else{
+                    text = reference
+                }
             }
-            view.findViewById<TextView>(R.id.day).apply {
+            view.findViewById<TextView>(R.id.day)?.apply {
                 visibility = View.INVISIBLE
             }
-            view.findViewById<TextView>(R.id.month).apply {
+            view.findViewById<TextView>(R.id.month)?.apply {
                 visibility = View.INVISIBLE
             }
             if (!withQRCode) {
@@ -522,9 +530,9 @@ class CardGenerator private constructor() {
                 }
             }
 
-            if (layoutResId == R.layout.item_image_greeting && imageDetail.greeting != null && !imageDetail.greeting.isEmpty()) {
+            if (layoutResId == R.layout.item_image_greeting) {
                 var typeface: Typeface? = null
-                if (imageDetail.fontUrl != null && !imageDetail.fontUrl.isEmpty()) {
+                if (!imageDetail.greeting.isNullOrEmpty()) {
                     var fontManager = FontManager.getInstance(MainApp.getContext())
                     var font =
                         fontManager.getCacheFile(imageDetail.fontUrl)
@@ -554,13 +562,16 @@ class CardGenerator private constructor() {
 
 
             viewContent.layout(0, 0, viewContent.measuredWidth, viewContent.measuredHeight)
-            var cacheKey: String? = getCacheKey(layoutResId, imageDetail, withQRCode)
-            if (cacheKey != null && !cacheKey.isEmpty()) {
-                var rect = ViewCoordinateUtils.getViewBoundsInBitmap(
-                    view.findViewById<TextView>(R.id.reference),
-                    viewContent
-                )
-                rectCache.put(cacheKey, rect)
+            var rv = view.findViewById<TextView>(R.id.reference)
+            if(rv!=null&&isUnderline){
+                var cacheKey: String? = getCacheKey(layoutResId, imageDetail, withQRCode,isUnderline)
+                if (cacheKey != null && !cacheKey.isEmpty()) {
+                    var rect = ViewCoordinateUtils.getViewBoundsInBitmap(
+                        rv,
+                        viewContent
+                    )
+                    rectCache.put(cacheKey, rect)
+                }
             }
 
             createBitmap(

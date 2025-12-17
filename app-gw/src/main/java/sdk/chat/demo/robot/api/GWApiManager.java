@@ -114,6 +114,7 @@ public class GWApiManager {
                         return chain.proceed(newRequest);
                     }
                 })
+                .addInterceptor(new CommonHeadersInterceptor())
                 .addInterceptor(new TokenRefreshInterceptor())
                 .addInterceptor(new ErrorClassifierInterceptor()) // 然后添加错误分类拦截器
 //                .addNetworkInterceptor(new SelectiveDiskCacheInterceptor())

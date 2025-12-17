@@ -46,6 +46,11 @@ public class NetworkEvent {
         this.type = type;
     }
 
+    public NetworkEvent(EventType type,String text) {
+        this.type = type;
+        this.text =text;
+    }
+
     public NetworkEvent(EventType type, Thread thread) {
         this(type, thread, null, null);
     }

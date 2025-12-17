@@ -98,6 +98,7 @@
         <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.BibleActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.CampaignInfoActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.SettingWallpaperActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.EditCardActivity"
             android:exported="true">

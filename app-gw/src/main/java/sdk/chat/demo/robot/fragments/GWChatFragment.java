@@ -544,6 +544,9 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                                     Intent intent = new Intent(getActivity(), TaskActivity.class);
                                     startActivity(intent);
                                     return Unit.INSTANCE;
+                                },
+                                () -> {
+                                    return Unit.INSTANCE;
                                 });
                     }
                 }));
@@ -612,7 +615,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 "mod_chat", List.of(
                         new KeyValuePair("chat_action", "30"),
                         new KeyValuePair("chat_mode", chatMode)
-                        )
+                )
         );
         input.setMessagePrompt(null);
 
@@ -673,6 +676,8 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                         // 这里是positiveAction的逻辑
                         Intent intent = new Intent(getActivity(), TaskActivity.class);
                         startActivity(intent);
+                        return Unit.INSTANCE;
+                    }, () -> {
                         return Unit.INSTANCE;
                     });
         }
@@ -735,10 +740,10 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 
 
     private void onBillChanged() {
-        Log.e("BillingManager", "chatFragment hasSubscriptions:"+BillingManager.Companion.getInstance().hasSubscriptions());
+        Log.e("BillingManager", "chatFragment hasSubscriptions:" + BillingManager.Companion.getInstance().hasSubscriptions());
         if (BillingManager.Companion.getInstance().hasSubscriptions()) {
             input.setHintVip(null);
-        }else{
+        } else {
             input.setHintVip(getString(R.string.hint_vip_text_left_msg, LimitCounter.INSTANCE.getRemainingCount(ActionConfig.DAILY_MSG)));
         }
     }

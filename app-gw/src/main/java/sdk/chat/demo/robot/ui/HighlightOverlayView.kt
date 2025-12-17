@@ -23,6 +23,8 @@ import sdk.chat.demo.robot.activities.BeginnerActivity
 import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.extensions.findTopmostVisibleViewByResId
+import sdk.chat.demo.robot.handlers.CardApiService
+import sdk.chat.demo.robot.handlers.CardApiService.LauncherStep
 import sdk.chat.demo.robot.handlers.GWMsgHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import java.lang.ref.WeakReference
@@ -60,7 +62,7 @@ class HighlightOverlayView @JvmOverloads constructor(
         // 处理点击事件
         when (view.id) {
             R.id.mask_background -> {
-                visibility = GONE
+                handleNext()
                 true
             }
 
@@ -327,6 +329,7 @@ class HighlightOverlayView @JvmOverloads constructor(
                 this.mode = m
 //                Log.e("MainApp", "highlight.handleNext.${m}")
                 if (setHighlightMode(m)) {
+                    CardApiService.setLauncherStep(LauncherStep.MASKED)
 //                    Log.e("MainApp", "highlight.handleNext.${m} done")
                     return
                 } else {
@@ -345,6 +348,7 @@ class HighlightOverlayView @JvmOverloads constructor(
                     putBoolean("has_shown_guide_all", true)
                 }
             hasShownGuideOverlay = true
+            CardApiService.setLauncherStep(LauncherStep.READY)
         }
         this.mode = null
         visibility = GONE

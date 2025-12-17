@@ -1,8 +1,13 @@
 package sdk.chat.demo.robot.handlers
 
-import android.util.Log
-import com.google.gson.Gson
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.graphics.Bitmap
+import android.util.Log
+import androidx.core.content.edit
+import androidx.core.net.toUri
+import com.google.gson.Gson
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -13,12 +18,16 @@ import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import sdk.chat.core.events.EventType
+import sdk.chat.core.events.NetworkEvent
+import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager.get
 import sdk.chat.demo.robot.api.JsonCacheManager.save
 import sdk.chat.demo.robot.api.model.BlessData
+import sdk.chat.demo.robot.api.model.Campaign
 import sdk.chat.demo.robot.api.model.ShareResult
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.LanguageUtils
@@ -32,28 +41,149 @@ data class WallpaperConfig(
     var isLock: Boolean = true,
     var isHome: Boolean = true,
     var from: String = "",
-    var date: String = ""
+    var date: String = "",
+    var greeting: String = "",
+    var font: String = "",
+    var cntSkip: Int = 0
 )
 
 object CardApiService {
-    val URL_BIBLE_DATA: String = ImageApi.URL2_MAIN + "campaign/card"
+    val URL_CARD_DATA: String = ImageApi.URL2_MAIN + "campaign/card"
+    val URL_CAMPAIGN_DATA: String = ImageApi.URL2_MAIN + "campaign/current"
     val URL_CARD_SHARE: String = ImageApi.URL2_MAIN + "campaign/card/share"
     var blessData: BlessData? = null
+    var campaign: Campaign? = null
     val KEY_CACHE_CONFIG: String = "cache_wallpaper_config"
+    val FROM_CARD = "CARD"
+    val FROM_DAILY = "DAILY"
 
 
     fun clearCache() {
         blessData = null
+        campaign = null
     }
 
     fun saveWallPaperConfig(config: WallpaperConfig) {
         save(MainApp.getContext(), KEY_CACHE_CONFIG, Gson().toJson(config))
     }
 
+    private fun getDefaultWallpaperConfig(): WallpaperConfig {
+        return WallpaperConfig(
+            isDynamic = true,
+            isReadScriptureEnabled = true,
+            isLock = false,
+            isHome = false
+        )
+    }
 
-    fun getWallPaperConfig(): WallpaperConfig? {
-        return get(MainApp.getContext(), KEY_CACHE_CONFIG)
-            ?.let { Gson().fromJson(it, WallpaperConfig::class.java) }
+    fun getWallPaperConfig(): WallpaperConfig {
+        return try {
+            get(MainApp.getContext(), KEY_CACHE_CONFIG)
+                ?.takeIf { it.isNotBlank() } // 检查非空字符串
+                ?.let { jsonString ->
+                    Gson().fromJson(jsonString, WallpaperConfig::class.java)
+                } ?: getDefaultWallpaperConfig()
+        } catch (e: Exception) {
+            Log.e("WallpaperConfig", "获取壁纸配置失败，使用默认配置", e)
+            getDefaultWallpaperConfig()
+        }
+    }
+
+    fun getRawWallPaperConfig(): WallpaperConfig? {
+        return try {
+            get(MainApp.getContext(), KEY_CACHE_CONFIG)
+                ?.takeIf { it.isNotBlank() } // 检查非空字符串
+                ?.let { jsonString ->
+                    Gson().fromJson(jsonString, WallpaperConfig::class.java)
+                }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun handleJoinCampaign(context: Context): Boolean {
+        var configData = campaign
+        var targetUrl = configData?.popupConfig?.targetUrl
+        if (targetUrl?.startsWith("graceword://") == true) {
+            context.startActivity(Intent(Intent.ACTION_VIEW, targetUrl.toUri()))
+            return true
+        } else {
+            return false
+        }
+    }
+
+    fun finishLaunchOAMain(context: Context) {
+        val tomorrow: String = DateLocalizationUtil.formatDayAgo(-1)
+        context.getSharedPreferences("app_prefs", MODE_PRIVATE)
+            .edit() {
+                putString("when_show_oa", tomorrow)
+            }
+    }
+
+//    fun toLaunchOAMain(): Boolean {
+//        var config = campaign
+//        if (config != null && config.popupConfig?.enable == true) {
+//            var whenShow = MainApp.getContext().getSharedPreferences("app_prefs", MODE_PRIVATE)
+//                .getString("when_show_oa", "")
+//            Log.e("LauncherStep", "whenShow:${whenShow}")
+//            return whenShow.isNullOrEmpty()
+//        }
+//        return false
+//    }
+
+
+    enum class LauncherStep {
+        INIT, BEGINNER, MASKED, READY;
+
+        fun isNext(next: LauncherStep): Boolean {
+            when (this) {
+                INIT -> {
+                    return next == BEGINNER || next == READY
+                }
+
+                BEGINNER -> {
+                    return next == MASKED
+                }
+
+                MASKED -> {
+                    return next == READY
+                }
+
+                READY -> {
+                    return false
+                }
+            }
+        }
+    }
+
+    private var launcherStep = LauncherStep.INIT
+    fun setLauncherStep(step: LauncherStep) {
+        Log.e("LauncherStep", "$launcherStep->$step")
+        if (launcherStep.isNext(step)) {
+            launcherStep = step
+        }
+
+        if (launcherStep == LauncherStep.READY) {
+
+            var config = campaign
+            if (config != null) {
+                var whenShow = MainApp.getContext().getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .getString("when_show_oa", "")
+                if (config.popupConfig?.enable == true && whenShow.isNullOrEmpty()) {
+                    Log.e("LauncherStep", "whenShow:${whenShow},to launch main")
+                    ChatSDK.events().source()
+                        .accept(NetworkEvent(EventType.ShowOAMain, "main"))
+                } else if(config.dailyPopupConfig?.enable==true&&!whenShow.isNullOrEmpty()){
+                    val today:String = DateLocalizationUtil.formatDayAgo(0)
+                    val toShow: Boolean = today>=whenShow
+                    Log.e("LauncherStep", "today:${today},whenShow:${whenShow},to launch mini:${toShow}")
+                    if(toShow){
+                        ChatSDK.events().source()
+                            .accept(NetworkEvent(EventType.ShowOAMain, "mini"))
+                    }
+                }
+            }
+        }
     }
 
     fun getBlessData(): Single<BlessData?> {
@@ -65,7 +195,7 @@ object CardApiService {
                 }
 
                 val request = Request.Builder()
-                    .url(requireNotNull(URL_BIBLE_DATA))
+                    .url(requireNotNull(URL_CARD_DATA))
                     .build()
 
                 GWApiManager.shared().client.newCall(request).enqueue(object : Callback {
@@ -105,6 +235,56 @@ object CardApiService {
             .observeOn(AndroidSchedulers.mainThread())
     }
 
+
+    fun getCampaignData(): Single<Campaign?> {
+        return Single.create<Campaign?> { emitter ->
+            try {
+                campaign?.let { cached ->
+                    emitter.onSuccess(cached)
+                    return@create
+                }
+
+                val request = Request.Builder()
+                    .url(requireNotNull(URL_CAMPAIGN_DATA))
+                    .build()
+
+                GWApiManager.shared().client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        if (!emitter.isDisposed) {
+                            emitter.onError(e)
+                        }
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        try {
+                            response.use { // 确保 response 被正确关闭
+                                var ret = GWApiManager.shared()
+                                    .handleResponse(response, Campaign::class.java)
+                                if (ret != null) {
+                                    campaign = ret
+                                }
+                                if (campaign != null) {
+                                    setLauncherStep(launcherStep)
+                                    emitter.onSuccess(campaign!!)
+                                } else {
+                                    emitter.onError(Exception("no data"))
+                                }
+                            }
+                        } catch (e: Exception) {
+                            if (!emitter.isDisposed) {
+                                emitter.onError(e)
+                            }
+                        }
+                    }
+                })
+            } catch (e: Exception) {
+                if (!emitter.isDisposed) {
+                    emitter.onError(e)
+                }
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
 
     fun shareCardWithBitmap(
         bitmap: Bitmap,

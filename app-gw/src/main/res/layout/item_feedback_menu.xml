@@ -41,11 +41,16 @@
             style="@style/FeedOperator"
             android:src="@mipmap/ic_like_black" />
 
-        <ImageView
+<!--        <ImageView-->
+<!--            android:id="@+id/btn_play"-->
+<!--            style="@style/FeedOperator"-->
+<!--            android:visibility="gone"-->
+<!--            android:src="@mipmap/ic_play_black" />-->
+
+        <View
             android:id="@+id/btn_play"
-            style="@style/FeedOperator"
-            android:visibility="gone"
-            android:src="@mipmap/ic_play_black" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"/>
 
         <ImageView
             android:id="@+id/btn_del"

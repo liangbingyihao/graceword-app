@@ -1,7 +1,7 @@
 package sdk.chat.demo.robot.activities
 
+import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -32,8 +32,11 @@ import sdk.chat.demo.robot.audio.TTSHelper
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.LanguageUtils.updateContext
 import sdk.chat.demo.robot.extensions.dpToPx
+import sdk.chat.demo.robot.extensions.showMaterialConfirmationDialog
 import sdk.chat.demo.robot.fragments.GWChatFragment
 import sdk.chat.demo.robot.handlers.BillingManager
+import sdk.chat.demo.robot.handlers.CardApiService
+import sdk.chat.demo.robot.handlers.CardApiService.LauncherStep
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
@@ -42,7 +45,7 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
-import androidx.core.net.toUri
+import sdk.chat.demo.robot.utils.WallpaperGuideUtil
 
 
 class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener.TTSSpeaker {
@@ -68,6 +71,24 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private var isVipDisplayCrown = false
 //    private lateinit var ttsCheckLauncher: ActivityResultLauncher<Intent>
 
+
+    companion object {
+        private const val ARG_REFERENCE = "reference"
+        private var isTaskCleared = false
+        fun startBibleActivity(
+            context: Context,
+            reference: String = "",
+        ) {
+            Log.e("isVerseAreaTouched", "startBibleActivity ${reference}.")
+            val intent = Intent(context, MainDrawerActivity::class.java).apply {
+                putExtra(ARG_REFERENCE, reference)
+            }
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+//            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(intent)
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // 加载菜单资源
         menuInflater.inflate(R.menu.nav_menu, menu)
@@ -90,6 +111,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             return
         }
 
+        var reference = intent.getStringExtra(ARG_REFERENCE)
+        if (reference != null&&savedInstanceState==null) {
+            Log.e("isVerseAreaTouched", "isVerseAreaTouched..and start ${reference}.")
+            BibleActivity.start(this@MainDrawerActivity, reference = reference, fullscreen = false)
+        }
 
         var isInitialized = (application as MainApp).isInitialized
         Logger.error { "MainDrawerActivity.onCreate,isInitialized:${isInitialized}" }
@@ -191,6 +217,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                             vTaskMenu.visibility = View.GONE
                             findViewById<View>(R.id.red_dot).visibility = View.GONE
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
+                            CardApiService.setLauncherStep(LauncherStep.READY)
                         } else {
                             if (false) {
                                 //FIXME
@@ -211,6 +238,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         }
                     })
             )
+        }else{
+            Log.e("LauncherStep","hasShownGuideOverlay ready to launch")
+            CardApiService.setLauncherStep(LauncherStep.READY)
         }
 
 
@@ -231,15 +261,46 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             this@MainDrawerActivity,
             null
         )
-        setLottieAnimationView()
+        loadCampaignData()
 
 
         LogUploader.chatEntrance("app_launch")
     }
 
-    private fun setLottieAnimationView() {
+    private fun loadCampaignData() {
         lottieAnimationView = findViewById<LottieAnimationView>(R.id.ops)
-        lottieAnimationView.setAnimationFromUrl("https://api-test.kolacdn.xyz/public/tree.json")
+//        CampaignInfoActivity.start(this@MainDrawerActivity,"mini")
+        dm.add(
+            ChatSDK.events().sourceOnMain()
+                .filter(NetworkEvent.filterType(EventType.ShowOAMain)).subscribe(Consumer { event ->
+                    CampaignInfoActivity.start(this@MainDrawerActivity, event.text)
+                })
+        )
+
+        dm.add(
+            CardApiService.getCampaignData().subscribe(
+                { data ->
+                    if (data != null) {
+                        if (data.entryConfig != null&&data.entryConfig.enable) {
+                            setLottieAnimationView(data.entryConfig.iconUrl)
+                        }
+//                        blessData = data
+//                        downloadFont(messageInput, data.font)
+//                        adapter.replaceData(data.daily)
+//                        viewPager.setCurrentItem(adapter.itemCount - 1, false)
+//
+//                        switchGreetings()
+                    }
+                },
+                Consumer { e: Throwable? ->
+//                    ToastHelper.show(this@EditCardActivity, e.toString())
+                })
+        )
+    }
+
+    private fun setLottieAnimationView(url: String) {
+        lottieAnimationView.visibility = View.VISIBLE
+        lottieAnimationView.setAnimationFromUrl(url)
         lottieAnimationView.repeatCount = 5
         lottieAnimationView.setOnClickListener(this)
     }
@@ -295,6 +356,33 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 }
         }
 
+        if ((System.currentTimeMillis() - (application as MainApp).startTimeStamp) < 4000) {
+            var config = CardApiService.getRawWallPaperConfig()
+            if (config != null && config.isDynamic && config.cntSkip < 2) {
+                showMaterialConfirmationDialog(
+                    this@MainDrawerActivity,
+                    getString(R.string.restore_wallpaper_message),
+                    getString(R.string.one_click_setup),
+                    getString(R.string.skip),
+                    {
+                        // 这里是positiveAction的逻辑
+                        WallpaperGuideUtil(this@MainDrawerActivity).guideToDirectlySetLiveWallpaper()
+                        Unit
+                    },
+                    {
+                        // 这里是positiveAction的逻辑
+                        config.cntSkip += 1
+                        CardApiService.saveWallPaperConfig(config)
+                        Unit
+                    }
+                )
+            }
+        } else {
+            Log.e(
+                "MainDrawerActivity1",
+                "startime:${System.currentTimeMillis() - (application as MainApp).startTimeStamp}"
+            )
+        }
 
     }
 
@@ -532,7 +620,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 //                        EditCardActivity::class.java
 //                    )
 //                )
-                startActivity(Intent(Intent.ACTION_VIEW, "graceword://open/card".toUri()))
+//                startActivity(Intent(Intent.ACTION_VIEW, "graceword://open/card".toUri()))
+                CardApiService.handleJoinCampaign(this@MainDrawerActivity)
                 true
             }
 

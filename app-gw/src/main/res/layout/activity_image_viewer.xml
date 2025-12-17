@@ -65,17 +65,58 @@
         </FrameLayout>
     </FrameLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/conversations"
-        android:layout_width="316dp"
-        android:layout_height="42dp"
+<!--    <com.google.android.material.button.MaterialButton-->
+<!--        android:id="@+id/conversations"-->
+<!--        android:layout_width="316dp"-->
+<!--        android:layout_height="42dp"-->
+<!--        android:layout_gravity="center|bottom"-->
+<!--        android:layout_marginBottom="64dp"-->
+<!--        android:backgroundTint="@android:color/transparent"-->
+<!--        android:text="@string/conversations"-->
+<!--        android:textAllCaps="false"-->
+<!--        android:textSize="14sp"-->
+<!--        app:cornerRadius="21dp"-->
+<!--        app:strokeColor="#FFFFFF"-->
+<!--        app:strokeWidth="2dp" />-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
         android:layout_marginBottom="64dp"
-        android:backgroundTint="@android:color/transparent"
-        android:text="@string/conversations"
-        android:textAllCaps="false"
-        android:textSize="14sp"
-        app:cornerRadius="21dp"
-        app:strokeColor="#FFFFFF"
-        app:strokeWidth="2dp" />
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:orientation="horizontal">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/wallpaper"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"
+            android:text="@string/set_wallpaper"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            app:cornerRadius="21dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/conversations"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="12dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"
+            android:text="@string/conversations"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            app:cornerRadius="21dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="2dp" />
+
+    </LinearLayout>
 </FrameLayout>

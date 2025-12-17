@@ -15,9 +15,10 @@
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:layout_gravity="bottom|center"
+        android:layout_marginBottom="8dp"
         app:tabGravity="fill"
+        android:visibility="gone"
         app:tabIndicatorGravity="bottom"
         app:tabTextColor="@color/white" />
 
@@ -25,7 +26,7 @@
     <!--        android:layout_width="match_parent"-->
     <!--        android:layout_height="match_parent">-->
 
-<!--    <include layout="@layout/view_bible_detail" />-->
+    <!--    <include layout="@layout/view_bible_detail" />-->
     <!--    </ScrollView>-->
 
 
@@ -36,39 +37,21 @@
         android:clickable="true"
         android:focusable="true">
 
-        <LinearLayout
+        <TextView
+            android:id="@id/messageInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@id/messageInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:layout_marginLeft="28dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginRight="28dp"
-                android:background="@color/transparent"
-                android:gravity="top|center_horizontal"
-                android:maxLines="6"
-                android:minHeight="200dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:textSize="40sp" />
-
-            <TextView
-                android:id="@+id/editHint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="18dp"
-                android:drawableLeft="@mipmap/ic_edit_text"
-                android:drawablePadding="4dp"
-                android:padding="16dp"
-                android:text="定制祝福语"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-        </LinearLayout>
+            android:layout_gravity="top"
+            android:layout_marginLeft="28dp"
+            android:layout_marginTop="?attr/actionBarSize"
+            android:layout_marginRight="28dp"
+            android:background="@color/transparent"
+            android:gravity="top|center_horizontal"
+            android:maxLines="6"
+            android:minHeight="200dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="55sp" />
 
 
         <FrameLayout
@@ -88,6 +71,19 @@
                 android:padding="16dp"
                 android:src="@mipmap/ic_back_white" />
 
+            <TextView
+                android:id="@+id/editHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:drawableLeft="@mipmap/ic_edit_text"
+                android:drawablePadding="4dp"
+                android:padding="16dp"
+                android:text="@string/customize_blessings"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
             <ImageView
                 android:id="@+id/btn_download"
                 android:layout_width="wrap_content"
@@ -104,8 +100,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginLeft="42dp"
-        android:layout_marginRight="42dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
         android:layout_marginBottom="64dp"
         android:orientation="horizontal">
 
@@ -117,7 +113,7 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"
-            android:text="设置壁纸"
+            android:text="@string/set_wallpaper"
             android:textAllCaps="false"
             android:textSize="14sp"
             app:cornerRadius="21dp"
@@ -129,10 +125,10 @@
             android:layout_width="0dp"
             android:layout_height="42dp"
             android:layout_gravity="center"
-            android:layout_marginLeft="14dp"
+            android:layout_marginLeft="12dp"
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"
-            android:text="分享"
+            android:text="@string/share"
             android:textAllCaps="false"
             android:textSize="14sp"
             app:cornerRadius="21dp"

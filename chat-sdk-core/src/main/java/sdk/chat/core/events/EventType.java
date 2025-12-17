@@ -41,5 +41,7 @@ public enum EventType {
     HideDrawer,
     TaskDone,
     BillChange,
+    WallpaperConfigChange,
+    ShowOAMain,
     Error
 }

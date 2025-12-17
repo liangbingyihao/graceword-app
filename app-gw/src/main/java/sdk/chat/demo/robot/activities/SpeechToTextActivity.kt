@@ -293,7 +293,8 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
 
             R.id.billing -> {
 //                speechToTextHelper.stopListening()
-                BillingActivity.start(this@SpeechToTextActivity,"test")
+//                BillingActivity.start(this@SpeechToTextActivity,"test")
+                throw RuntimeException("This is a test crash")
 //                EditCardActivity.start(this@SpeechToTextActivity,directUrl="https://api-test.kolacdn.xyz/public/spring.html")
             }
 

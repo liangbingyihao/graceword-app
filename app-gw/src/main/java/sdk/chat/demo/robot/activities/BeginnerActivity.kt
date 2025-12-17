@@ -20,6 +20,7 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.dpToPx
+import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.holder.WelcomeHolder
 
@@ -175,6 +176,8 @@ class BeginnerActivity : BaseActivity() {
 //        ToastHelper.show(this@BeginnerActivity, text)
         ChatSDK.events().source()
             .accept(NetworkEvent.messageAdded(null, WelcomeHolder.getWelcomeMessage(text)))
+
+        CardApiService.setLauncherStep(CardApiService.LauncherStep.BEGINNER);
         LogUploader.reportEvent(
             "mod_guide", listOf<KeyValuePair?>(
                 KeyValuePair("guide_action", "30"),

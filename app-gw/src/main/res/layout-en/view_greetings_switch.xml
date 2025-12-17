@@ -23,13 +23,13 @@
                 android:drawableRight="@mipmap/ic_switch"
                 android:drawablePadding="4dp"
                 android:text="@string/click"
-                android:textColor="@color/item_text_selected" />
+                android:textColor="@color/text_gray4" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/switch_or_customize_blessings"
-                android:textColor="@color/item_text_selected" />
+                android:textColor="@color/text_gray4" />
         </LinearLayout>
 
         <ImageView

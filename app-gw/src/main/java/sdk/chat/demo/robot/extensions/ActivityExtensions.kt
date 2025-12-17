@@ -48,7 +48,8 @@ fun showMaterialConfirmationDialog(
     message: String,
     txtPositive: String?,
     txtNegative: String?,
-    positiveAction: () -> Unit
+    positiveAction: () -> Unit,
+    negativeAction: () -> Unit = {}
 ) {
     val dialog = MaterialAlertDialogBuilder(context)
 //            .setTitle(title)
@@ -58,6 +59,7 @@ fun showMaterialConfirmationDialog(
             dialog.dismiss()
         }
         .setNegativeButton(txtNegative?:context.getString(R.string.cancel)) { dialog, _ ->
+            negativeAction()
             dialog.dismiss()
         }
         .setBackground(ContextCompat.getDrawable(context, R.drawable.dialog_background))

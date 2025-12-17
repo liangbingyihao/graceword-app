@@ -42,8 +42,8 @@ object LanguageMapping {
         val lang = LanguageUtils.getAppLanguage(MainApp.getContext(), false).lowercase()
         if (lang.contains("en")) {
             return "KJV.db"
-        } else if (lang.contains("hant")) {
-            return "ChiUnHK.db"
+        } else if (lang.contains("hant") or lang.contains("tw") or lang.contains("hk")) {
+            return "ChiUn_HK.db"
         } else {
             return "ChiUn.db"
         }

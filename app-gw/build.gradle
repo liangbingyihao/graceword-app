@@ -112,7 +112,7 @@ android {
     applicationVariants.all { variant ->
 //        def buildType = variant.buildType.name
 //        copy {
-//            from "src/${buildType}/google-services.json"
+//            from "src/${buildType}/google-services-dev.json"
 //            into "."
 //        }
         variant.outputs.all { output ->

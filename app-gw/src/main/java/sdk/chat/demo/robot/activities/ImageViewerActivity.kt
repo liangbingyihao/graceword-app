@@ -10,18 +10,22 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.gson.Gson
 import com.gyf.immersionbar.ImmersionBar
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.launch
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.EditCardActivity
 import sdk.chat.demo.robot.adpter.ImagePagerAdapter
 import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.ImageApi
+import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.api.model.TaskDetail
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil.getDateBefore
+import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
@@ -74,10 +78,11 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
         findViewById<View>(R.id.back).setOnClickListener(this)
         findViewById<View>(R.id.btn_download).setOnClickListener(this)
         findViewById<View>(R.id.btn_share_image).setOnClickListener(this)
+        findViewById<View>(R.id.wallpaper).setOnClickListener(this)
         if (dateStr == null || dateStr!!.isEmpty()) {
             findViewById<View>(R.id.conversations).setOnClickListener(this)
         } else {
-            findViewById<View>(R.id.conversations).visibility = View.INVISIBLE
+            findViewById<View>(R.id.conversations).visibility = View.GONE
         }
 
         viewPager = findViewById(R.id.viewPager)
@@ -250,6 +255,19 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                     )
                 )
                 finish()
+            }
+
+            R.id.wallpaper ->{
+                var imageDaily = adapter.getUrlAt(viewPager.currentItem)
+                if (imageDaily == null) {
+                    return
+                }
+
+                SettingWallpaperActivity.start(
+                    this@ImageViewerActivity,
+                    CardApiService.FROM_DAILY,
+                    (Gson()).toJson(imageDaily, ImageDaily::class.java)
+                )
             }
 
             R.id.btn_download, R.id.btn_share_image -> {
