@@ -179,6 +179,7 @@ class HighlightOverlayView @JvmOverloads constructor(
             highlightIndicator.post {
                 setHighlightView(relativeLeft, relativeTop, resId)
             }
+            CardApiService.setLauncherStep(LauncherStep.MASKED)
             return true
         }
         return false
@@ -329,7 +330,6 @@ class HighlightOverlayView @JvmOverloads constructor(
                 this.mode = m
 //                Log.e("MainApp", "highlight.handleNext.${m}")
                 if (setHighlightMode(m)) {
-                    CardApiService.setLauncherStep(LauncherStep.MASKED)
 //                    Log.e("MainApp", "highlight.handleNext.${m} done")
                     return
                 } else {

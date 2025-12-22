@@ -44,8 +44,8 @@
             android:background="#FAFAFA">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 android:layout_gravity="center|left"
                 android:layout_margin="30dp"
                 android:src="@mipmap/ic_qr_verse" />

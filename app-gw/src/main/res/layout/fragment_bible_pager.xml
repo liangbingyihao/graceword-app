@@ -42,6 +42,7 @@
             android:id="@+id/chapter_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:textColor="@color/item_text_normal"
             android:textSize="14sp" />
 

@@ -30,9 +30,11 @@ import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.Campaign
 import sdk.chat.demo.robot.api.model.ShareResult
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
+import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
 import sdk.chat.demo.robot.extensions.LanguageUtils
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.Calendar
 
 
 data class WallpaperConfig(
@@ -173,11 +175,14 @@ object CardApiService {
                     Log.e("LauncherStep", "whenShow:${whenShow},to launch main")
                     ChatSDK.events().source()
                         .accept(NetworkEvent(EventType.ShowOAMain, "main"))
-                } else if(config.dailyPopupConfig?.enable==true&&!whenShow.isNullOrEmpty()){
-                    val today:String = DateLocalizationUtil.formatDayAgo(0)
-                    val toShow: Boolean = today>=whenShow
-                    Log.e("LauncherStep", "today:${today},whenShow:${whenShow},to launch mini:${toShow}")
-                    if(toShow){
+                } else if (config.dailyPopupConfig?.enable == true && !whenShow.isNullOrEmpty()) {
+                    val today: String = DateLocalizationUtil.formatDayAgo(0)
+                    val toShow: Boolean = today >= whenShow
+                    Log.e(
+                        "LauncherStep",
+                        "today:${today},whenShow:${whenShow},to launch mini:${toShow}"
+                    )
+                    if (toShow) {
                         ChatSDK.events().source()
                             .accept(NetworkEvent(EventType.ShowOAMain, "mini"))
                     }
@@ -186,14 +191,24 @@ object CardApiService {
         }
     }
 
+    private var cacheBlessDay=0
     fun getBlessData(): Single<BlessData?> {
         return Single.create<BlessData?> { emitter ->
             try {
-                blessData?.let { cached ->
-                    emitter.onSuccess(cached)
-                    return@create
+                var dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+                if(cacheBlessDay==dayOfYear) {
+                    blessData?.let { cached ->
+                        var today = formatDayAgo(0)
+                        var last = cached.daily.lastOrNull()
+                        if (last != null && last.date >= today) {
+                            emitter.onSuccess(cached)
+//                            Log.e("getCampaignData","bless from cached:$cacheCampaignDay")
+                            return@create
+                        }
+                    }
                 }
 
+//                Log.e("getCampaignData","bless from network:$cacheBlessDay")
                 val request = Request.Builder()
                     .url(requireNotNull(URL_CARD_DATA))
                     .build()
@@ -212,6 +227,7 @@ object CardApiService {
                                     .handleResponse(response, BlessData::class.java)
                                 if (ret != null) {
                                     blessData = ret
+                                    cacheBlessDay = dayOfYear
                                 }
                                 if (blessData != null) {
                                     emitter.onSuccess(blessData!!)
@@ -236,13 +252,19 @@ object CardApiService {
     }
 
 
+    private var cacheCampaignDay=0
     fun getCampaignData(): Single<Campaign?> {
         return Single.create<Campaign?> { emitter ->
             try {
-                campaign?.let { cached ->
-                    emitter.onSuccess(cached)
-                    return@create
+                var dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+                if(cacheCampaignDay==dayOfYear){
+                    campaign?.let { cached ->
+//                        Log.e("getCampaignData","campaign from cached:$cacheCampaignDay")
+                        emitter.onSuccess(cached)
+                        return@create
+                    }
                 }
+//                Log.e("getCampaignData","campaign from network:$cacheCampaignDay")
 
                 val request = Request.Builder()
                     .url(requireNotNull(URL_CAMPAIGN_DATA))
@@ -262,6 +284,7 @@ object CardApiService {
                                     .handleResponse(response, Campaign::class.java)
                                 if (ret != null) {
                                     campaign = ret
+                                    cacheCampaignDay = dayOfYear
                                 }
                                 if (campaign != null) {
                                     setLauncherStep(launcherStep)

@@ -193,7 +193,7 @@
     <string name="switch_or_customize_blessings"> Or write your own.</string>
     <string name="other_apps">Other Apps</string>
     <string name="share_to">Share to</string>
-    <string name="share_prefix">From Grace Word Share: </string>
+    <string name="share_prefix">Share from Grace Word: </string>
     <string name="restore_wallpaper_message">The app was force-closed by the system due to long-term inactivity.\nTap \"Setup\" to restore dynamic scripture wallpaper</string>
     <string name="one_click_setup">Setup</string>
     <string name="skip">Skip</string>
@@ -201,11 +201,12 @@
 
     <string name="dynamic_wallpaper">Dynamic Wallpaper</string>
     <string name="one_click_reading">One-tap Bible Reading</string>
-    <string name="reading_feature_desc">Tap on scripture content to quickly read corresponding chapters</string>
+    <string name="reading_feature_desc">Tap the Bible reference to quickly read the chapter</string>
     <string name="static_wallpaper">Static Wallpaper</string>
     <string name="static_wallpaper_desc">Scripture is not clickable, need to update wallpaper manually</string>
     <string name="home_screen">Home Screen</string>
     <string name="lock_screen">Lock Screen</string>
     <string name="set_wallpaper_success">Wallpaper set successfully</string>
     <string name="set_wallpaper">Set wallpaper</string>
+    <string name="view_all_link">Click to view all:</string>
 </resources>

@@ -29,7 +29,6 @@ import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
-import sdk.chat.demo.robot.utils.ToastHelper
 import java.util.concurrent.Executors
 
 class BibleWallpaperService : WallpaperService() {
@@ -148,7 +147,7 @@ class BibleWallpaperService : WallpaperService() {
                     }
                 },
                     Consumer { e: Throwable? ->
-                        Log.e(TAG, "${today} get blessdata error: ${e.toString()}")
+                        Log.e(TAG, "$today get blessdata error: ${e.toString()}")
                     }))
             }
             dm.add(ImageApi.listImageDaily(today).subscribe ({ data ->

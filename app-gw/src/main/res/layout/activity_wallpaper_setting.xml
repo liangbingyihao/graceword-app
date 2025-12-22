@@ -72,8 +72,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:layout_marginLeft="18dp"
-                android:layout_marginRight="18dp"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
                 android:padding="12dp"
                 android:background="@drawable/edittext_rounded_bg"
                 android:orientation="vertical">
@@ -97,8 +97,8 @@
                         android:id="@+id/switch_read"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:thumbTint="@color/item_text_selected"
-                        android:trackTint="@color/item_text_selected"
+                        android:thumbTint="@color/switch_track_color"
+                        android:trackTint="@color/switch_track_color"
                         android:checked="true" />
                 </LinearLayout>
 
@@ -118,16 +118,24 @@
                     android:gravity="center_horizontal|left"
                     android:orientation="horizontal">
 
-                    <ImageView
-                        android:layout_width="120dp"
+                    <siyamed.shapeimageview.PorterShapeImageView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="240dp"
+                        android:adjustViewBounds="true"
                         android:scaleType="centerCrop"
+                        app:siShape="@drawable/shape_image_bubble"
+                        app:siSquare="false"
                         android:src="@mipmap/wallpaper_preview1" />
 
-                    <ImageView
-                        android:layout_width="120dp"
+                    <siyamed.shapeimageview.PorterShapeImageView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="240dp"
+                        android:adjustViewBounds="true"
                         android:scaleType="centerCrop"
+                        app:siShape="@drawable/shape_image_bubble"
+                        app:siSquare="false"
                         android:layout_marginLeft="12dp"
                         android:src="@mipmap/wallpaper_preview2" />
                 </LinearLayout>

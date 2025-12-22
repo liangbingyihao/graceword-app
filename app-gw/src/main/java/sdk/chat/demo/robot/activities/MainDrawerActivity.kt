@@ -100,6 +100,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         setContentView(layout)
 //        ImmersionBar.with(this).init()
 
+        Log.e("LogUploader", "mainactivity,${savedInstanceState==null}")
         try {
             ChatSDK.currentUser()
         } catch (e: Exception) {
@@ -217,7 +218,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                             vTaskMenu.visibility = View.GONE
                             findViewById<View>(R.id.red_dot).visibility = View.GONE
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
-                            CardApiService.setLauncherStep(LauncherStep.READY)
                         } else {
                             if (false) {
                                 //FIXME
@@ -239,7 +239,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                     })
             )
         }else{
-            Log.e("LauncherStep","hasShownGuideOverlay ready to launch")
             CardApiService.setLauncherStep(LauncherStep.READY)
         }
 
@@ -255,7 +254,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
-        checkPreLaunchActivity()
+
+        if(savedInstanceState==null) {
+            checkPreLaunchActivity()
+            LogUploader.chatEntrance("app_launch")
+        }
 
         highlightOverlay?.handleStatic(
             this@MainDrawerActivity,
@@ -263,8 +266,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         )
         loadCampaignData()
 
-
-        LogUploader.chatEntrance("app_launch")
     }
 
     private fun loadCampaignData() {
@@ -284,12 +285,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         if (data.entryConfig != null&&data.entryConfig.enable) {
                             setLottieAnimationView(data.entryConfig.iconUrl)
                         }
-//                        blessData = data
-//                        downloadFont(messageInput, data.font)
-//                        adapter.replaceData(data.daily)
-//                        viewPager.setCurrentItem(adapter.itemCount - 1, false)
-//
-//                        switchGreetings()
                     }
                 },
                 Consumer { e: Throwable? ->

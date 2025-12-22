@@ -394,76 +394,341 @@ object BibleData {
     )
 
     // 统一的书卷简写映射（包含所有语言版本）
+    // 统一的书卷简写映射（包含简体、繁体、英文）
     val bookAbbreviations = listOf(
         // 旧约
-        BookAbbreviation(1, listOf("创", "创世", "創", "創世", "Gen", "Genesis")),
-        BookAbbreviation(2, listOf("出", "出埃", "出埃及", "Ex", "Exodus")),
-        BookAbbreviation(3, listOf("利", "利未", "Lev", "Leviticus")),
-        BookAbbreviation(4, listOf("民", "民数", "Num", "Numbers")),
-        BookAbbreviation(5, listOf("申", "申命", "Deut", "Deuteronomy")),
-        BookAbbreviation(6, listOf("书", "约书亚", "书亚", "Josh", "Joshua")),
-        BookAbbreviation(7, listOf("士", "士师", "Judg", "Judges")),
-        BookAbbreviation(8, listOf("得", "路得", "Ruth")),
-        BookAbbreviation(9, listOf("撒上", "撒母耳上", "1Sam", "1 Samuel")),
-        BookAbbreviation(10, listOf("撒下", "撒母耳下", "2Sam", "2 Samuel")),
-        BookAbbreviation(11, listOf("王上", "列王上", "1Kgs", "1 Kings")),
-        BookAbbreviation(12, listOf("王下", "列王下", "2Kgs", "2 Kings")),
-        BookAbbreviation(13, listOf("代上", "历代上", "1Chr", "1 Chronicles")),
-        BookAbbreviation(14, listOf("代下", "历代下", "2Chr", "2 Chronicles")),
-        BookAbbreviation(15, listOf("拉", "以斯拉", "Ezra")),
-        BookAbbreviation(16, listOf("尼", "尼希米", "Neh", "Nehemiah")),
-        BookAbbreviation(17, listOf("斯", "以斯帖", "Esth", "Esther")),
-        BookAbbreviation(18, listOf("伯", "约伯", "Job")),
-        BookAbbreviation(19, listOf("诗", "诗篇", "Psa", "Ps", "Psalm", "Psalms")),
-        BookAbbreviation(20, listOf("箴", "箴言", "Prov", "Proverbs")),
-        BookAbbreviation(21, listOf("传", "传道", "Eccl", "Ecclesiastes")),
-        BookAbbreviation(22, listOf("歌", "雅歌", "Song", "Song of Solomon")),
-        BookAbbreviation(23, listOf("赛", "以赛亚", "Isa", "Isaiah")),
-        BookAbbreviation(24, listOf("耶", "耶利米", "Jer", "Jeremiah")),
-        BookAbbreviation(25, listOf("哀", "耶利米哀", "Lam", "Lamentations")),
-        BookAbbreviation(26, listOf("结", "以西结", "Ezek", "Ezekiel")),
-        BookAbbreviation(27, listOf("但", "但以理", "Dan", "Daniel")),
-        BookAbbreviation(28, listOf("何", "何西阿", "Hos", "Hosea")),
-        BookAbbreviation(29, listOf("珥", "约珥", "Joel")),
-        BookAbbreviation(30, listOf("摩", "阿摩司", "Amos")),
-        BookAbbreviation(31, listOf("俄", "俄巴底亚", "Obad", "Obadiah")),
-        BookAbbreviation(32, listOf("拿", "约拿", "Jonah")),
-        BookAbbreviation(33, listOf("弥", "弥迦", "Mic", "Micah")),
-        BookAbbreviation(34, listOf("鸿", "那鸿", "Nah", "Nahum")),
-        BookAbbreviation(35, listOf("哈", "哈巴谷", "Hab", "Habakkuk")),
-        BookAbbreviation(36, listOf("番", "西番雅", "Zeph", "Zephaniah")),
-        BookAbbreviation(37, listOf("该", "哈该", "Hag", "Haggai")),
-        BookAbbreviation(38, listOf("亚", "撒迦利亚", "Zech", "Zechariah")),
-        BookAbbreviation(39, listOf("玛", "玛拉基", "Mal", "Malachi")),
+        BookAbbreviation(1, listOf(
+            "创", "创世",
+            "創", "創世", "創世記", "創世记",
+            "Gen", "Genesis", "ge", "gn"
+        )),
+        BookAbbreviation(2, listOf(
+            "出", "出埃", "出埃及", "出埃及记",
+            "出埃及記", "出埃及記",
+            "Ex", "Exodus", "exo", "exod"
+        )),
+        BookAbbreviation(3, listOf(
+            "利", "利未", "利未记",
+            "利未記",
+            "Lev", "Leviticus", "le", "lv"
+        )),
+        BookAbbreviation(4, listOf(
+            "民", "民数", "民数记",
+            "民數", "民數記",
+            "Num", "Numbers", "nu", "nm", "nb"
+        )),
+        BookAbbreviation(5, listOf(
+            "申", "申命", "申命记",
+            "申命記",
+            "Deut", "Deuteronomy", "de", "dt"
+        )),
+        BookAbbreviation(6, listOf(
+            "书", "约书亚", "书亚", "约书亚记",
+            "書", "約書亞", "書亞", "約書亞記", "約书亚", "約书亚记",
+            "Josh", "Joshua", "jos", "josh", "jsh"
+        )),
+        BookAbbreviation(7, listOf(
+            "士", "士师", "士师记",
+            "士師", "士師記",
+            "Judg", "Judges", "jdg", "judg", "jg"
+        )),
+        BookAbbreviation(8, listOf(
+            "得", "路得", "路得记",
+            "得", "路得", "路得記",
+            "Ruth", "ru", "rth"
+        )),
+        BookAbbreviation(9, listOf(
+            "撒上", "撒母耳上", "撒上记",
+            "撒上", "撒母耳上", "撒上記", "撒母耳記上",
+            "1Sam", "1 Samuel", "1sa", "1sam", "1sm", "1s", "1samuel"
+        )),
+        BookAbbreviation(10, listOf(
+            "撒下", "撒母耳下", "撒下记",
+            "撒下", "撒母耳下", "撒下記", "撒母耳記下",
+            "2Sam", "2 Samuel", "2sa", "2sam", "2sm", "2s", "2samuel"
+        )),
+        BookAbbreviation(11, listOf(
+            "王上", "列王上", "列王记上",
+            "王上", "列王上", "列王記上",
+            "1Kgs", "1 Kings", "1ki", "1kgs", "1k", "1kings"
+        )),
+        BookAbbreviation(12, listOf(
+            "王下", "列王下", "列王记下",
+            "王下", "列王下", "列王記下",
+            "2Kgs", "2 Kings", "2ki", "2kgs", "2k", "2kings"
+        )),
+        BookAbbreviation(13, listOf(
+            "代上", "历代上", "历代志上",
+            "代上", "歷代上", "歷代志上", "歷代記上",
+            "1Chr", "1 Chronicles", "1ch", "1chr", "1chron", "1chronicles"
+        )),
+        BookAbbreviation(14, listOf(
+            "代下", "历代下", "历代志下",
+            "代下", "歷代下", "歷代志下", "歷代記下",
+            "2Chr", "2 Chronicles", "2ch", "2chr", "2chron", "2chronicles"
+        )),
+        BookAbbreviation(15, listOf(
+            "拉", "以斯拉", "以斯拉记",
+            "拉", "以斯拉", "以斯拉記",
+            "Ezra", "ezr", "ez"
+        )),
+        BookAbbreviation(16, listOf(
+            "尼", "尼希米", "尼希米记",
+            "尼", "尼希米", "尼希米記",
+            "Neh", "Nehemiah", "neh", "ne"
+        )),
+        BookAbbreviation(17, listOf(
+            "斯", "以斯帖", "以斯帖记",
+            "斯", "以斯帖", "以斯帖記", "以斯帖记",
+            "Esth", "Esther", "est", "esth", "es"
+        )),
+        BookAbbreviation(18, listOf(
+            "伯", "约伯", "约伯记",
+            "伯", "約伯", "約伯記", "約伯记",
+            "Job", "job", "jb"
+        )),
+        BookAbbreviation(19, listOf(
+            "诗", "诗篇", "诗",
+            "詩", "詩篇",
+            "Psa", "Ps", "Psalm", "Psalms", "ps", "psa", "pslm"
+        )),
+        BookAbbreviation(20, listOf(
+            "箴", "箴言",
+            "箴", "箴言",
+            "Prov", "Proverbs", "pr", "prv", "pro", "prov"
+        )),
+        BookAbbreviation(21, listOf(
+            "传", "传道", "传道书",
+            "傳", "傳道", "傳道書", "传道书",
+            "Eccl", "Ecclesiastes", "ec", "ecc", "eccl"
+        )),
+        BookAbbreviation(22, listOf(
+            "歌", "雅歌",
+            "歌", "雅歌",
+            "Song", "Song of Solomon", "so", "sg", "sos", "song"
+        )),
+        BookAbbreviation(23, listOf(
+            "赛", "以赛亚", "以赛亚书",
+            "賽", "以賽亞", "以賽亞書", "以赛亚书",
+            "Isa", "Isaiah", "is", "isa"
+        )),
+        BookAbbreviation(24, listOf(
+            "耶", "耶利米", "耶利米书",
+            "耶", "耶利米", "耶利米書", "耶利米书",
+            "Jer", "Jeremiah", "je", "jer", "jerm", "jeremiah"
+        )),
+        BookAbbreviation(25, listOf(
+            "哀", "耶利米哀", "耶利米哀歌",
+            "哀", "耶利米哀", "耶利米哀歌",
+            "Lam", "Lamentations", "la", "lam"
+        )),
+        BookAbbreviation(26, listOf(
+            "结", "以西结", "以西结书",
+            "結", "以西結", "以西結書", "以西结书",
+            "Ezek", "Ezekiel", "eze", "ezek", "ek", "ezk"
+        )),
+        BookAbbreviation(27, listOf(
+            "但", "但以理", "但以理书",
+            "但", "但以理", "但以理書", "但以理书",
+            "Dan", "Daniel", "da", "dan", "dn"
+        )),
+        BookAbbreviation(28, listOf(
+            "何", "何西阿", "何西阿书",
+            "何", "何西阿", "何西阿書", "何西阿书",
+            "Hos", "Hosea", "ho", "hos"
+        )),
+        BookAbbreviation(29, listOf(
+            "珥", "约珥", "约珥书",
+            "珥", "約珥", "約珥書", "约珥书",
+            "Joel", "joe", "jl", "joel"
+        )),
+        BookAbbreviation(30, listOf(
+            "摩", "阿摩司", "阿摩司书",
+            "摩", "阿摩司", "阿摩司書", "阿摩司书",
+            "Amos", "am", "amos"
+        )),
+        BookAbbreviation(31, listOf(
+            "俄", "俄巴底亚", "俄巴底亚书",
+            "俄", "俄巴底亞", "俄巴底亞書", "俄巴底亚书",
+            "Obad", "Obadiah", "ob", "obad", "oba"
+        )),
+        BookAbbreviation(32, listOf(
+            "拿", "约拿", "约拿书",
+            "拿", "約拿", "約拿書", "约拿书",
+            "Jonah", "jon", "jnh", "jonah"
+        )),
+        BookAbbreviation(33, listOf(
+            "弥", "弥迦", "弥迦书",
+            "彌", "彌迦", "彌迦書", "弥迦书",
+            "Mic", "Micah", "mi", "mic"
+        )),
+        BookAbbreviation(34, listOf(
+            "鸿", "那鸿", "那鸿书",
+            "鴻", "那鴻", "那鴻書", "那鸿书",
+            "Nah", "Nahum", "na", "nah"
+        )),
+        BookAbbreviation(35, listOf(
+            "哈", "哈巴谷", "哈巴谷书",
+            "哈", "哈巴谷", "哈巴谷書", "哈巴谷书",
+            "Hab", "Habakkuk", "hab", "hb", "habak"
+        )),
+        BookAbbreviation(36, listOf(
+            "番", "西番雅", "西番雅书",
+            "番", "西番雅", "西番雅書", "西番雅书",
+            "Zeph", "Zephaniah", "zep", "zeph", "zp", "zph"
+        )),
+        BookAbbreviation(37, listOf(
+            "该", "哈该", "哈该书",
+            "該", "哈該", "哈該書", "哈该书",
+            "Hag", "Haggai", "hag", "hg", "haggai"
+        )),
+        BookAbbreviation(38, listOf(
+            "亚", "撒迦利亚", "撒迦利亚书",
+            "亞", "撒迦利亞", "撒迦利亞書", "撒迦利亚书",
+            "Zech", "Zechariah", "zec", "zech", "zc", "zch"
+        )),
+        BookAbbreviation(39, listOf(
+            "玛", "玛拉基", "玛拉基书",
+            "瑪", "瑪拉基", "瑪拉基書", "玛拉基书",
+            "Mal", "Malachi", "mal", "ml", "malachi"
+        )),
 
         // 新约
-        BookAbbreviation(40, listOf("太", "马太", "Matt", "Matthew")),
-        BookAbbreviation(41, listOf("可", "马可", "Mark")),
-        BookAbbreviation(42, listOf("路", "路加", "Luke")),
-        BookAbbreviation(43, listOf("约", "约翰", "John")),
-        BookAbbreviation(44, listOf("徒", "使徒行", "Acts")),
-        BookAbbreviation(45, listOf("罗", "罗马", "Rom", "Romans")),
-        BookAbbreviation(46, listOf("林前", "哥前", "1Cor", "1 Corinthians")),
-        BookAbbreviation(47, listOf("林后", "哥后", "2Cor", "2 Corinthians")),
-        BookAbbreviation(48, listOf("加", "加拉太", "Gal", "Galatians")),
-        BookAbbreviation(49, listOf("弗", "以弗所", "Eph", "Ephesians")),
-        BookAbbreviation(50, listOf("腓", "腓立比", "Phil", "Philippians")),
-        BookAbbreviation(51, listOf("西", "歌罗西", "Col", "Colossians")),
-        BookAbbreviation(52, listOf("帖前", "帖撒前", "1Thess", "1 Thessalonians")),
-        BookAbbreviation(53, listOf("帖后", "帖撒后", "2Thess", "2 Thessalonians")),
-        BookAbbreviation(54, listOf("提前", "提摩前", "1Tim", "1 Timothy")),
-        BookAbbreviation(55, listOf("提后", "提摩后", "2Tim", "2 Timothy")),
-        BookAbbreviation(56, listOf("多", "提多", "Titus")),
-        BookAbbreviation(57, listOf("门", "腓利门", "Phlm", "Philemon")),
-        BookAbbreviation(58, listOf("来", "希伯来", "Heb", "Hebrews")),
-        BookAbbreviation(59, listOf("雅", "雅各", "Jas", "James")),
-        BookAbbreviation(60, listOf("彼前", "彼前书", "1Pet", "1 Peter")),
-        BookAbbreviation(61, listOf("彼后", "彼后书", "2Pet", "2 Peter")),
-        BookAbbreviation(62, listOf("约一", "约一书", "1John", "1 John")),
-        BookAbbreviation(63, listOf("约二", "约二书", "2John", "2 John")),
-        BookAbbreviation(64, listOf("约三", "约三书", "3John", "3 John")),
-        BookAbbreviation(65, listOf("犹", "犹大", "Jude")),
-        BookAbbreviation(66, listOf("启", "启示", "Rev", "Revelation"))
+        BookAbbreviation(40, listOf(
+            "太", "马太", "马太福音", "太福音",
+            "太", "馬太", "馬太福音", "太福音", "马太福音",
+            "Matt", "Matthew", "mt", "matt", "mat"
+        )),
+        BookAbbreviation(41, listOf(
+            "可", "马可", "马可福音", "可福音",
+            "可", "馬可", "馬可福音", "可福音", "马可福音",
+            "Mark", "mk", "mar", "mark", "mrk"
+        )),
+        BookAbbreviation(42, listOf(
+            "路", "路加", "路加福音", "路福音",
+            "路", "路加", "路加福音", "路福音",
+            "Luke", "lk", "luk", "luke", "lu"
+        )),
+        BookAbbreviation(43, listOf(
+            "约", "约翰", "约翰福音", "约福音",
+            "約", "約翰", "約翰福音", "約福音", "约翰福音",
+            "John", "jn", "joh", "john", "jo"
+        )),
+        BookAbbreviation(44, listOf(
+            "徒", "使徒行", "使徒行传", "徒行传",
+            "徒", "使徒行", "使徒行傳", "徒行傳", "使徒行传",
+            "Acts", "ac", "act", "acts"
+        )),
+        BookAbbreviation(45, listOf(
+            "罗", "罗马", "罗马书",
+            "羅", "羅馬", "羅馬書", "罗马书",
+            "Rom", "Romans", "ro", "rom", "rm", "romans"
+        )),
+        BookAbbreviation(46, listOf(
+            "林前", "哥前", "哥林多前书", "林前书",
+            "林前", "哥前", "哥林多前書", "林前書", "哥林多前书",
+            "1Cor", "1 Corinthians", "1co", "1cor", "1corinthians", "1corinth", "1c", "1corin"
+        )),
+        BookAbbreviation(47, listOf(
+            "林后", "哥后", "哥林多后书", "林后书",
+            "林后", "哥后", "哥林多後書", "林後書", "哥林多后书",
+            "2Cor", "2 Corinthians", "2co", "2cor", "2corinthians", "2corinth", "2c", "2corin"
+        )),
+        BookAbbreviation(48, listOf(
+            "加", "加拉太", "加拉太书",
+            "加", "加拉太", "加拉太書", "加拉太书",
+            "Gal", "Galatians", "ga", "gal", "gl", "galat"
+        )),
+        BookAbbreviation(49, listOf(
+            "弗", "以弗所", "以弗所书",
+            "弗", "以弗所", "以弗所書", "以弗所书",
+            "Eph", "Ephesians", "eph", "ep", "ephes", "ephesians"
+        )),
+        BookAbbreviation(50, listOf(
+            "腓", "腓立比", "腓立比书",
+            "腓", "腓立比", "腓立比書", "腓立比书",
+            "Phil", "Philippians", "php", "phil", "philipp", "philippians", "phl", "ph"
+        )),
+        BookAbbreviation(51, listOf(
+            "西", "歌罗西", "歌罗西书",
+            "西", "歌羅西", "歌羅西書", "歌罗西书",
+            "Col", "Colossians", "col", "co", "coloss", "colossians", "cls", "cl"
+        )),
+        BookAbbreviation(52, listOf(
+            "帖前", "帖撒前", "帖撒罗尼迦前书", "帖前书",
+            "帖前", "帖撒前", "帖撒羅尼迦前書", "帖前書", "帖撒罗尼迦前书",
+            "1Thess", "1 Thessalonians", "1th", "1thess", "1thessalonians", "1thes", "1ts", "1thss"
+        )),
+        BookAbbreviation(53, listOf(
+            "帖后", "帖撒后", "帖撒罗尼迦后书", "帖后书",
+            "帖後", "帖撒後", "帖撒羅尼迦後書", "帖後書", "帖撒罗尼迦后书",
+            "2Thess", "2 Thessalonians", "2th", "2thess", "2thessalonians", "2thes", "2ts", "2thss"
+        )),
+        BookAbbreviation(54, listOf(
+            "提前", "提摩前", "提摩太前书", "提前书",
+            "提前", "提摩前", "提摩太前書", "提前書", "提摩太前书",
+            "1Tim", "1 Timothy", "1ti", "1tim", "1timothy", "1tm", "1t", "1timo"
+        )),
+        BookAbbreviation(55, listOf(
+            "提后", "提摩后", "提摩太后书", "提后书",
+            "提後", "提摩後", "提摩太後書", "提後書", "提摩太后书",
+            "2Tim", "2 Timothy", "2ti", "2tim", "2timothy", "2tm", "2t", "2timo"
+        )),
+        BookAbbreviation(56, listOf(
+            "多", "提多", "提多书",
+            "多", "提多", "提多書", "提多书",
+            "Titus", "tit", "ti", "titus", "tts", "tt"
+        )),
+        BookAbbreviation(57, listOf(
+            "门", "腓利门", "腓利门书",
+            "門", "腓利門", "腓利門書", "腓利门书",
+            "Phlm", "Philemon", "phm", "philem", "phlm", "philemon", "pm", "plm"
+        )),
+        BookAbbreviation(58, listOf(
+            "来", "希伯来", "希伯来书",
+            "來", "希伯來", "希伯來書", "希伯来书",
+            "Heb", "Hebrews", "heb", "he", "hebr", "hebrews", "hbr", "hb"
+        )),
+        BookAbbreviation(59, listOf(
+            "雅", "雅各", "雅各书",
+            "雅", "雅各", "雅各書", "雅各书",
+            "Jas", "James", "jas", "ja", "james", "jm", "jms"
+        )),
+        BookAbbreviation(60, listOf(
+            "彼前", "彼前书", "彼得前书",
+            "彼前", "彼前書", "彼得前書", "彼得前书",
+            "1Pet", "1 Peter", "1pe", "1pet", "1peter", "1pt", "1p", "1ptr"
+        )),
+        BookAbbreviation(61, listOf(
+            "彼后", "彼后书", "彼得后书",
+            "彼後", "彼後書", "彼得後書", "彼得后书",
+            "2Pet", "2 Peter", "2pe", "2pet", "2peter", "2pt", "2p", "2ptr"
+        )),
+        BookAbbreviation(62, listOf(
+            "约一", "约一书", "约翰一书","约壹",
+            "約一", "約一書", "約翰一書", "约翰一书",
+            "1John", "1 John", "1jn", "1joh", "1john", "1j", "1jo", "1jhn"
+        )),
+        BookAbbreviation(63, listOf(
+            "约二", "约二书", "约翰二书",
+            "約二", "約二書", "約翰二書", "约翰二书",
+            "2John", "2 John", "2jn", "2joh", "2john", "2j", "2jo", "2jhn"
+        )),
+        BookAbbreviation(64, listOf(
+            "约三", "约三书", "约翰三书",
+            "約三", "約三書", "約翰三書", "约翰三书",
+            "3John", "3 John", "3jn", "3joh", "3john", "3j", "3jo", "3jhn"
+        )),
+        BookAbbreviation(65, listOf(
+            "犹", "犹大", "犹大书",
+            "猶", "猶大", "猶大書", "犹大书",
+            "Jude", "jud", "jude", "jd", "jde"
+        )),
+        BookAbbreviation(66, listOf(
+            "启", "启示", "启示录",
+            "啟", "啟示", "啟示錄", "启示录", "啟示录",
+            "Rev", "Revelation", "re", "rev", "revel", "revelation", "rv", "rvl"
+        ))
     )
 
     // 创建简写到书卷ID的快速查找映射
@@ -605,13 +870,18 @@ object BibleData {
             // 格式: "3-5" 或 "3"
             chapterVersePart.contains("-") -> parseChapterRange(chapterVersePart, book)
             // 格式: "3" (只有章节)
-            chapterVersePart.toIntOrNull() != null -> {
-                val chapter = chapterVersePart.toInt()
-                validateChapter(chapter, book)
-                ChapterVerseInfo(chapter, chapter, null, null)
+            else -> {
+                val regex = """^(\d+)""".toRegex()
+                val chapter = regex.find(chapterVersePart)?.value?.toInt()
+                if(chapter!=null){
+                    validateChapter(chapter, book)
+                    ChapterVerseInfo(chapter, chapter, null, null)
+                }else{
+                    ChapterVerseInfo(1, 1, null, null)
+                }
             }
 
-            else -> throw IllegalArgumentException("无效的章节格式: $chapterVersePart")
+//            else -> throw IllegalArgumentException("无效的章节格式: $chapterVersePart")
         }
     }
 

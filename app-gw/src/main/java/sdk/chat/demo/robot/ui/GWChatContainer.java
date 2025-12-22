@@ -196,11 +196,11 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                                 new KeyValuePair("share_msg_count", Integer.toString(selectedItems.size())),
                                 new KeyValuePair("share_action", "10")
                         ));
+                String summary = selectedItems.get(0).getShareSummary(getContext());
                 dm.add(SocialShareHandler.batchShare(ShareRequestKt.createShareRequest(selectedItems))
                         .subscribe(
                                 shareUrl -> {
                                     // 成功回调（在主线程）
-                                    String summary = selectedItems.get(0).getShareSummary(getContext());
                                     SocialShareUtils.showCustomShareDialog(getContext(), SocialShareUtils.targetApps, summary, null, shareUrl);
                                 },
                                 error -> {

@@ -19,6 +19,8 @@ import com.bumptech.glide.request.RequestListener
 import sdk.chat.demo.robot.api.model.Campaign
 import sdk.chat.demo.robot.ui.MaxWidthWrapImageView
 import androidx.core.graphics.toColorInt
+import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.handlers.LogUploader
 
 class CampaignInfoActivity : BaseActivity() {
     companion object {
@@ -63,13 +65,35 @@ class CampaignInfoActivity : BaseActivity() {
         bgMain = findViewById<ImageView>(R.id.bg_main)
         bgPos = findViewById<ImageView>(R.id.positive)
         txExit = findViewById<View>(R.id.exit)
-        txExit.setOnClickListener { finish() }
+        txExit.setOnClickListener {
+            LogUploader.reportEvent(
+                "mod_activity", listOf<KeyValuePair?>(
+                    KeyValuePair("activity_action", "10"),
+                    KeyValuePair("activity_page_type", "update"),
+                )
+            )
+            finish()
+        }
         bgPos.setOnClickListener {
             CardApiService.handleJoinCampaign(this@CampaignInfoActivity)
+
+            LogUploader.reportEvent(
+                "mod_activity", listOf<KeyValuePair?>(
+                    KeyValuePair("activity_action", "20"),
+                    KeyValuePair("activity_page_type", "update"),
+                )
+            )
             finish()
         }
 
         loadData()
+
+        LogUploader.reportEvent(
+            "mod_activity", listOf<KeyValuePair?>(
+                KeyValuePair("activity_action", "0"),
+                KeyValuePair("activity_page_type", "update"),
+            )
+        )
     }
 
     fun loadData() {

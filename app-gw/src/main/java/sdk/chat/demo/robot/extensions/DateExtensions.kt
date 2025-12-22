@@ -91,7 +91,7 @@ object DateLocalizationUtil {
 
     public fun formatDayAgo(dateAgo: Int): String {
         val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -1 * dateAgo) // 减去一个月
+        calendar.add(Calendar.DAY_OF_YEAR, -1 * dateAgo) // 减去dataAgo
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return dateFormat.format(calendar.time)
     }

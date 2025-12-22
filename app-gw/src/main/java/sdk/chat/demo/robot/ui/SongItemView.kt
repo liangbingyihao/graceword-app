@@ -270,7 +270,7 @@ class SongItemView @JvmOverloads constructor(
             return
         }
         //FIXME
-        if (true||url.endsWith("ppt", true) || url.endsWith("pdf", true)) {
+        if (!url.contains("youtube")||url.endsWith("ppt", true) || url.endsWith("pdf", true)) {
             try {
                 val intent =
                     Intent(

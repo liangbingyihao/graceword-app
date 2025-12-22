@@ -149,6 +149,9 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun triggerDataLoadForPosition(position: Int) {
+        if(adapter==null){
+            return
+        }
         val fragment = adapter.getFragment(position)
         var chapter = chapters.getOrNull(position)
         fragment?.let {

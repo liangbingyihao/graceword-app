@@ -27,10 +27,12 @@ import sdk.chat.core.utils.PermissionRequestHandler
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.SpeechToTextActivity
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
 import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.handlers.WallpaperConfig
 import sdk.chat.demo.robot.utils.WallpaperGuideUtil
 import sdk.chat.demo.robot.utils.WallpaperUtils
@@ -44,6 +46,7 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
     private lateinit var tvOneClick: TextView
     private lateinit var swClickable: Switch
     private var from: String = ""
+    private var source:String = "other"
 
     //    private var isPending: Boolean = false
     private lateinit var config: WallpaperConfig
@@ -70,6 +73,7 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.e("LogUploader", "settingwallpaper,${savedInstanceState==null}")
         setContentView(R.layout.activity_wallpaper_setting)
         findViewById<View>(R.id.home).setOnClickListener(this)
         findViewById<View>(R.id.confirm).setOnClickListener(this)
@@ -100,6 +104,20 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
             }
         }
         initSetting()
+
+        if(from==CardApiService.FROM_CARD){
+            source = "festival"
+        }else if(from == CardApiService.FROM_DAILY){
+            source = "daily"
+        }
+        if(savedInstanceState==null) {
+            LogUploader.reportEvent(
+                "mod_activity", listOf<KeyValuePair?>(
+                    KeyValuePair("activity_action", "40"),
+                    KeyValuePair("activity_wallpaper_source", source),
+                )
+            )
+        }
     }
 
     fun initSetting() {
@@ -110,16 +128,16 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
         rbHome.isChecked = configCache.isHome
         rbStatic.isChecked = configCache.isLock || configCache.isHome
         config = configCache
-        setOneClickBibleColor(configCache.isReadScriptureEnabled)
+//        setOneClickBibleColor(configCache.isReadScriptureEnabled)
     }
 
-    private fun setOneClickBibleColor(isChecked: Boolean){
-        if(isChecked){
-            tvOneClick.setTextColor(ContextCompat.getColor(this,R.color.item_text_normal))
-        }else{
-            tvOneClick.setTextColor(ContextCompat.getColor(this,R.color.text_gray))
-        }
-    }
+//    private fun setOneClickBibleColor(isChecked: Boolean){
+//        if(isChecked){
+//            tvOneClick.setTextColor(ContextCompat.getColor(this,R.color.item_text_normal))
+//        }else{
+//            tvOneClick.setTextColor(ContextCompat.getColor(this,R.color.text_gray))
+//        }
+//    }
 
     override fun getLayout(): Int {
         return 0
@@ -151,8 +169,22 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
                 config = newConfig
                 if (rbDynamic.isChecked) {
                     onSetDynamic()
+                    LogUploader.reportEvent(
+                        "mod_activity", listOf<KeyValuePair?>(
+                            KeyValuePair("activity_action", "41"),
+                            KeyValuePair("activity_wallpaper_source", source),
+                            KeyValuePair("activity_wallpaper_type", "live"),
+                        )
+                    )
                 } else if (rbStatic.isChecked) {
                     onSetStatic()
+                    LogUploader.reportEvent(
+                        "mod_activity", listOf<KeyValuePair?>(
+                            KeyValuePair("activity_action", "41"),
+                            KeyValuePair("activity_wallpaper_source", source),
+                            KeyValuePair("activity_wallpaper_type", "static"),
+                        )
+                    )
                 }
             }
 //            }
@@ -234,7 +266,7 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
                         rbStatic.isChecked = false
                         swClickable.isChecked = true
                         rbDynamic.isChecked = true
-                        setOneClickBibleColor(swClickable.isChecked)
+//                        setOneClickBibleColor(swClickable.isChecked)
                     }
                 } else {
                     rbStatic.isChecked = true
@@ -246,7 +278,7 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
             }
 
             R.id.switch_read ->{
-                setOneClickBibleColor(isCheck)
+//                setOneClickBibleColor(isCheck)
             }
 
             R.id.rb_static -> {
@@ -257,14 +289,14 @@ class SettingWallpaperActivity : BaseActivity(), View.OnClickListener, OnChecked
                     }
                     rbDynamic.isChecked = false
                     swClickable.isChecked = false
-                    setOneClickBibleColor(swClickable.isChecked)
+//                    setOneClickBibleColor(swClickable.isChecked)
                 } else {
                     rbHome.isChecked = false
                     rbLock.isChecked = false
                     if (BillingManager.getInstance().hasSubscriptions()) {
                         rbDynamic.isChecked = true
                         swClickable.isChecked = true
-                        setOneClickBibleColor(swClickable.isChecked)
+//                        setOneClickBibleColor(swClickable.isChecked)
                     }
                 }
             }

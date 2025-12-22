@@ -21,6 +21,7 @@ import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.dpToPx
 import sdk.chat.demo.robot.handlers.CardApiService
+import sdk.chat.demo.robot.handlers.CardApiService.LauncherStep
 import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.holder.WelcomeHolder
 
@@ -202,4 +203,8 @@ class BeginnerActivity : BaseActivity() {
             .start()
     }
 
+    override fun onStop() {
+        super.onStop()
+        CardApiService.setLauncherStep(LauncherStep.READY)
+    }
 }

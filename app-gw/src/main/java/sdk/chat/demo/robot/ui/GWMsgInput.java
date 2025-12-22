@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.Editable;
 import android.text.Html;
+import android.text.Layout;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -295,9 +296,9 @@ public class GWMsgInput extends RelativeLayout
             if (typingListener != null) typingListener.onHeightChange();
         }
         startPos = -1;
-        Log.d("AsrHelper", "afterTextChanged and stop");
         AsrHelper.INSTANCE.stopAsr();
         checkExpand();
+
 //        lastLineCount = messageInput.getLineCount();
 //        Log.e("AsrHelper1", messageInput.getLineCount() + ",lastLineCount:" + lastLineCount.toString());
 //        if (editMode == 0) {
@@ -596,20 +597,22 @@ public class GWMsgInput extends RelativeLayout
             }
             Log.e("setEditMode", String.format("paramsExpand 1:%d,%d,%d,%d",
                     paramsExpand.leftMargin, paramsExpand.rightMargin, paramsExpand.topMargin, paramsExpand.bottomMargin));
-            int h = paramsExpand.height - typingListener.getKeyboardHeight();
+            int h = paramsExpand.height - typingListener.getKeyboardHeight()-editModeButton.getHeight()-editModeButton.getPaddingBottom();
             if (h == params.height) {
 //                Log.e("setEditMode", "no change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight());
                 return;
             }
 //            Log.e("setEditMode", "change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight() + ",h:" + h);
-            params.height = h;
+            params.height = h-messageSendButton.getHeight();
             params.leftMargin = paramsExpand.leftMargin;
             params.rightMargin = paramsExpand.rightMargin;
             params.topMargin = paramsExpand.topMargin;
             params.bottomMargin = messageSendButton.getHeight();
             messageInput.setMaxLines(Integer.MAX_VALUE);
+//            messageInput.setHeight(h);
             editModeButton.setImageResource(R.mipmap.ic_contract);
             inputContainer.setBackgroundResource(R.drawable.edittext_rounded_white_bg);
+//            inputContainer.setBackgroundColor(R.color.design_default_color_error);
         }
 // 应用新的布局参数
         inputContainer.setLayoutParams(params);

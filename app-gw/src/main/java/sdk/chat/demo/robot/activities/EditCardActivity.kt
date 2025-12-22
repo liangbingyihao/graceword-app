@@ -39,10 +39,12 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.ImagePagerAdapter
 import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.ImageSaveUtils
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardApiService.shareCardWithBitmap
 import sdk.chat.demo.robot.handlers.CardGenerator
+import sdk.chat.demo.robot.handlers.LogUploader
 import sdk.chat.demo.robot.utils.AdvancedChineseEnglishFilter
 import sdk.chat.demo.robot.utils.FontManager
 import sdk.chat.demo.robot.utils.SocialShareUtils
@@ -142,7 +144,15 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
 
         loadData()
         setupTextWatcher()
-
+        if(savedInstanceState==null){
+            LogUploader.reportEvent(
+                "mod_activity", listOf<KeyValuePair?>(
+                    KeyValuePair("activity_action", "0"),
+                    KeyValuePair("activity_page_type", "wallpaper"),
+                )
+            )
+        }
+        Log.e("LogUploader", "editcardactivity,${savedInstanceState==null}")
     }
 
 
@@ -266,6 +276,11 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                     Log.e(TAG, "editHint:showKeyboard()")
                     showKeyboard()
                 }, 50)
+                LogUploader.reportEvent(
+                    "mod_activity", listOf<KeyValuePair?>(
+                        KeyValuePair("activity_action", "60")
+                    )
+                )
             }
 
             R.id.switch_greeting -> {
@@ -293,8 +308,20 @@ class EditCardActivity : BaseActivity(), View.OnClickListener {
                     )
                 } else if (vid == R.id.btn_share_image) {
                     share(imageDaily)
+                    LogUploader.reportEvent(
+                        "mod_activity", listOf<KeyValuePair?>(
+                            KeyValuePair("activity_action", "30"),
+                            KeyValuePair("activity_page_type", "wallpaper"),
+                        )
+                    )
                 } else {
                     download(imageDaily)
+
+                    LogUploader.reportEvent(
+                        "mod_activity", listOf<KeyValuePair?>(
+                            KeyValuePair("activity_action", "50")
+                        )
+                    )
                 }
             }
         }

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import io.noties.markwon.Markwon;
 import kotlin.jvm.JvmField;
 import sdk.chat.core.dao.Message;
+import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
 import sdk.chat.demo.robot.api.model.AIFeedback;
 import sdk.chat.demo.robot.api.model.MessageDetail;
@@ -154,15 +155,31 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
 
     public String getShareSummary(Context context){
         String summary;
-        if (isUserSelected()) {
+        if(isSong) {
+            Optional<Song> s = Optional.ofNullable(getAiFeedback())
+                    .map(MessageDetail::getFeedback)
+                    .map(AIFeedback::getHymns)
+                    .map(hymns -> hymns.stream()
+                            .filter(song -> song != null && song.isSelected())
+                            .findFirst())
+                    .orElse(null);
+            StringBuilder sb = new StringBuilder();
+            if(s!=null&&s.isPresent()){
+                Song song = s.get();
+                sb.append(song.getTitle()).append("\n");
+                sb.append(song.getArtist()).append("\n");
+                sb.append(song.getLyrics());
+            }
+            summary = sb.toString();
+        }else if (isUserSelected()) {
             summary = message.getText();
         } else {
             summary = getAiFeedback().getFeedbackText();
             Markwon md = Markwon.create(context);
             summary = md.render(md.parse(summary)).toString();
         }
-        if (summary != null && summary.length() > 100) {
-            summary = summary.substring(0, 100) + "... 点击链接查看全部:";
+        if (summary != null && summary.length() > 120) {
+            summary = summary.substring(0, 120) +"...\n"+ context.getString(R.string.view_all_link);
         }
         return summary;
     }

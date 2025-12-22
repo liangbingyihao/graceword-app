@@ -15,7 +15,7 @@ data class GWConfigs(
     val dbVoiceTypes: List<DBVoiceType>? = null,
 
     @SerializedName("is_vip_display_crown")
-    val isVipDisplayCrown: Boolean?=false,
+    val isVipDisplayCrown: Boolean? = false,
 
     @SerializedName("tts_voice")
     val defaultVoiceTypes: Map<String, String>? = null,
@@ -28,6 +28,8 @@ data class GWConfigs(
 
     @SerializedName("welcome_survey")
     val welcomeSurvey: WelcomeSurvey? = null,
+    @SerializedName("qr_code")
+    val qrCode: QRCode? = null,
     val billingInfo: BillingInfo? = null
 
 ) {
@@ -42,6 +44,11 @@ data class GWConfigs(
 
         @SerializedName("app_id")
         val appId: String? = null
+    )
+
+    data class QRCode(
+        val daily: String? = null,
+        val verse: String? = null,
     )
 
     data class DBVoiceType(
