@@ -1,13 +1,16 @@
 package sdk.chat.demo.robot.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import io.reactivex.functions.Consumer
+import sdk.chat.core.events.EventType
+import sdk.chat.core.events.NetworkEvent
+import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.pre.R
@@ -17,6 +20,7 @@ import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.handlers.BibleApiService
 import sdk.chat.demo.robot.handlers.LogUploader
+import sdk.guru.common.DisposableMap
 
 class BiblePagerFragment : Fragment(), View.OnClickListener {
 
@@ -24,9 +28,9 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private lateinit var chapterTitle: TextView
     private lateinit var chapterProgress: TextView
     private var currentPosition = 0
-
+    private lateinit var verseMenus: View
     private lateinit var adapter: ChapterPagerAdapter
-    lateinit var bibleApiService: BibleApiService
+//    lateinit var bibleApiService: BibleApiService
 
     private val chapters = mutableListOf<BibleChapter>()
     private var currentBookId = 1
@@ -35,6 +39,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private var reference = ""
     private var fullscreen = false
     private var pageType = "half"
+    private var dm = DisposableMap();
 
     // 用于防止频繁滑动的变量
     private var isLoading = false
@@ -84,9 +89,11 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         viewPager = view.findViewById(R.id.chapter_view_pager)
         chapterTitle = view.findViewById(R.id.chapter_title)
         chapterProgress = view.findViewById(R.id.chapter_progress)
-
+        verseMenus = view.findViewById(R.id.verse_menus)
+        verseMenus.visibility = View.GONE
+        verseMenus.findViewById<View?>(R.id.close_menus)?.setOnClickListener(this)
         // 初始化API服务
-        bibleApiService = BibleApiService.getInstance()
+//        bibleApiService = BibleApiService.getInstance()
 
         // 加载章节数据
         loadChapter(currentBookId, currentChapterNumber, reference)
@@ -126,20 +133,19 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                 }
             }
         })
-
         view.findViewById<View>(R.id.exit).setOnClickListener(this)
         if (!fullscreen) {
             view.findViewById<View?>(R.id.top_room)?.setOnClickListener(this)
             view.findViewById<View>(R.id.more)?.setOnClickListener(this)
         }
-//        // 设置按钮点击事件
-//        prevChapterBtn.setOnClickListener {
-//            navigateToPreviousChapter()
-//        }
-//
-//        nextChapterBtn.setOnClickListener {
-//            navigateToNextChapter()
-//        }
+
+        dm.add(
+            ChatSDK.events().sourceOnMain()
+                .filter(NetworkEvent.filterType(EventType.ShowVerseMenus)).subscribe(Consumer {
+                    verseMenus.visibility = View.VISIBLE
+                })
+        )
+
         LogUploader.reportEvent(
             "mod_bible", listOf<KeyValuePair?>(
                 KeyValuePair("bible_page_type", pageType),
@@ -149,7 +155,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun triggerDataLoadForPosition(position: Int) {
-        if(adapter==null){
+        if (adapter == null) {
             return
         }
         val fragment = adapter.getFragment(position)
@@ -220,7 +226,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         // 显示加载中
         showLoading()
 
-        bibleApiService.getChapterFromDB(
+        BibleApiService.getChapterFromDB(
             dynamicBibleDao,
             bookId,
             chapterNumber,
@@ -270,11 +276,22 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                 )
                 activity?.finish()
             }
-            R.id.more ->{
-                BibleBooksActivity.start(requireContext(),currentBookId,currentChapterNumber)
+
+            R.id.more -> {
+                BibleBooksActivity.start(requireContext(), currentBookId, currentChapterNumber)
                 activity?.finish()
             }
+
+            R.id.close_menus -> {
+                adapter.forEachFragment { fragment -> fragment.closeVerseMenus() }
+                verseMenus.visibility = View.GONE
+            }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        dm.dispose()
     }
 
     companion object {

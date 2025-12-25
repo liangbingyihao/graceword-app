@@ -26,6 +26,7 @@ import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.audio.TTSHelper
@@ -294,7 +295,8 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             R.id.billing -> {
 //                speechToTextHelper.stopListening()
 //                BillingActivity.start(this@SpeechToTextActivity,"test")
-                throw RuntimeException("This is a test crash")
+
+                CampaignInfoActivity.start(this@SpeechToTextActivity, "mini")
 //                EditCardActivity.start(this@SpeechToTextActivity,directUrl="https://api-test.kolacdn.xyz/public/spring.html")
             }
 

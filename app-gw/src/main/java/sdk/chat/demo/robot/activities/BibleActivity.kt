@@ -3,9 +3,7 @@ package sdk.chat.demo.robot.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.widget.Toolbar
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.fragments.BibleBooksFragment
 import sdk.chat.demo.robot.fragments.BibleDataProvider
 import sdk.chat.demo.robot.fragments.BiblePagerFragment
 
@@ -18,30 +16,20 @@ class BibleActivity : BaseActivity(), BibleDataProvider {
 
         // 提供静态启动方法（推荐）
         fun start(
-            context: Context,
+            context: Context?,
             reference: String = "",
             fullscreen: Boolean = false,
             bookId: Int = 0,
             chapterNumber: Int = 0,
             newTask: Boolean = false,
         ) {
-//            if(newTask){
-//                val intent = Intent(context, MainDrawerActivity::class.java).apply {
-//                    putExtra(ARG_BOOK, bookId)
-//                    putExtra(ARG_REFERENCE, reference)
-//                    putExtra(ARG_FULLSCREEN, fullscreen)
-//                    putExtra(ARG_CHAPTER_NUMBER, chapterNumber)
-//                }
-//                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-//                context.startActivity(intent)
-//            }
             val intent = Intent(context, BibleActivity::class.java).apply {
                 putExtra(ARG_BOOK, bookId)
                 putExtra(ARG_REFERENCE, reference)
                 putExtra(ARG_FULLSCREEN, fullscreen)
                 putExtra(ARG_CHAPTER_NUMBER, chapterNumber)
             }
-            context.startActivity(intent)
+            context?.startActivity(intent)
         }
     }
 

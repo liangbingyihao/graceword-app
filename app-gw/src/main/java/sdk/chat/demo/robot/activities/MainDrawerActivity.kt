@@ -79,7 +79,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             context: Context,
             reference: String = "",
         ) {
-            Log.e("isVerseAreaTouched", "startBibleActivity ${reference}.")
+            Logger.info {"startBibleActivity ${reference}."}
             val intent = Intent(context, MainDrawerActivity::class.java).apply {
                 putExtra(ARG_REFERENCE, reference)
             }

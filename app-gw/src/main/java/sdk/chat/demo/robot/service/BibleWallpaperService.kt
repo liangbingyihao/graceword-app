@@ -14,7 +14,7 @@ import com.google.gson.Gson
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
 import org.json.JSONObject
-import org.pmw.tinylog.Logger
+import org.tinylog.Logger
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
@@ -46,7 +46,8 @@ class BibleWallpaperService : WallpaperService() {
         Log.e(TAG, "onCreate")
         dm.add(
             ChatSDK.events().sourceOnMain()
-                .filter(NetworkEvent.filterType(EventType.WallpaperConfigChange)).subscribe(Consumer {
+                .filter(NetworkEvent.filterType(EventType.WallpaperConfigChange))
+                .subscribe(Consumer {
                     Log.e(TAG, " WallpaperConfigChange")
                 })
         )
@@ -128,39 +129,48 @@ class BibleWallpaperService : WallpaperService() {
             wallpaperConfig = CardApiService.getWallPaperConfig();
             isClikable = wallpaperConfig?.isReadScriptureEnabled == true
             Log.e(TAG, "get wallpaperConfig: ${Gson().toJson(wallpaperConfig)}")
-            if(lastConfig!=null){
-                if(lastConfig.date!= wallpaperConfig?.date||lastConfig.greeting!=wallpaperConfig?.greeting){
+            if (lastConfig != null) {
+                if (lastConfig.date != wallpaperConfig?.date || lastConfig.greeting != wallpaperConfig?.greeting) {
                     Log.e(TAG, "get wallpaperConfig and reset cache")
-                    currentImageData=null
+                    currentImageData = null
                 }
             }
 
             var today = formatDayAgo(0)
             var lastBless = blessData?.daily?.lastOrNull()
             if (lastBless == null || today > lastBless.date) {
-                dm.add(CardApiService.getBlessData().subscribe({ bless ->
-                    blessData = bless
-                    Log.e(TAG, "${today} get blessdata: ${bless?.daily?.lastOrNull()?.date}")
-                    Logger.error("${TAG}:${today} get blessdata: ${bless?.font}")
-                    if (currentImageData == null && blessData != null) {
-                        drawFrame()
-                    }
-                },
-                    Consumer { e: Throwable? ->
-                        Log.e(TAG, "$today get blessdata error: ${e.toString()}")
-                    }))
+                dm.add(
+                    CardApiService.getBlessData().subscribe(
+                        { bless ->
+                            blessData = bless
+                            Log.e(
+                                TAG,
+                                "${today} get blessdata: ${bless?.daily?.lastOrNull()?.date}"
+                            )
+                            Logger.error { "${TAG}:${today} get blessdata: ${bless?.font}" }
+                            if (currentImageData == null && blessData != null) {
+                                drawFrame()
+                            }
+                        },
+                        Consumer { e: Throwable? ->
+                            Log.e(TAG, "$today get blessdata error: ${e.toString()}")
+                        })
+                )
             }
-            dm.add(ImageApi.listImageDaily(today).subscribe ({ data ->
-                gwImages = data
-//                Log.e(TAG, "$today get gwImages: ${gwImages?.lastOrNull()?.date}")
-                Logger.error("${TAG}:$today get gwImages: ${gwImages.lastOrNull()?.date}")
-                if (currentImageData == null) {
-                    drawFrame()
-                }
-            },
-                Consumer { e: Throwable? ->
-                    Log.e(TAG, "${today} get listImageDaily error: ${e.toString()}")
-                }))
+            dm.add(
+                ImageApi.listImageDaily(today).subscribe(
+                    { data ->
+                        gwImages = data
+                        Log.e(TAG, "$today get gwImages: ${gwImages?.firstOrNull()?.date}")
+                        Logger.error { "${TAG}:$today get gwImages: ${gwImages.firstOrNull()?.date}" }
+                        if (currentImageData == null) {
+                            drawFrame()
+                        }
+                    },
+                    Consumer { e: Throwable? ->
+                        Log.e(TAG, "${today} get listImageDaily error: ${e.toString()}")
+                    })
+            )
 
 //            val imageDailyList = ImageApi.getImageDailyListCache()
 //            if (imageDailyList != null) {
@@ -232,10 +242,12 @@ class BibleWallpaperService : WallpaperService() {
                     val x = event.x
                     val y = event.y
                     isVerseAreaTouched = isClikable && verseRect?.contains(x, y) == true
+                    Logger.info { "${TAG}:wallpaper ACTION_DOWN:$x,$y,$verseRect,$isVerseAreaTouched" }
                 }
 
                 MotionEvent.ACTION_UP -> {
                     if (isVerseAreaTouched) {
+                        Logger.error { "${TAG}:wallpaper ACTION_UP" }
                         Log.e("isVerseAreaTouched", "isVerseAreaTouched...")
                         handleVerseClick()
                     }
@@ -294,7 +306,7 @@ class BibleWallpaperService : WallpaperService() {
 
             handler.removeCallbacks(drawRunnable)
             if (visible) {
-                handler.postDelayed(drawRunnable, 300000)
+                handler.postDelayed(drawRunnable, 600000)
             }
         }
 
@@ -321,9 +333,9 @@ class BibleWallpaperService : WallpaperService() {
 //            }
 //        }
 
-        private fun List<ImageDaily>?.findByDate(date: String, today: String): ImageDaily? {
-            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
-        }
+//        private fun List<ImageDaily>?.findByDate(date: String, today: String): ImageDaily? {
+//            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
+//        }
 
         private fun nextImageData(): ImageDaily? {
 //            if (currentImageData != null && System.currentTimeMillis() - lastImageChangeTime <= 10000) {
@@ -339,14 +351,27 @@ class BibleWallpaperService : WallpaperService() {
             var bless = blessData
             var today = formatDayAgo(0)
 
+
+//            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
+
             ret = config?.let { cfg ->
                 when (cfg.from) {
-                    CardApiService.FROM_CARD -> bless?.daily.findByDate(cfg.date, today)
-                    CardApiService.FROM_DAILY -> gwImages.findByDate(cfg.date, today)
+                    CardApiService.FROM_CARD -> bless?.daily?.find { "${it.date}-${today}" == cfg.date }
+                        ?: bless?.daily?.lastOrNull()
+
+                    CardApiService.FROM_DAILY -> gwImages.find { "${it.date}-${today}" == cfg.date }
+                        ?: gwImages.firstOrNull()
+//                    CardApiService.FROM_CARD -> bless?.daily.findByDate(cfg.date, today)
+//                    CardApiService.FROM_DAILY -> gwImages.findByDate(cfg.date, today)
                     else -> null
                 }
             }
-            Log.e(TAG, "${today},${config?.from} get new nextImageData: ${config?.date},got:${ret?.date}")
+
+            if (ret == null) {
+                ret = gwImages.firstOrNull()
+            }
+
+            Logger.error { "$TAG, ${today},${config?.from} get new nextImageData: ${config?.date},got:${ret?.date}" }
 
             if (ret != null && wallpaperConfig != null) {
                 ret.greeting = wallpaperConfig!!.greeting
@@ -377,10 +402,10 @@ class BibleWallpaperService : WallpaperService() {
 
                 if (bitmap != null && !bitmap.isRecycled) {
                     // 绘制缓存的图片
-//                    Log.e(
-//                        TAG,
-//                        "generateBibleCard  from cache ,${request.date}"
-//                    )
+                    Log.e(
+                        TAG,
+                        "generateBibleCard  from cache ,${request.date}"
+                    )
                     if (isClikable) {
                         val rect = CardGenerator.getCacheRect(cacheKey)
                         verseRect = rect

@@ -6,6 +6,14 @@
     android:background="@color/white"
     android:padding="2dp">
 
+    <CheckBox
+        android:id="@+id/cb_verse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginEnd="8dp"
+        android:button="@drawable/custom_checkbox" />
+
     <!-- 节号 -->
     <TextView
         android:id="@+id/verse_number"

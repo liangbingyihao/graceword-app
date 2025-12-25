@@ -39,7 +39,7 @@
                 android:id="@+id/changeTopic"
                 style="@style/PopupmenuText"
                 android:text="@string/change_topic"
-                app:drawableEndCompat="@mipmap/ic_switch" />
+                app:drawableEndCompat="@mipmap/ic_switch_white" />
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

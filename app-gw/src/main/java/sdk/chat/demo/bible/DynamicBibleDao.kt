@@ -3,6 +3,7 @@ package sdk.chat.demo.bible
 import android.util.Log
 import sdk.chat.demo.robot.api.model.BibleBook
 import sdk.chat.demo.robot.api.model.BibleChapter
+import sdk.chat.demo.robot.api.model.BibleSearchResult
 
 // DynamicBibleDao.kt
 class DynamicBibleDao(private val databaseManager: DynamicBibleDatabaseManager) {

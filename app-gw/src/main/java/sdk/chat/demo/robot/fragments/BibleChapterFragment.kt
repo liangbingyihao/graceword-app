@@ -29,13 +29,13 @@ interface BibleDataProvider {
 class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var chapterTitle: TextView
-    private lateinit var chapterProgress: TextView
+//    private lateinit var chapterTitle: TextView
+//    private lateinit var chapterProgress: TextView
 //    private lateinit var prevChapterBtn: Button
 //    private lateinit var nextChapterBtn: Button
 
     private lateinit var adapter: VerseAdapter
-    lateinit var bibleApiService: BibleApiService
+//    lateinit var bibleApiService: BibleApiService
 
     private var currentBookId = 1
     private var currentChapterCount = 1
@@ -80,8 +80,8 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
         // 初始化视图
         recyclerView = view.findViewById(R.id.verse_recycler_view)
-        chapterTitle = view.findViewById(R.id.chapter_title)
-        chapterProgress = view.findViewById(R.id.chapter_progress)
+//        chapterTitle = view.findViewById(R.id.chapter_title)
+//        chapterProgress = view.findViewById(R.id.chapter_progress)
 //        prevChapterBtn = view.findViewById(R.id.prev_chapter_btn)
 //        nextChapterBtn = view.findViewById(R.id.next_chapter_btn)
 
@@ -95,7 +95,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 //        )
 
         // 初始化API服务
-        bibleApiService = BibleApiService.getInstance()
+//        bibleApiService = BibleApiService.getInstance()
 
         // 从arguments获取初始章节参数
         var reference = ""
@@ -120,6 +120,12 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
 //        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+    }
+
+    fun closeVerseMenus(){
+        if(adapter!=null){
+            adapter.setMultiSelectMode(false)
+        }
     }
 
     fun resetLoadState(chapter: BibleChapter? = null) {
@@ -149,7 +155,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 显示加载中
         showLoading()
 
-        bibleApiService.getChapterFromDB(
+        BibleApiService.getChapterFromDB(
             dynamicBibleDao, bookId, chapterNumber, reference
         ) { chapter ->
             if (chapter != null) {
@@ -170,15 +176,12 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         currentBookId = chapter.bookId
         currentChapterCount = chapter.chapterCount
         currentChapterNumber = chapter.chapterNumber
-        chapterProgress.text = ""
-        // 更新标题和进度
-        chapterTitle.text = "${chapter.bookName} ${chapter.chapterNumber}"
+//        chapterProgress.text = ""
+//        // 更新标题和进度
+//        chapterTitle.text = "${chapter.bookName} ${chapter.chapterNumber}"
 
         // 更新RecyclerView
-        adapter = VerseAdapter(chapter.verses) { position, isSelected ->
-            // 处理经文选中状态变化
-//            handleVerseSelectionChanged(position, isSelected)
-        }
+        adapter = VerseAdapter(chapter.verses)
         recyclerView.adapter = adapter
 
         // 滚动到顶部
@@ -200,11 +203,11 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 显示加载中
     private fun showLoading() {
-        if(viewCreated){
-            requireView().post {
-                chapterProgress.text = "..."
-            }
-        }
+//        if(viewCreated){
+//            requireView().post {
+//                chapterProgress.text = "..."
+//            }
+//        }
     }
 
     // 隐藏加载中
@@ -218,7 +221,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
             return
         }
         requireView().post {
-            chapterProgress.setText(R.string.error_loading_chapter)
+//            chapterProgress.setText(R.string.error_loading_chapter)
             // 如果有被滑动的位置，恢复该位置的视图
             swipedPosition?.let { position ->
                 recyclerView.postDelayed({

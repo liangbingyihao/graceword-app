@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,60 +11,81 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginBottom="-20dp"
         android:background="@color/black_translucent" />
 
-    <FrameLayout
-        android:id="@+id/chapter_info_bar"
-        android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:padding="16dp">
 
-        <ImageView
-            android:id="@+id/more"
-            android:layout_width="24dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:layout_gravity="left|center_vertical"
-            android:src="@mipmap/ic_book_color" />
-
-
-        <TextView
-            android:id="@+id/chapter_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@color/item_text_normal"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/chapter_progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@color/item_text_normal"
-            android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/exit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:padding="8dp"
-            android:src="@mipmap/ic_exit_mini" />
-
-
-    </FrameLayout>
-
-    <!-- 经文ViewPager (占3/4高度) -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/chapter_view_pager"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="3"
-        android:background="@color/white" />
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:strokeColor="@android:color/transparent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/chapter_info_bar"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:id="@+id/more"
+                    android:layout_width="24dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left|center_vertical"
+                    android:layout_marginLeft="12dp"
+                    android:src="@mipmap/ic_book_color" />
+
+
+                <TextView
+                    android:id="@+id/chapter_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chapter_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:id="@+id/exit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|center_vertical"
+                    android:padding="8dp"
+                    android:src="@mipmap/ic_exit_mini" />
+
+            </FrameLayout>
+
+            <!-- 经文ViewPager (占3/4高度) -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/chapter_view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/white" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <include layout="@layout/view_verse_menus" />
 
 
 </LinearLayout>

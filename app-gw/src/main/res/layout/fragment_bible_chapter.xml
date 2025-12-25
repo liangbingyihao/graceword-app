@@ -1,89 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.recyclerview.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/verse_recycler_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_gravity="bottom"
+    android:layout_marginLeft="4dp"
+    android:layout_marginRight="4dp"
+    android:background="@color/white"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="8dp" />
 
-    <View
-        android:id="@+id/top_room"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/black_translucent"
-        android:visibility="gone" />
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:orientation="vertical">-->
 
-    <!--    <com.google.android.material.card.MaterialCardView-->
-    <!--        android:id="@+id/chapter_info_bar"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        app:cardCornerRadius="24dp"-->
-    <!--        app:cardElevation="4dp"-->
-    <!--        android:background="@android:color/transparent"-->
-    <!--        app:cardBackgroundColor="@android:color/transparent"-->
-    <!--        app:cardPreventCornerOverlap="false"-->
-    <!--        app:strokeColor="#29000000">-->
+<!--    <View-->
+<!--        android:id="@+id/top_room"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="1"-->
+<!--        android:background="@color/black_translucent"-->
+<!--        android:visibility="gone" />-->
 
-    <FrameLayout
-        android:id="@+id/chapter_info_bar"
-        android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:visibility="gone">
+<!--    <com.google.android.material.card.MaterialCardView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_marginLeft="4dp"-->
+<!--        android:layout_marginRight="4dp"-->
+<!--        android:layout_weight="3"-->
+<!--        android:background="@android:color/transparent"-->
+<!--        app:cardBackgroundColor="@android:color/white"-->
+<!--        app:cardCornerRadius="10dp"-->
+<!--        app:cardElevation="0dp"-->
+<!--        app:cardPreventCornerOverlap="false"-->
+<!--        app:strokeColor="@android:color/transparent">-->
 
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_marginTop="40dp"-->
+<!--            android:background="#ff0000"-->
+<!--            android:orientation="vertical">-->
 
-        <TextView
-            android:id="@+id/chapter_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@color/item_text_normal"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/chapter_progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/item_text_normal"
-            android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/exit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:padding="8dp"
-            android:src="@mipmap/ic_exit_mini" />
+<!--            <FrameLayout-->
+<!--                android:id="@+id/chapter_info_bar"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="58dp"-->
+<!--                android:background="@color/white"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:visibility="gone"-->
+<!--                android:padding="16dp">-->
 
 
-    </FrameLayout>
+<!--                <TextView-->
+<!--                    android:id="@+id/chapter_title"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:textColor="@color/item_text_normal"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textStyle="bold" />-->
 
-    <!--    </com.google.android.material.card.MaterialCardView>-->
-    <!-- 经文列表 (占3/4高度) -->
+<!--                <TextView-->
+<!--                    android:id="@+id/chapter_progress"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:textColor="@color/item_text_normal"-->
+<!--                    android:textSize="14sp" />-->
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="bottom"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_weight="3"
-        app:cardBackgroundColor="@android:color/white"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:strokeColor="@android:color/transparent"
-        app:strokeWidth="0dp">
+<!--                <ImageView-->
+<!--                    android:id="@+id/exit"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="right|center_vertical"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:src="@mipmap/ic_exit_mini" />-->
+<!--            </FrameLayout>-->
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/verse_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="8dp" />
-    </com.google.android.material.card.MaterialCardView>
-</LinearLayout>
+<!--            &lt;!&ndash;    </com.google.android.material.card.MaterialCardView>&ndash;&gt;-->
+<!--            &lt;!&ndash; 经文列表 (占3/4高度) &ndash;&gt;-->
+
+<!--            &lt;!&ndash;    <com.google.android.material.card.MaterialCardView&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_width="match_parent"&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_height="0dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_gravity="bottom"&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_marginLeft="4dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_marginRight="4dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;        android:layout_weight="3"&ndash;&gt;-->
+<!--            &lt;!&ndash;        app:cardBackgroundColor="@android:color/white"&ndash;&gt;-->
+<!--            &lt;!&ndash;        app:cardCornerRadius="10dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;        app:cardElevation="0dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;        app:strokeColor="@android:color/transparent"&ndash;&gt;-->
+<!--            &lt;!&ndash;        app:strokeWidth="0dp">&ndash;&gt;-->
+
+<!--            &lt;!&ndash;        <androidx.recyclerview.widget.RecyclerView&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:id="@+id/verse_recycler_view"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:layout_width="match_parent"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:layout_height="match_parent"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:background="@color/white"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:paddingLeft="16dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:paddingRight="16dp"&ndash;&gt;-->
+<!--            &lt;!&ndash;            android:paddingBottom="8dp" />&ndash;&gt;-->
+<!--            &lt;!&ndash;    </com.google.android.material.card.MaterialCardView>&ndash;&gt;-->
+
+<!--            <androidx.recyclerview.widget.RecyclerView-->
+<!--                android:id="@+id/verse_recycler_view"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_gravity="bottom"-->
+<!--                android:layout_marginLeft="4dp"-->
+<!--                android:layout_marginRight="4dp"-->
+<!--                android:background="@color/white"-->
+<!--                android:paddingLeft="16dp"-->
+<!--                android:paddingRight="16dp"-->
+<!--                android:paddingBottom="8dp" />-->
+<!--        </LinearLayout>-->
+<!--    </com.google.android.material.card.MaterialCardView>-->
+<!--</LinearLayout>-->

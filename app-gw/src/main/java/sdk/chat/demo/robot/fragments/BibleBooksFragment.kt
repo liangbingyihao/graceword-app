@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,10 +16,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.SearchActivity
 import sdk.chat.demo.robot.adpter.BibleBookAdapter
 import sdk.chat.demo.robot.api.model.BibleBook
 import sdk.chat.demo.robot.api.model.BibleData
+import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.extensions.LanguageUtils
+import sdk.chat.demo.robot.handlers.LogUploader
 
 class BibleBooksFragment : Fragment(), View.OnClickListener {
     private lateinit var tabOldTestament: TextView
@@ -109,9 +113,8 @@ class BibleBooksFragment : Fragment(), View.OnClickListener {
         indicatorNew = view.findViewById(R.id.indicator_new)
         recyclerViewBooks = view.findViewById(R.id.recyclerView_books)
 
-        view.findViewById<View>(R.id.iv_back).setOnClickListener {
-            activity?.finish()
-        }
+        view.findViewById<View>(R.id.exit).setOnClickListener(this)
+        view.findViewById<View>(R.id.search).setOnClickListener(this)
     }
 
     private fun setupTabs() {
@@ -241,5 +244,13 @@ class BibleBooksFragment : Fragment(), View.OnClickListener {
     }
 
     override fun onClick(p0: View?) {
+        when (p0?.id) {
+            R.id.exit -> {
+                activity?.finish()
+            }
+            R.id.search ->{
+                SearchActivity.start(activity,true)
+            }
+        }
     }
 }

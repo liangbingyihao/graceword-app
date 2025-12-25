@@ -28,7 +28,7 @@
                 android:id="@+id/rename"
                 style="@style/PopupmenuText"
                 android:text="@string/rename_topic"
-                app:drawableEndCompat="@mipmap/ic_switch" />
+                app:drawableEndCompat="@mipmap/ic_switch_white" />
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

@@ -1,7 +1,6 @@
 package sdk.chat.demo.robot.adpter
 
 
-import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -15,6 +14,7 @@ class ChapterPagerAdapter(
 ) : FragmentStateAdapter(fragmentActivity) {
 
     private val fragmentMap = mutableMapOf<Int, WeakReference<BibleChapterFragment>>()
+//    private val fragmentMap = SparseArray<WeakReference<BibleChapterFragment>>()
 
     override fun getItemCount(): Int {
         return chapters.size
@@ -33,6 +33,15 @@ class ChapterPagerAdapter(
 
     fun getFragment(position: Int): BibleChapterFragment? {
         return fragmentMap[position]?.get()
+    }
+
+    fun forEachFragment(action: (BibleChapterFragment) -> Unit) {
+        for (i in 0 until chapters.size) {
+            val fragment = getFragment(i)
+            if (fragment != null && fragment.isAdded && fragment.isResumed) {
+                action(fragment)
+            }
+        }
     }
 
     // 获取指定位置的章节ID

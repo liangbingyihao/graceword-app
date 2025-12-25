@@ -33,6 +33,15 @@ data class BibleBook(
     val chapterCount: Int
 )
 
+data class BibleSearchResult(
+    val bookId: Int,
+    var bookName: String,
+    val chapter: Int,
+    val verse: Int,
+    var content: String,
+    var reference: String=""
+)
+
 // BibleData.kt
 object BibleData {
     // 简体中文 - 旧约 (1-39)

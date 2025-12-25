@@ -22,7 +22,6 @@ class SearchResultAdapter(
     companion object {
         private const val TYPE_ITEM = 1
         private const val TYPE_FOOTER = 2
-        private val color_user = "#FFF8F7".toColorInt()
     }
 
     var isLoading = false

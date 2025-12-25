@@ -20,7 +20,7 @@ import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.BibleData
 import sdk.chat.demo.robot.api.model.BibleData.ScriptureReference
-import sdk.chat.demo.robot.api.model.TaskHistory
+import sdk.chat.demo.robot.api.model.BibleSearchResult
 import sdk.chat.demo.robot.extensions.LanguageUtils
 import java.io.IOException
 import java.util.Locale
@@ -28,7 +28,7 @@ import java.util.Objects
 import kotlin.collections.set
 
 
-class BibleApiService {
+object BibleApiService {
     val URL_BIBLE_DATA: String = ImageApi.URL2 + "bible/"
 
     // Gson解析器
@@ -156,6 +156,34 @@ class BibleApiService {
         }
     }
 
+    fun searchBibleFromDB(
+        query: String,
+        callback: (List<BibleSearchResult>?) -> Unit
+    ) {
+        var bibleDao = DynamicBibleDao(MainApp.getInstance().bibleDBManager)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val verses: List<BibleSearchResult> = bibleDao.searchVerses(query)
+                verses.map { it ->
+                    it.bookName = BibleData.getBookById(it.bookId).name
+                    it.content = it.content.replace(
+                        query,
+                        "<span style='color:#CF4B40'>$query</span>",
+                        ignoreCase = true
+                    )
+                    it.reference = "${it.bookName} ${it.chapter}:${it.verse}"
+                }
+                withContext(Dispatchers.Main) {
+                    callback(verses)
+                }
+            } catch (e: Exception) {
+                Log.e("bible_data", e.toString())
+                withContext(Dispatchers.Main) {
+                    callback(null)
+                }
+            }
+        }
+    }
 //    // 获取书卷列表
 //    fun getBooks(callback: (List<BibleBook>?) -> Unit) {
 //        val url = BASE_URL + ENDPOINT_BOOKS
@@ -266,15 +294,15 @@ class BibleApiService {
 //    }
 
 
-    // 伴生对象，提供单例实例
-    companion object {
-        @Volatile
-        private var instance: BibleApiService? = null
-
-        fun getInstance(): BibleApiService {
-            return instance ?: synchronized(this) {
-                instance ?: BibleApiService().also { instance = it }
-            }
-        }
-    }
+//    // 伴生对象，提供单例实例
+//    companion object {
+//        @Volatile
+//        private var instance: BibleApiService? = null
+//
+//        fun getInstance(): BibleApiService {
+//            return instance ?: synchronized(this) {
+//                instance ?: BibleApiService().also { instance = it }
+//            }
+//        }
+//    }
 }

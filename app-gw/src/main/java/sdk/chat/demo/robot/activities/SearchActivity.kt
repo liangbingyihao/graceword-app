@@ -1,6 +1,8 @@
 package sdk.chat.demo.robot.activities
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.SparseArray
@@ -19,7 +21,6 @@ import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.SearchTextAdapter
@@ -30,13 +31,14 @@ import sdk.chat.demo.robot.handlers.FrequencyCounter
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 
 class SearchResultPagerAdapter(
-    fragmentActivity: FragmentActivity
+    fragmentActivity: FragmentActivity,
+    private val queryType: Array<String>
 ) : FragmentStateAdapter(fragmentActivity) {
     private val fragments = SparseArray<SearchResultFragment>()
-    private val queryType = arrayOf("feed")
+//    private val queryType = arrayOf("feed")
 //    private val queryType = arrayOf("feed", "topic", "question", "favorite")
 
-    override fun getItemCount(): Int = 1
+    override fun getItemCount(): Int = queryType.size
 
     override fun createFragment(position: Int): Fragment {
         return SearchResultFragment.newInstance(queryType[position]).also {
@@ -52,6 +54,20 @@ class SearchResultPagerAdapter(
 
 
 class SearchActivity : BaseActivity(), View.OnClickListener,OnDataListener {
+    companion object {
+        private const val ARG_BIBLE = "BIBLE"
+
+        // 提供静态启动方法（推荐）
+        fun start(
+            context: Context?,
+            searchBible: Boolean = false,
+        ) {
+            val intent = Intent(context, SearchActivity::class.java).apply {
+                putExtra(ARG_BIBLE, searchBible)
+            }
+            context?.startActivity(intent)
+        }
+    }
     private lateinit var searchText: EditText
     private lateinit var searchHistory: RecyclerView
     private lateinit var viewPager: ViewPager2
@@ -63,6 +79,7 @@ class SearchActivity : BaseActivity(), View.OnClickListener,OnDataListener {
     private val hints = listOf(R.string.search_record)
 //    private val hints = listOf(R.string.search_record, R.string.timeline, R.string.questions, R.string.save)
     private var sharedPref: SharedPreferences? = null
+    private var searchBible = false
 
     @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +89,8 @@ class SearchActivity : BaseActivity(), View.OnClickListener,OnDataListener {
             "search_text", // 文件名（如不指定，则使用默认的 PreferenceManager.getDefaultSharedPreferences）
             MODE_PRIVATE // 仅当前应用可访问
         )
+
+        searchBible = intent.getBooleanExtra(ARG_BIBLE,false)
         findViewById<View>(R.id.back).setOnClickListener(this)
         findViewById<View>(R.id.search).setOnClickListener(this)
 //        customPrompt.isChecked = threadHandler.isCustomPrompt
@@ -90,7 +109,7 @@ class SearchActivity : BaseActivity(), View.OnClickListener,OnDataListener {
         tabLayout = findViewById(R.id.tabLayout)
         viewPager.isUserInputEnabled = false
 
-        searchResultAdapter = SearchResultPagerAdapter(this)
+        searchResultAdapter = SearchResultPagerAdapter(this,if (searchBible) arrayOf("bible")  else arrayOf("feed"))
         viewPager.adapter = searchResultAdapter
 //        // 将 TabLayout 与 ViewPager2 关联
 //        TabLayoutMediator(tabLayout, viewPager) { tab, position ->

@@ -43,5 +43,6 @@ public enum EventType {
     BillChange,
     WallpaperConfigChange,
     ShowOAMain,
+    ShowVerseMenus,
     Error
 }
