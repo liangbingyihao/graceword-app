@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.adpter
 
 
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -12,6 +13,18 @@ class ChapterPagerAdapter(
     fragmentActivity: FragmentActivity,
     private val chapters: List<BibleChapter>
 ) : FragmentStateAdapter(fragmentActivity) {
+    private var _isMultiSelectMode: Boolean = false
+
+    fun setMultiSelectMode(enabled: Boolean) {
+        if (_isMultiSelectMode != enabled) {
+            _isMultiSelectMode = enabled
+            for (i in 0 until chapters.size) {
+                val fragment = getFragment(i)
+                Log.e("setMultiSelectMode","${fragment?.isAdded},${fragment?.isResumed}")
+                fragment?.setMultiSelectMode(enabled)
+            }
+        }
+    }
 
     private val fragmentMap = mutableMapOf<Int, WeakReference<BibleChapterFragment>>()
 //    private val fragmentMap = SparseArray<WeakReference<BibleChapterFragment>>()
@@ -24,7 +37,8 @@ class ChapterPagerAdapter(
         val chapter = chapters[position]
         val fragment = BibleChapterFragment.newInstance(
             bookId = chapter.bookId,
-            chapterNumber = chapter.chapterNumber
+            chapterNumber = chapter.chapterNumber,
+            isMultiSelectMode = _isMultiSelectMode
         )
         fragmentMap[position] = WeakReference(fragment)
 

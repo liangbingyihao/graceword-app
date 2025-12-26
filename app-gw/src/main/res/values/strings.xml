@@ -209,4 +209,8 @@
     <string name="set_wallpaper_success">Wallpaper set successfully</string>
     <string name="set_wallpaper">Set wallpaper</string>
     <string name="view_all_link">Click to view all:</string>
+
+    <string name="verse_pic">Scripture Image</string>
+    <string name="verse_ai">Ask</string>
+    <string name="verse_ai_prompt">What is the meaning of \n\"%s\"?</string>
 </resources>

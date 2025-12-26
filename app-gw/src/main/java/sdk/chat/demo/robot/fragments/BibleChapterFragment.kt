@@ -34,12 +34,13 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 //    private lateinit var prevChapterBtn: Button
 //    private lateinit var nextChapterBtn: Button
 
-    private lateinit var adapter: VerseAdapter
+    private var adapter: VerseAdapter? = null
 //    lateinit var bibleApiService: BibleApiService
 
     private var currentBookId = 1
     private var currentChapterCount = 1
     private var currentChapterNumber = 1
+    private var isMultiSelectMode: Boolean = false
 
     // 用于记录被滑动的位置，用于在API请求失败时恢复视图
     private var swipedPosition: Int? = null
@@ -102,11 +103,13 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         arguments?.let {
             currentBookId = it.getInt(ARG_BOOK_ID, 1)
             currentChapterNumber = it.getInt(ARG_CHAPTER_NUMBER, 1)
+            isMultiSelectMode = it.getBoolean(ARG_MULTI_SELECT, false)
             reference = it.getString(ARG_REFERENCE, "")
         } ?: run {
             currentBookId = 1
             currentChapterNumber = 1
             reference = ""
+            isMultiSelectMode = false
         }
 
         // 加载初始章节
@@ -122,20 +125,20 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 //        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
     }
 
-    fun closeVerseMenus(){
-        if(adapter!=null){
-            adapter.setMultiSelectMode(false)
-        }
+    fun setMultiSelectMode(enabled: Boolean) {
+        isMultiSelectMode = enabled
+        adapter?.setMultiSelectMode(enabled)
     }
 
-    fun resetLoadState(chapter: BibleChapter? = null) {
+    fun resetLoadState(chapter: BibleChapter? = null, isMultiSelectMode: Boolean = false) {
+        setMultiSelectMode(isMultiSelectMode)
         if (bibleChapter?.get() != null) {
 //            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
             return
         } else if (chapter != null && !chapter.verses.isEmpty()) {
 //            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
             bibleChapter = WeakReference(chapter)
-            if(viewCreated){
+            if (viewCreated) {
                 requireView().post {
                     updateChapterUI(chapter)
                 }
@@ -181,7 +184,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 //        chapterTitle.text = "${chapter.bookName} ${chapter.chapterNumber}"
 
         // 更新RecyclerView
-        adapter = VerseAdapter(chapter.verses)
+        adapter = VerseAdapter(chapter, isMultiSelectMode)
         recyclerView.adapter = adapter
 
         // 滚动到顶部
@@ -217,7 +220,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 显示错误
     private fun showError() {
-        if(!viewCreated){
+        if (!viewCreated) {
             return
         }
         requireView().post {
@@ -255,19 +258,22 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         private const val ARG_BOOK_ID = "book_id"
         private const val ARG_CHAPTER_NUMBER = "chapter_number"
         private const val ARG_REFERENCE = "reference"
+        private const val ARG_MULTI_SELECT = "is_multi_select"
         private val versePattern = """\d+:(\d+)""".toRegex()
 
         // 创建新实例，可传入初始章节参数
         fun newInstance(
             bookId: Int = 1,
             chapterNumber: Int = 1,
-            reference: String = ""
+            reference: String = "",
+            isMultiSelectMode: Boolean = false
         ): BibleChapterFragment {
             val fragment = BibleChapterFragment()
             val args = Bundle()
             args.putInt(ARG_BOOK_ID, bookId)
             args.putInt(ARG_CHAPTER_NUMBER, chapterNumber)
             args.putString(ARG_REFERENCE, reference)
+            args.putBoolean(ARG_MULTI_SELECT, isMultiSelectMode)
             fragment.arguments = args
             return fragment
         }

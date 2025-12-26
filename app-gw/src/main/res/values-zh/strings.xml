@@ -200,4 +200,8 @@
     <string name="set_wallpaper_success">设置壁纸成功</string>
     <string name="set_wallpaper">设置壁纸</string>
     <string name="view_all_link">点击链接查看全部:</string>
+
+    <string name="verse_pic">经文图</string>
+    <string name="verse_ai">提问</string>
+    <string name="verse_ai_prompt">\"%s\"\n是什么意思</string>
 </resources>

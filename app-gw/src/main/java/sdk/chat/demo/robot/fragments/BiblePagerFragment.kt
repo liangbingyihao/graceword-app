@@ -1,6 +1,10 @@
 package sdk.chat.demo.robot.fragments
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,18 +12,29 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import io.reactivex.functions.Consumer
+import sdk.chat.core.dao.Keys
+import sdk.chat.core.dao.Message
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
+import sdk.chat.core.rigs.MessageSendRig
+import sdk.chat.core.rigs.MessageSendRig.MessageDidCreateUpdateAction
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.core.types.MessageType
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.BibleBooksActivity
+import sdk.chat.demo.robot.activities.ChatActivity
 import sdk.chat.demo.robot.adpter.ChapterPagerAdapter
+import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.KeyValuePair
 import sdk.chat.demo.robot.handlers.BibleApiService
+import sdk.chat.demo.robot.handlers.BibleSelectionManager
+import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.handlers.LogUploader
+import sdk.chat.demo.robot.utils.SocialShareUtils
+import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.guru.common.DisposableMap
 
 class BiblePagerFragment : Fragment(), View.OnClickListener {
@@ -29,6 +44,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private lateinit var chapterProgress: TextView
     private var currentPosition = 0
     private lateinit var verseMenus: View
+    private lateinit var versePic: View
     private lateinit var adapter: ChapterPagerAdapter
 //    lateinit var bibleApiService: BibleApiService
 
@@ -44,6 +60,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     // 用于防止频繁滑动的变量
     private var isLoading = false
     private var hasInited = false
+    private var isMultiSelectMode: Boolean = false
     private lateinit var dynamicBibleDao: DynamicBibleDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,8 +107,13 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         chapterTitle = view.findViewById(R.id.chapter_title)
         chapterProgress = view.findViewById(R.id.chapter_progress)
         verseMenus = view.findViewById(R.id.verse_menus)
+        versePic = verseMenus.findViewById(R.id.verse_pic)
         verseMenus.visibility = View.GONE
         verseMenus.findViewById<View?>(R.id.close_menus)?.setOnClickListener(this)
+        verseMenus.findViewById<View?>(R.id.verse_copy)?.setOnClickListener(this)
+        verseMenus.findViewById<View?>(R.id.verse_share)?.setOnClickListener(this)
+        verseMenus.findViewById<View?>(R.id.verse_ai)?.setOnClickListener(this)
+        versePic.setOnClickListener(this)
         // 初始化API服务
 //        bibleApiService = BibleApiService.getInstance()
 
@@ -143,8 +165,22 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             ChatSDK.events().sourceOnMain()
                 .filter(NetworkEvent.filterType(EventType.ShowVerseMenus)).subscribe(Consumer {
                     verseMenus.visibility = View.VISIBLE
+                    isMultiSelectMode = true
+                    adapter.setMultiSelectMode(true)
+//                    adapter.forEachFragment { fragment -> fragment.setMultiSelectMode(true) }
                 })
         )
+
+        dm.add(
+            ChatSDK.events().sourceOnMain()
+                .filter(NetworkEvent.filterType(EventType.ShowVersePic)).subscribe(Consumer {
+                    versePic.visibility =
+                        if (BibleSelectionManager.getSelectedCount() <= 1) View.VISIBLE else View.GONE
+                })
+        )
+
+        BibleSelectionManager.clearAll()
+
 
         LogUploader.reportEvent(
             "mod_bible", listOf<KeyValuePair?>(
@@ -162,7 +198,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         var chapter = chapters.getOrNull(position)
         fragment?.let {
             // 触发 Fragment 的懒加载机制
-            it.resetLoadState(chapter)
+            it.resetLoadState(chapter, isMultiSelectMode)
             updateChapterUI(chapter)
         }
     }
@@ -170,12 +206,12 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private fun preloadAdjacentPages(currentPosition: Int) {
         // 预加载前一页
         if (currentPosition > 0) {
-            adapter.getFragment(currentPosition - 1)?.resetLoadState()
+            adapter.getFragment(currentPosition - 1)?.resetLoadState(null, isMultiSelectMode)
         }
 
         // 预加载后一页
         if (currentPosition < adapter.itemCount - 1) {
-            adapter.getFragment(currentPosition + 1)?.resetLoadState()
+            adapter.getFragment(currentPosition + 1)?.resetLoadState(null, isMultiSelectMode)
         }
     }
 
@@ -283,15 +319,88 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             }
 
             R.id.close_menus -> {
-                adapter.forEachFragment { fragment -> fragment.closeVerseMenus() }
-                verseMenus.visibility = View.GONE
+                closeVerseMenus()
+            }
+
+            R.id.verse_copy -> {
+                if (activity != null) {
+                    var text = BibleSelectionManager.getSelectedVersesWithReference()
+                    val clipboard = activity?.getSystemService(Context.CLIPBOARD_SERVICE)
+                    if (clipboard != null) {
+                        val clip = ClipData.newPlainText(getString(R.string.app_name), text)
+                        (clipboard as ClipboardManager).setPrimaryClip(clip)
+                        ToastHelper.show(
+                            MainApp.getContext(),
+                            MainApp.getContext().getString(R.string.copied)
+                        )
+                    }
+                }
+
+                closeVerseMenus()
+            }
+
+            R.id.verse_share -> {
+                if (activity != null) {
+                    var text = BibleSelectionManager.getSelectedVersesWithReference()
+                    SocialShareUtils.showCustomShareDialog(
+                        activity,
+                        SocialShareUtils.targetApps,
+                        text,
+                        null,
+                        ""
+                    )
+                }
+                closeVerseMenus()
+            }
+
+            R.id.verse_ai -> {
+                var text = BibleSelectionManager.getSelectedVersesWithReference()
+                ChatActivity.start(
+                    activity,
+                    from = "ask_verse",
+                    input = getString(R.string.verse_ai_prompt, text)
+                )
+                closeVerseMenus()
+            }
+
+            R.id.verse_pic -> {
+                var text = BibleSelectionManager.getSelectedVersesWithReference()
+                dm.add(
+                    (ChatSDK.thread() as GWThreadHandler).sendLocalBiblePic(text).subscribe(
+                            { message ->
+                                Log.d("verse_pic", "最终消息: $message")
+                            },
+                            { throwable ->
+                                Log.e("verse_pic", "操作失败", throwable)
+                            }
+                        ))
             }
         }
     }
 
+    private fun closeVerseMenus() {
+        isMultiSelectMode = false
+        adapter.setMultiSelectMode(false)
+        verseMenus.visibility = View.GONE
+        BibleSelectionManager.clearAll()
+    }
+
+//    protected fun handleMessageSend(completable: Completable) {
+//        completable
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .doOnError { throwable ->
+//                ToastHelper.show(activity, throwable.message)
+//            }
+//            .doOnComplete {
+//            }
+//            .subscribe({}, {})
+//    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         dm.dispose()
+        BibleSelectionManager.clearAll()
     }
 
     companion object {

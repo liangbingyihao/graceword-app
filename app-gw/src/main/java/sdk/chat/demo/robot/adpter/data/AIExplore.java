@@ -62,6 +62,7 @@ public class AIExplore {
         public final static int action_input_prompt_welcome = 8;
         public final static int action_guest_talk = 9;
 
+        public final static int action_local_bible_pic = 100;
         private String text;
         private int action;
         private List<String> params;

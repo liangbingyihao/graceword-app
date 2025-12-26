@@ -385,6 +385,32 @@ public class GWThreadHandler extends AbstractThreadHandler {
         return true;
     }
 
+    public Single<Message> sendLocalBiblePic(final String text) {
+        return new MessageSendRig(
+                new MessageType(MessageType.Text),
+                ChatSDK.db().fetchThreadWithEntityID(chatSessionId), message -> {
+            message.setText(text);
+            message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
+        }).localOnly().run2().flatMap(
+                message ->
+                        ImageApi.listImageTags()
+                                .subscribeOn(RX.io())
+                                .map(data -> {
+                                    String imageUrl = ImageApi.getRandomImageByTag("");
+                                    message.setMetaValue(Keys.ImageUrl, imageUrl);
+                                    ChatSDK.db().update(message, false);
+                                    ChatSDK.events().source()
+                                            .accept(NetworkEvent.messageUpdated(message));
+                                    return message;
+                                })
+                                .onErrorResumeNext(throwable -> {
+                                    // 错误处理：即使获取标签失败，也继续流程
+                                    Log.e("sendLocalBiblePic", "获取图片标签失败，但继续发送消息", throwable);
+                                    return Single.just(message);
+                                })
+        );
+    }
+
     public Completable sendExploreMessage(final String text, final Message contextMsg, int action, String params) {
         if (action == AIExplore.ExploreItem.action_bible_pic) {
             return genBiblePic(contextMsg);
@@ -1134,17 +1160,17 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //            }
 //        }).subscribeOn(RX.io());
 //
-////    / /        return listSessions()
-////    / /                .flatMap(Single::just)
-////    / /                .onErrorResumeNext(error -> {
-////    / /                    // 错误处理逻辑
-////    / /                    if (error instanceof IOException) {
-////    / /                        return Single.error(new IOException("Failed to list sessions", error));
-////    / /                    }
-////    / /                    return Single.error(error);
-////    / /                });
-//    }
 
+    /// /    / /        return listSessions()
+    /// /    / /                .flatMap(Single::just)
+    /// /    / /                .onErrorResumeNext(error -> {
+    /// /    / /                    // 错误处理逻辑
+    /// /    / /                    if (error instanceof IOException) {
+    /// /    / /                        return Single.error(new IOException("Failed to list sessions", error));
+    /// /    / /                    }
+    /// /    / /                    return Single.error(error);
+    /// /    / /                });
+//    }
     public void updateMessage(Message message, JsonObject json) {
         if (json == null || message == null) {
             return;

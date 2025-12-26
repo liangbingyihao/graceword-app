@@ -229,49 +229,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
         bindBiblePic(t, bibleText)
 
-//        var imageUrl = t.message.stringForKey(Keys.ImageUrl)
-//        imageMenu?.visibility = View.GONE
-//        imageContainer?.visibility = View.GONE
-//        vipBiblePic?.visibility = View.GONE
-//        if (!imageUrl.isNullOrEmpty() && !bibleText.isNullOrEmpty()) {
-//            imageContainer?.visibility = View.VISIBLE
-//            if (!BillingManager.getInstance()
-//                    .hasSubscriptions() && t.message.integerForKey(Keys.Permission) == -1
-//            ) {
-//                image?.visibility == View.INVISIBLE
-//                vipBiblePic?.visibility = View.VISIBLE
-//            } else {
-//                imageMenu?.visibility = View.VISIBLE
-//                bible?.text = bibleText
-//                Glide.with(image!!)
-//                    .load(imageUrl)
-//                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                    .placeholder(R.drawable.icn_200_image_message_placeholder) // 占位图
-//                    .error(R.drawable.icn_200_image_message_error) // 错误图
-//                    .addListener(object : RequestListener<Drawable> {
-//                        override fun onResourceReady(
-//                            resource: Drawable,
-//                            model: Any,
-//                            target: Target<Drawable>,
-//                            dataSource: DataSource,
-//                            isFirstResource: Boolean
-//                        ): Boolean {
-//                            return false
-//                        }
-//
-//                        override fun onLoadFailed(
-//                            e: GlideException?,
-//                            model: Any,
-//                            target: Target<Drawable>,
-//                            isFirstResource: Boolean
-//                        ): Boolean {
-//                            return false
-//                        }
-//                    })
-//                    .into(image!!)
-//            }
-//        }
-
     }
 
     fun bindBiblePic(t: T, verses: String? = null) {

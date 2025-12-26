@@ -40,7 +40,27 @@ data class BibleSearchResult(
     val verse: Int,
     var content: String,
     var reference: String=""
-)
+) : Comparable<BibleSearchResult>{
+
+    override fun compareTo(other: BibleSearchResult): Int {
+        // 按 bookId -> chapter -> verse 排序
+        return compareValuesBy(this, other,
+            { it.bookId },
+            { it.chapter },
+            { it.verse }
+        )
+    }
+
+    // 用于快速比较的键
+    val compositeKey: String get() = "$bookId:$chapter:$verse"
+
+    // 用于 isVerseSelected 的键
+    fun matches(bookId: Int, chapter: Int, verseNum: Int): Boolean {
+        return this.bookId == bookId &&
+                this.chapter == chapter &&
+                this.verse == verseNum
+    }
+}
 
 // BibleData.kt
 object BibleData {

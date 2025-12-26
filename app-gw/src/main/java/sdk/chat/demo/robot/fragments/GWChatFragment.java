@@ -109,6 +109,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     protected View scrollBottom;
 
     private String messageId;
+    private String initInputStr;
     private TextView vErrorHint;
 
 //    public interface DataCallback {
@@ -219,6 +220,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         Bundle args = getArguments();
         if (args != null) {
             messageId = args.getString("KEY_MESSAGE_ID", null);
+            initInputStr = args.getString("KEY_INPUT", null);
         }
     }
 
@@ -415,7 +417,6 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         }
 
         addListeners();
-
     }
 
     protected void addListeners() {
@@ -655,11 +656,18 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
 //        if (audioBinder != null) {
 //            audioBinder.updateRecordMode();
 //        }
-
-        if (!StringChecker.isNullOrEmpty(thread.getDraft())) {
+        if (!StringChecker.isNullOrEmpty(initInputStr)) {
+            input.setDefaultStr(initInputStr);
+            initInputStr = null;
+            showKeyboard();
+        } else if (!StringChecker.isNullOrEmpty(thread.getDraft())) {
             input.setDraft(thread.getDraft());
-//            input.getInputEditText().setText(thread.getDraft(), TextView.BufferType.EDITABLE);
         }
+
+//        if (!StringChecker.isNullOrEmpty(thread.getDraft())) {
+//            input.setDraft(thread.getDraft());
+////            input.getInputEditText().setText(thread.getDraft(), TextView.BufferType.EDITABLE);
+//        }
 
         onBillChanged();
 

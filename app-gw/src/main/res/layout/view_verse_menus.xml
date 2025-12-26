@@ -26,24 +26,28 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/verse_copy"
                 style="@style/VerseMenuStyle"
                 android:drawableTop="@mipmap/ic_verse_copy"
                 android:text="@string/copy" />
 
             <TextView
+                android:id="@+id/verse_pic"
                 style="@style/VerseMenuStyle"
                 android:drawableTop="@mipmap/ic_verse_pic"
-                android:text="@string/copy" />
+                android:text="@string/verse_pic" />
 
             <TextView
+                android:id="@+id/verse_share"
                 style="@style/VerseMenuStyle"
                 android:drawableTop="@mipmap/ic_verse_share"
-                android:text="@string/copy" />
+                android:text="@string/share" />
 
             <TextView
+                android:id="@+id/verse_ai"
                 style="@style/VerseMenuStyle"
                 android:drawableTop="@mipmap/ic_verse_ai"
-                android:text="@string/copy" />
+                android:text="@string/verse_ai" />
 
         </LinearLayout>
 

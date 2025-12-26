@@ -535,6 +535,14 @@ public class GWMsgInput extends RelativeLayout
         }
     }
 
+    public void setDefaultStr(String input){
+        if(input!=null&&!input.isEmpty()){
+            messageInput.setText(input);
+            lastLength = messageInput.getLineCount();
+            messageInput.setSelection(input.length());
+        }
+    }
+
     private void setEditMode(int editMode, boolean showKeyBoard) {
         removeCallbacks(setEditModeRunnable);
         this.editMode = editMode;

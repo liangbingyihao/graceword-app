@@ -121,11 +121,13 @@ public class ImageApi {
         }
         Random random = new Random();
         List<ImageTag> tags = imageTagCache.getTags();
-        for (ImageTag imageTag : tags) {
-            if (imageTag.getName().equals(tag)) {
-                List<ImageItem> items = imageTag.getImages();
-                ImageItem image = items.get(random.nextInt(items.size()));
-                return image.getUrl();
+        if (tag != null && !tag.isEmpty()) {
+            for (ImageTag imageTag : tags) {
+                if (imageTag.getName().equals(tag)) {
+                    List<ImageItem> items = imageTag.getImages();
+                    ImageItem image = items.get(random.nextInt(items.size()));
+                    return image.getUrl();
+                }
             }
         }
 

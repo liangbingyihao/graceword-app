@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 import io.reactivex.Completable;
 import io.reactivex.CompletableSource;
 import io.reactivex.Maybe;
+import io.reactivex.Single;
 import sdk.chat.core.dao.CachedFile;
 import sdk.chat.core.dao.Message;
 import sdk.chat.core.dao.Thread;
@@ -27,11 +28,11 @@ import sdk.guru.common.RX;
 public class MessageSendRig {
 
     public interface MessageDidUploadUpdateAction {
-        void update (Message message, FileUploadResult result);
+        void update(Message message, FileUploadResult result);
     }
 
     public interface MessageDidCreateUpdateAction {
-        void update (Message message);
+        void update(Message message);
     }
 
     protected MessageType messageType;
@@ -67,7 +68,7 @@ public class MessageSendRig {
 
             // Re-upload any files that failed before
             List<CachedFile> files = ChatSDK.uploadManager().getFiles(message.getEntityID());
-            for (CachedFile file: files) {
+            for (CachedFile file : files) {
                 if (!file.completeAndValid()) {
                     Uploadable uploadable = file.getUploadable();
                     if (uploadable != null) {
@@ -117,6 +118,11 @@ public class MessageSendRig {
 
     public Completable run() {
         return ChatSDK.messageSender().run(this);
+    }
+
+    public Single<Message> run2() {
+        return ChatSDK.messageSender().run(this)
+                .andThen(Single.fromCallable(() -> this.message));
     }
 
     public Completable doRun() {
@@ -184,7 +190,7 @@ public class MessageSendRig {
 //            message.setMessageStatus(MessageSendStatus.Sent);
         }).doOnError(throwable -> {
             //FIXME
-            message.setMessageStatus(MessageSendStatus.UploadFailed,true);
+            message.setMessageStatus(MessageSendStatus.UploadFailed, true);
         });
     }
 

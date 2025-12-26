@@ -44,5 +44,6 @@ public enum EventType {
     WallpaperConfigChange,
     ShowOAMain,
     ShowVerseMenus,
+    ShowVersePic,
     Error
 }
