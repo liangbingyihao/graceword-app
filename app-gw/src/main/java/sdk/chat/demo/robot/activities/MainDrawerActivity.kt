@@ -79,7 +79,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             context: Context,
             reference: String = "",
         ) {
-            Logger.info {"startBibleActivity ${reference}."}
+            Logger.info { "startBibleActivity ${reference}." }
             val intent = Intent(context, MainDrawerActivity::class.java).apply {
                 putExtra(ARG_REFERENCE, reference)
             }
@@ -100,7 +100,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         setContentView(layout)
 //        ImmersionBar.with(this).init()
 
-        Log.e("LogUploader", "mainactivity,${savedInstanceState==null}")
+        Log.e("LogUploader", "mainactivity,${savedInstanceState == null}")
         try {
             ChatSDK.currentUser()
         } catch (e: Exception) {
@@ -113,7 +113,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         }
 
         var reference = intent.getStringExtra(ARG_REFERENCE)
-        if (reference != null&&savedInstanceState==null) {
+        if (reference != null && savedInstanceState == null) {
             Log.e("isVerseAreaTouched", "isVerseAreaTouched..and start ${reference}.")
             BibleActivity.start(this@MainDrawerActivity, reference = reference, fullscreen = false)
         }
@@ -238,7 +238,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         }
                     })
             )
-        }else{
+        } else {
             CardApiService.setLauncherStep(LauncherStep.READY)
         }
 
@@ -255,7 +255,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
 
-        if(savedInstanceState==null) {
+        if (reference != null && savedInstanceState == null) {
             checkPreLaunchActivity()
             LogUploader.chatEntrance("app_launch")
         }
@@ -282,7 +282,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             CardApiService.getCampaignData().subscribe(
                 { data ->
                     if (data != null) {
-                        if (data.entryConfig != null&&data.entryConfig.enable) {
+                        if (data.entryConfig != null && data.entryConfig.enable) {
                             setLottieAnimationView(data.entryConfig.iconUrl)
                         }
                     }

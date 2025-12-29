@@ -25,6 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:gravity="center"
             android:textColor="@color/white"
             android:textSize="26sp"
             android:textStyle="bold" />
@@ -40,6 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|center"
+                android:gravity="center"
                 android:layout_marginLeft="36dp"
                 android:layout_marginRight="36dp"
                 android:lineSpacingExtra="4dp"

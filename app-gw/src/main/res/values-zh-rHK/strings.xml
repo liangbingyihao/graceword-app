@@ -206,4 +206,5 @@
     <string name="verse_pic">經文圖</string>
     <string name="verse_ai">提問</string>
     <string name="verse_ai_prompt">「%s」的含義是什麼？</string>
+    <string name="verse_long_click_tip">長按試試更多操作</string>
 </resources>

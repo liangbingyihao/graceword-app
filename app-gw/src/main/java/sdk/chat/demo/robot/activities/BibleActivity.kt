@@ -3,6 +3,7 @@ package sdk.chat.demo.robot.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.fragments.BibleDataProvider
 import sdk.chat.demo.robot.fragments.BiblePagerFragment

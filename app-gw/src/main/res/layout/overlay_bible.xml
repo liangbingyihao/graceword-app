@@ -1,0 +1,93 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/guide_bible"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 半透明遮罩背景 -->
+    <View
+        android:id="@+id/mask_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000" />
+
+    <LinearLayout
+        android:id="@+id/guide_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!--        android:paddingLeft="16dp"-->
+        <!--        android:paddingTop="8dp"-->
+        <!--        android:paddingRight="16dp"-->
+        <!--        android:paddingBottom="8dp"-->
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_overlay_touch" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:gravity="center"
+            android:text="@string/verse_long_click_tip"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/verse_copy"
+                style="@style/VerseMenuStyle"
+                android:drawableTop="@mipmap/ic_verse_copy"
+                android:textColor="@color/white"
+                android:text="@string/copy" />
+
+            <TextView
+                android:id="@+id/verse_pic"
+                style="@style/VerseMenuStyle"
+                android:drawableTop="@mipmap/ic_verse_pic"
+                android:textColor="@color/white"
+                android:text="@string/verse_pic" />
+
+            <TextView
+                android:id="@+id/verse_share"
+                style="@style/VerseMenuStyle"
+                android:drawableTop="@mipmap/ic_verse_share"
+                android:textColor="@color/white"
+                android:text="@string/share" />
+
+            <TextView
+                android:id="@+id/verse_ai"
+                style="@style/VerseMenuStyle"
+                android:drawableTop="@mipmap/ic_verse_ai"
+                android:textColor="@color/white"
+                android:text="@string/verse_ai" />
+
+        </LinearLayout>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_next"
+            android:layout_width="138dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/item_text_selected"
+            android:stateListAnimator="@null"
+            android:text="@string/get_it"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:cornerRadius="21dp"
+            app:elevation="0dp"
+            app:strokeWidth="0dp" />
+    </LinearLayout>
+
+
+</FrameLayout>

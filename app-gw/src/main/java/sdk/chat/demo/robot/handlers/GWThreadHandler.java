@@ -386,26 +386,126 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public Single<Message> sendLocalBiblePic(final String text) {
+        return ImageApi.listImageTags()
+                .subscribeOn(RX.io())
+                .flatMap(data -> {
+                    String imageUrl = ImageApi.getRandomImageByTag("");
+                    Log.d("verse_pic", "获取图片: " + imageUrl);
+                    if(imageUrl==null||imageUrl.isEmpty()){
+                        return Single.error(new Exception("no image..."));
+                    }
+                    return new MessageSendRig(
+                            new MessageType(MessageType.Text),
+                            ChatSDK.db().fetchThreadWithEntityID(chatSessionId),
+                            message -> {
+                                message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
+                            })
+                            .localOnly()
+                            .run2().flatMap(message ->
+                                    Single.fromCallable(() -> {
+                                        DaoCore daoCore = ChatSDK.db().getDaoCore();
+                                        QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+                                        qb.where(MessageDao.Properties.Id.lt(message.getId()));
+                                        qb.orderDesc(MessageDao.Properties.Id);
+                                        qb.limit(1);
+                                        List<Message> lastMsg = qb.list();
+
+                                        MessageDetail messageDetail = new MessageDetail();
+                                        messageDetail.setStatus(2);
+                                        AIFeedback aiFeedback = new AIFeedback();
+                                        messageDetail.setFeedback(aiFeedback);
+                                        aiFeedback.setBible(text);
+                                        if (lastMsg != null && !lastMsg.isEmpty()) {
+                                            MessageDetail lastAI = GWMsgHandler.getAiFeedback(lastMsg.get(0));
+                                            aiFeedback.setExplore(lastAI.getFeedback().getExplore());
+                                        }
+                                        message.setMetaValue(Keys.ImageUrl, imageUrl);
+                                        updateMessage(message, gson.toJsonTree(messageDetail).getAsJsonObject());
+                                        Log.d("verse_pic", "生成成功: " + message.getId());
+                                        return message;
+                                    }).subscribeOn(RX.io()));
+                }).onErrorResumeNext(throwable -> {
+                    Log.d("verse_pic", "获取图片失败: " + throwable.toString());
+                    return Single.error(throwable);
+                });
+//        return new MessageSendRig(
+//                new MessageType(MessageType.Text),
+//                ChatSDK.db().fetchThreadWithEntityID(chatSessionId), message -> {
+////            message.setText(text);
+//            message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
+//        }).localOnly().run2().flatMap(
+//                message ->
+//                        ImageApi.listImageTags()
+//                                .subscribeOn(RX.io())
+//                                .map(data -> {
+//
+//                                    DaoCore daoCore = ChatSDK.db().getDaoCore();
+//                                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+//                                    qb.where(MessageDao.Properties.Id.lt(message.getId()));
+//                                    qb.orderDesc(MessageDao.Properties.Id);
+//                                    qb.limit(1);
+//                                    List<Message> lastMsg = qb.list();
+//
+//                                    MessageDetail messageDetail = new MessageDetail();
+//                                    messageDetail.setStatus(2);
+//                                    AIFeedback aiFeedback = new AIFeedback();
+//                                    messageDetail.setFeedback(aiFeedback);
+//                                    aiFeedback.setBible(text);
+//                                    if (lastMsg != null && !lastMsg.isEmpty()) {
+//                                        MessageDetail lastAI = GWMsgHandler.getAiFeedback(lastMsg.get(0));
+//                                        aiFeedback.setExplore(lastAI.getFeedback().getExplore());
+//                                    }
+//                                    String imageUrl = ImageApi.getRandomImageByTag("");
+//                                    message.setMetaValue(Keys.ImageUrl, imageUrl);
+//                                    updateMessage(message, gson.toJsonTree(messageDetail).getAsJsonObject());
+//                                    Log.d("verse_pic", "获取图片: " + imageUrl);
+//                                    return message;
+//                                })
+//                                .onErrorResumeNext(throwable -> {
+//                                    // 错误处理：即使获取标签失败，也继续流程
+//                                    Log.d("verse_pic", "获取图片失败: " + throwable.toString());
+//                                    return Single.just(message);
+//                                })
+//        );
+    }
+
+    public Single<Message> sendLocalBiblePic2(final String text) {
         return new MessageSendRig(
                 new MessageType(MessageType.Text),
                 ChatSDK.db().fetchThreadWithEntityID(chatSessionId), message -> {
-            message.setText(text);
+//            message.setText(text);
             message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
         }).localOnly().run2().flatMap(
                 message ->
                         ImageApi.listImageTags()
                                 .subscribeOn(RX.io())
                                 .map(data -> {
+
+                                    DaoCore daoCore = ChatSDK.db().getDaoCore();
+                                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+                                    qb.where(MessageDao.Properties.Id.lt(message.getId()));
+                                    qb.orderDesc(MessageDao.Properties.Id);
+                                    qb.limit(1);
+                                    List<Message> lastMsg = qb.list();
+
+                                    MessageDetail messageDetail = new MessageDetail();
+                                    messageDetail.setStatus(2);
+                                    AIFeedback aiFeedback = new AIFeedback();
+                                    messageDetail.setFeedback(aiFeedback);
+                                    aiFeedback.setBible(text);
+                                    if (lastMsg != null && !lastMsg.isEmpty()) {
+                                        MessageDetail lastAI = GWMsgHandler.getAiFeedback(lastMsg.get(0));
+                                        aiFeedback.setExplore(lastAI.getFeedback().getExplore());
+                                    }
                                     String imageUrl = ImageApi.getRandomImageByTag("");
                                     message.setMetaValue(Keys.ImageUrl, imageUrl);
-                                    ChatSDK.db().update(message, false);
-                                    ChatSDK.events().source()
-                                            .accept(NetworkEvent.messageUpdated(message));
+                                    updateMessage(message, gson.toJsonTree(messageDetail).getAsJsonObject());
+                                    Log.d("verse_pic", "获取图片: " + imageUrl);
                                     return message;
                                 })
                                 .onErrorResumeNext(throwable -> {
                                     // 错误处理：即使获取标签失败，也继续流程
-                                    Log.e("sendLocalBiblePic", "获取图片标签失败，但继续发送消息", throwable);
+                                    Log.d("verse_pic", "获取图片失败: " + throwable.toString());
                                     return Single.just(message);
                                 })
         );
@@ -1025,8 +1125,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
         QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
         qb.where(MessageDao.Properties.Type.eq(MessageType.Text));
         List<Message> data = qb.list();
-        long notTime = new Date().getTime();
-        int expireMs = 2 * 60 * 1000;
+//        long notTime = new Date().getTime();
+//        int expireMs = 2 * 60 * 1000;
         for (Message d : data) {
             MessageSendStatus status = d.getMessageStatus();
             if (status != MessageSendStatus.Sent) {

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -198,10 +199,14 @@ public class LogUploader {
 
     public static void reportEvent(String topic, List<KeyValuePair> kvs) {
         List<KeyValuePair> enrichedKvs = new ArrayList<>(kvs);
-        if ("mod_chat".equals(topic)) {
-            String from = stackChatEntrance.peek();
-            if(from!=null&&!from.isEmpty()){
-                enrichedKvs.add(new KeyValuePair("chat_entrance", from));
+        if ("mod_chat".equals(topic)&&!stackChatEntrance.isEmpty()) {
+            try {
+                String from = stackChatEntrance.peek();
+                if(from!=null&&!from.isEmpty()){
+                    enrichedKvs.add(new KeyValuePair("chat_entrance", from));
+                }
+            }catch (EmptyStackException ignored){
+
             }
         }
         enrichedKvs.addAll(DeviceInfoUtils.getAllDeviceInfoKvs(MainApp.getContext()));

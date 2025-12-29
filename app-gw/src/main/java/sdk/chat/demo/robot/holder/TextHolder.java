@@ -2,7 +2,9 @@ package sdk.chat.demo.robot.holder;
 
 
 import com.stfalcon.chatkit.commons.models.MessageContentType;
+
 import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 
 import io.noties.markwon.Markwon;
 import kotlin.jvm.JvmField;
+import sdk.chat.core.dao.Keys;
 import sdk.chat.core.dao.Message;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
@@ -41,8 +44,15 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
     }
 
     public MessageDetail getAiFeedback() {
-        if (aiFeedback == null && !message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK).isEmpty()) {
-            aiFeedback = GWMsgHandler.getAiFeedback(message);
+        if (aiFeedback == null) {
+            if (false&&action == AIExplore.ExploreItem.action_local_bible_pic) {
+                aiFeedback = new MessageDetail();
+                AIFeedback ai = new AIFeedback();
+                ai.setBible(message.stringForKey(Keys.ImageText));
+                aiFeedback.setFeedback(ai);
+            } else if (!message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK).isEmpty()) {
+                aiFeedback = GWMsgHandler.getAiFeedback(message);
+            }
         }
         return aiFeedback;
     }
@@ -153,9 +163,9 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
     }
 
 
-    public String getShareSummary(Context context){
+    public String getShareSummary(Context context) {
         String summary;
-        if(isSong) {
+        if (isSong) {
             Optional<Song> s = Optional.ofNullable(getAiFeedback())
                     .map(MessageDetail::getFeedback)
                     .map(AIFeedback::getHymns)
@@ -164,14 +174,14 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
                             .findFirst())
                     .orElse(null);
             StringBuilder sb = new StringBuilder();
-            if(s!=null&&s.isPresent()){
+            if (s != null && s.isPresent()) {
                 Song song = s.get();
                 sb.append(song.getTitle()).append("\n");
                 sb.append(song.getArtist()).append("\n");
                 sb.append(song.getLyrics());
             }
             summary = sb.toString();
-        }else if (isUserSelected()) {
+        } else if (isUserSelected()) {
             summary = message.getText();
         } else {
             summary = getAiFeedback().getFeedbackText();
@@ -179,7 +189,7 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
             summary = md.render(md.parse(summary)).toString();
         }
         if (summary != null && summary.length() > 120) {
-            summary = summary.substring(0, 120) +"...\n"+ context.getString(R.string.view_all_link);
+            summary = summary.substring(0, 120) + "...\n" + context.getString(R.string.view_all_link);
         }
         return summary;
     }

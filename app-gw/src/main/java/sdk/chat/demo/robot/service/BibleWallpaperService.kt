@@ -67,9 +67,9 @@ class BibleWallpaperService : WallpaperService() {
 
         // 时间控制
         private var lastImageChangeTime = System.currentTimeMillis()
-        private var lastSourceChangeTime = System.currentTimeMillis()
-        private val imageChangeInterval = 60 * 1000L // 1分钟切换图片
-        private val sourceChangeInterval = 10 * 60 * 1000L // 10分钟切换图片源
+//        private var lastSourceChangeTime = System.currentTimeMillis()
+//        private val imageChangeInterval = 60 * 1000L // 1分钟切换图片
+//        private val sourceChangeInterval = 10 * 60 * 1000L // 10分钟切换图片源
 
 //        // 图片缓存
 //        private val imageCache = mutableMapOf<String, Bitmap>()
@@ -83,6 +83,7 @@ class BibleWallpaperService : WallpaperService() {
         // 触摸区域
         private var verseRect: RectF? = null
         private var isVerseAreaTouched = false
+        private var lastDate: String = ""
 
 //        // 绘图工具
 //        private val textPaint = Paint().apply {
@@ -109,7 +110,7 @@ class BibleWallpaperService : WallpaperService() {
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             this.width = width
             this.height = height
-            updateVerseRect()
+//            updateVerseRect()
             super.onSurfaceChanged(holder, format, width, height)
         }
 
@@ -143,17 +144,17 @@ class BibleWallpaperService : WallpaperService() {
                     CardApiService.getBlessData().subscribe(
                         { bless ->
                             blessData = bless
-                            Log.e(
-                                TAG,
-                                "${today} get blessdata: ${bless?.daily?.lastOrNull()?.date}"
-                            )
+//                            Log.e(
+//                                TAG,
+//                                "${today} get blessdata: ${bless?.daily?.lastOrNull()?.date}"
+//                            )
                             Logger.error { "${TAG}:${today} get blessdata: ${bless?.font}" }
                             if (currentImageData == null && blessData != null) {
                                 drawFrame()
                             }
                         },
                         Consumer { e: Throwable? ->
-                            Log.e(TAG, "$today get blessdata error: ${e.toString()}")
+                            Logger.error { "${TAG}:$today get blessdata error: ${e.toString()}" }
                         })
                 )
             }
@@ -161,14 +162,15 @@ class BibleWallpaperService : WallpaperService() {
                 ImageApi.listImageDaily(today).subscribe(
                     { data ->
                         gwImages = data
-                        Log.e(TAG, "$today get gwImages: ${gwImages?.firstOrNull()?.date}")
+//                        Log.e(TAG, "$today get gwImages: ${gwImages?.firstOrNull()?.date}")
                         Logger.error { "${TAG}:$today get gwImages: ${gwImages.firstOrNull()?.date}" }
                         if (currentImageData == null) {
                             drawFrame()
                         }
                     },
                     Consumer { e: Throwable? ->
-                        Log.e(TAG, "${today} get listImageDaily error: ${e.toString()}")
+//                        Log.e(TAG, "${today} get gwImages error: ${e.toString()}")
+                        Logger.error { "${TAG}:$today get gwImages error: ${e.toString()}" }
                     })
             )
 
@@ -351,6 +353,10 @@ class BibleWallpaperService : WallpaperService() {
             var bless = blessData
             var today = formatDayAgo(0)
 
+            var latest = gwImages.firstOrNull()
+            if (latest != null && latest.date != today) {
+                initializeData()
+            }
 
 //            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
 
@@ -361,8 +367,7 @@ class BibleWallpaperService : WallpaperService() {
 
                     CardApiService.FROM_DAILY -> gwImages.find { "${it.date}-${today}" == cfg.date }
                         ?: gwImages.firstOrNull()
-//                    CardApiService.FROM_CARD -> bless?.daily.findByDate(cfg.date, today)
-//                    CardApiService.FROM_DAILY -> gwImages.findByDate(cfg.date, today)
+
                     else -> null
                 }
             }
@@ -370,6 +375,7 @@ class BibleWallpaperService : WallpaperService() {
             if (ret == null) {
                 ret = gwImages.firstOrNull()
             }
+
 
             Logger.error { "$TAG, ${today},${config?.from} get new nextImageData: ${config?.date},got:${ret?.date}" }
 

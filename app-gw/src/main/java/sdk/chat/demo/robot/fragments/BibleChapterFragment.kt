@@ -16,6 +16,7 @@ import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.adpter.VerseAdapter
 import sdk.chat.demo.robot.api.model.BibleChapter
+import sdk.chat.demo.robot.dialog.DialogBibleGuide
 import sdk.chat.demo.robot.handlers.BibleApiService
 import java.lang.ref.WeakReference
 
@@ -123,6 +124,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
 //        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+
     }
 
     fun setMultiSelectMode(enabled: Boolean) {

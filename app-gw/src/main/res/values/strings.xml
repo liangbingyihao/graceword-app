@@ -213,4 +213,5 @@
     <string name="verse_pic">Scripture Image</string>
     <string name="verse_ai">Ask</string>
     <string name="verse_ai_prompt">What is the meaning of \n\"%s\"?</string>
+    <string name="verse_long_click_tip">Long press for more options</string>
 </resources>

@@ -204,4 +204,5 @@
     <string name="verse_pic">经文图</string>
     <string name="verse_ai">提问</string>
     <string name="verse_ai_prompt">\"%s\"\n是什么意思</string>
+    <string name="verse_long_click_tip">长按试试更多操作</string>
 </resources>

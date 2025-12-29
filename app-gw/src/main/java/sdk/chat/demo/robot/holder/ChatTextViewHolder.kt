@@ -58,7 +58,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         itemView.findViewById(R.id.session_container)
     open var sessionName: TextView? = itemView.findViewById(R.id.session_name)
 
-//    open val btnPlay: ImageView? =
+    //    open val btnPlay: ImageView? =
 //        itemView.findViewById(R.id.btn_play)
     open val feedbackMenu: View? = itemView.findViewById(R.id.feedback_menu)
     open val contentMenu: View? = itemView.findViewById(R.id.user_text_menu)
@@ -142,7 +142,10 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //            } else {
 //                setText("", false);
 //            }
-            if (action != AIExplore.ExploreItem.action_daily_pray && !t.message.entityID.equals("welcome")) {
+            if (action != AIExplore.ExploreItem.action_daily_pray && action != AIExplore.ExploreItem.action_local_bible_pic && !t.message.entityID.equals(
+                    "welcome"
+                )
+            ) {
                 setText(bubble?.context?.getString(R.string.message_deleted) ?: "", false)
             } else {
                 setText("", false);
@@ -286,7 +289,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         if (v == null) {
             return
         }
-        val ids: IntArray = intArrayOf(R.id.btn_like_ai, R.id.btn_share_text, R.id.btn_redo, R.id.btn_del)
+        val ids: IntArray =
+            intArrayOf(R.id.btn_like_ai, R.id.btn_share_text, R.id.btn_redo, R.id.btn_del)
         for (i in ids) {
             var sv = v.findViewById<View>(i)
             if (sv == null || sv.visibility == visible) {

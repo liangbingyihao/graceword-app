@@ -44,6 +44,7 @@ public class Keys {
     public static final String Owner = "owner";
     public static final String Member = "member";
 
+    public static final String ImageText = "image-text";
     public static final String ImageUrl = "image-url";
 
     public static final String Mute = "mute";

@@ -29,6 +29,7 @@ import sdk.chat.demo.robot.adpter.ChapterPagerAdapter
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.dialog.DialogBibleGuide
 import sdk.chat.demo.robot.handlers.BibleApiService
 import sdk.chat.demo.robot.handlers.BibleSelectionManager
 import sdk.chat.demo.robot.handlers.GWThreadHandler
@@ -133,6 +134,13 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 
                 // 预加载相邻页面（可选）
                 preloadAdjacentPages(position)
+
+                if(!hasInited){
+                    viewPager.postDelayed({
+                        val dialog = DialogBibleGuide.newInstance()
+                        dialog?.show(childFragmentManager, "guide")
+                    }, 1000L)
+                }
             }
 
             override fun onPageScrollStateChanged(state: Int) {
@@ -367,13 +375,19 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                 var text = BibleSelectionManager.getSelectedVersesWithReference()
                 dm.add(
                     (ChatSDK.thread() as GWThreadHandler).sendLocalBiblePic(text).subscribe(
-                            { message ->
-                                Log.d("verse_pic", "最终消息: $message")
-                            },
-                            { throwable ->
-                                Log.e("verse_pic", "操作失败", throwable)
-                            }
-                        ))
+                        { message ->
+                            Log.d("verse_pic", "最终消息: $message")
+                            ChatActivity.start(
+                                activity,
+                                from = "bible_pic",
+                            )
+                        },
+                        { throwable ->
+                            Log.e("verse_pic", "操作失败", throwable)
+                            ToastHelper.show(activity, getString(R.string.failed_and_retry))
+                        }
+                    ))
+                closeVerseMenus()
             }
         }
     }

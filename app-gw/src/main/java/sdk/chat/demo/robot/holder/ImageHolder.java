@@ -21,7 +21,7 @@ public class ImageHolder extends MessageHolder implements MessageContentType, Me
         super(message);
         action = message.integerForKey("action");
         if (!message.stringForKey(Keys.ImageUrl).isEmpty()) {
-            imageDaily = new ImageDaily(message.stringForKey("image-text"), message.stringForKey(Keys.ImageUrl));
+            imageDaily = new ImageDaily(message.stringForKey(Keys.ImageText), message.stringForKey(Keys.ImageUrl));
         } else if (action == AIExplore.ExploreItem.action_daily_gw || action == AIExplore.ExploreItem.action_daily_gw_pray) {
             bibleDate = message.stringForKey("image-date");
         }
