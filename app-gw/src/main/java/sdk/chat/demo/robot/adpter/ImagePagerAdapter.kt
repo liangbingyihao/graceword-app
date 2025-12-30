@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.adpter
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -84,6 +85,7 @@ class ImagePagerAdapter(
                     isFirstResource: Boolean
                 ): Boolean {
                     // 仅在 Lifecycle 活跃时更新 UI
+                    Log.d("Glide", "数据来源: $dataSource");
                     if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                         holder.content.visibility= View.VISIBLE
                         holder.day.text = item.date.substring(8)

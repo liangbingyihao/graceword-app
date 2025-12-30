@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.activities;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,16 +11,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.button.MaterialButton;
 import com.gyf.immersionbar.ImmersionBar;
 
 import org.tinylog.Logger;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +75,8 @@ public class GuideActivity extends BaseActivity {
             R.string.guide_desc_3,
     };
 
+    private GuideViewAdapter guideViewAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,10 +105,12 @@ public class GuideActivity extends BaseActivity {
         if (configs != null && configs.getWelcomeSurvey() != null) {
             String eventPage = configs.getWelcomeSurvey().getEventPage();
             if (eventPage != null && !eventPage.isEmpty()) {
-                list.add(new GuideImage(0, eventPage));
+//                list.add(new GuideImage(0, eventPage));
+                preload(eventPage);
             }
         }
-        viewPager.setAdapter(new GuideViewAdapter(list));
+        guideViewAdapter = new GuideViewAdapter(list);
+        viewPager.setAdapter(guideViewAdapter);
 
         // 添加指示点
 //        addDots(0);
@@ -122,10 +133,11 @@ public class GuideActivity extends BaseActivity {
                     if (configs != null && configs.getWelcomeSurvey() != null && configs.getWelcomeSurvey().getBackground() != null) {
                         String url = configs.getWelcomeSurvey().getBackground();
                         if (url != null && !url.isEmpty()) {
-                            Log.e("guide", "preload:" + url);
+                            Log.e("Glide", "preload:" + url);
                             Glide.with(MainApp.getContext())
                                     .load(url)
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)  // ✅ 改为 ALL
+                                    .skipMemoryCache(false)// 启用内存缓存（默认）
                                     .preload();
                         }
                     }
@@ -164,25 +176,29 @@ public class GuideActivity extends BaseActivity {
         return 0;
     }
 
-//    private void addDots(int currentPosition) {
-//        dotsLayout.removeAllViews();
-//
-//        for (int i = 0; i < guideImages.length; i++) {
-//            View dot = new View(this);
-//            dot.setBackground(ContextCompat.getDrawable(this, R.drawable.dot_unselected));
-//
-//            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-//                    dpToPx(8), dpToPx(8));
-//            params.setMargins(dpToPx(4), 0, dpToPx(4), 0);
-//            dot.setLayoutParams(params);
-//
-//            if (i == currentPosition) {
-//                dot.setBackground(ContextCompat.getDrawable(this, R.drawable.dot_selected));
-//            }
-//
-//            dotsLayout.addView(dot);
-//        }
-//    }
+    private void preload(String url) {
+        Glide.with(MainApp.getContext())
+                .load(url)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)  // ✅ 改为 ALL
+                .skipMemoryCache(false)// 启用内存缓存（默认）
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                Target<Drawable> target, boolean isFirstResource) {
+                        Log.e("Glide", "预加载失败: " + url, e);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model,
+                                                   Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        Log.d("Glide", "预加载成功: " + url + dataSource);
+                        guideViewAdapter.addItem(new GuideImage(0, url));
+                        return false;
+                    }
+                })
+                .preload();
+    }
 
     private int dpToPx(int dp) {
         float density = getResources().getDisplayMetrics().density;
@@ -232,7 +248,7 @@ public class GuideActivity extends BaseActivity {
         }
     }
 
-    class GuideImage {
+    static class GuideImage {
         int resId;
         String url;
 
@@ -265,9 +281,26 @@ public class GuideActivity extends BaseActivity {
             } else if (image.url != null && !image.url.isEmpty()) {
                 Glide.with(GuideActivity.this)
                         .load(image.url)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .skipMemoryCache(false)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .placeholder(R.color.bg_bill_menu)
                         .error(R.mipmap.ic_splash)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                        Target<Drawable> target, boolean isFirstResource) {
+                                Log.e("Glide", "加载失败: " + image.url, e);
+                                return false;  // 返回 false 让 error() 处理
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model,
+                                                           Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("Glide", "加载成功: " + image.url + " | 缓存来源: " + dataSource.name());
+                                return false;  // 返回 false 让正常的加载流程继续
+                            }
+
+                        })
                         .into(holder.imageView);
             }
         }
@@ -275,6 +308,15 @@ public class GuideActivity extends BaseActivity {
         @Override
         public int getItemCount() {
             return guideImages.size();
+        }
+
+        /**
+         * 在末尾添加单个元素
+         */
+        public void addItem(GuideImage image) {
+            int position = guideImages.size();
+            guideImages.add(image);
+            notifyItemInserted(position);
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {

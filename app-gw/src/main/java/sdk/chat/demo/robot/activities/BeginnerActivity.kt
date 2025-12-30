@@ -2,8 +2,10 @@ package sdk.chat.demo.robot.activities
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -11,7 +13,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.google.android.material.button.MaterialButton
 import com.gyf.immersionbar.ImmersionBar
 import sdk.chat.core.events.NetworkEvent
@@ -54,6 +60,27 @@ class BeginnerActivity : BaseActivity() {
                 .error(R.mipmap.bg_beginner) // 错误图
                 .priority(Priority.HIGH) // 提高加载优先级
                 .dontTransform() // 避免不必要的转换
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: com.bumptech.glide.request.target.Target<Drawable>,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        Log.d("Glide", "加载成功: " + welcomeSurvey.background + " | 缓存来源: " + dataSource.name)
+                        return false
+                    }
+
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any,
+                        target: Target<Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+                })
                 .into(photoView)
 
 
@@ -203,8 +230,8 @@ class BeginnerActivity : BaseActivity() {
             .start()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         CardApiService.setLauncherStep(LauncherStep.READY)
     }
 }
