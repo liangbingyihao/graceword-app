@@ -22,6 +22,8 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -182,72 +184,76 @@ public class ImageApi {
      * @return 符合条件的子列表
      */
     public static Single<List<ImageDaily>> listImageDaily(String endDate) {
-        return Single.create(emitter -> {
-            String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
-            String endDateStr = endDate;
-            if ((endDateStr == null || endDateStr.isEmpty())) {
-                endDateStr = today;
-            }
-
-            if (oldestImageDailyDate != null && endDateStr.compareTo(oldestImageDailyDate) <= 0) {
-                emitter.onSuccess(Collections.emptyList());
-                return;
-            }
-            String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_IMG_DAILY);
-            ImageDailyList cachedImage = cachedData != null ? gson.fromJson(cachedData, ImageDailyList.class) : null;
-
-            String startDate = DateLocalizationUtil.INSTANCE.getDateBefore(endDate, 60);
-            List<ImageDaily> imageList = null;
-            if (cachedImage != null) {
-                imageList = cachedImage.getImgs();
-                List<ImageDaily> result = filterBeforeDate(imageList, endDateStr, true);
-                if (!result.isEmpty()) {
-                    emitter.onSuccess(result);
-                    return;
-                }
-            }
-
-
-            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_IMAGE_DAILY_GW))
-                    .newBuilder()
-                    .addQueryParameter("start_date", startDate)
-//                    .addQueryParameter("end_date", endDateStr)
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .build();
-
-            try (Response response = GWApiManager.shared().getClient().newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    emitter.onError(new IOException("HTTP error: " + response.code()));
-                    return;
-                }
-                String responseBody = response.body() != null ? response.body().string() : "";
-                JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-                ImageDailyList newImageDailyList = gson.fromJson(data, ImageDailyList.class);
-                List<ImageDaily> newList = null;
-                if (newImageDailyList != null) {
-                    newList = newImageDailyList.getImgs();
-                }
-                if (newList == null || newList.isEmpty()) {
-                    if (imageList != null && !imageList.isEmpty()) {
-                        oldestImageDailyDate = imageList.get(imageList.size() - 1).getDate();
+        return Single.<List<ImageDaily>>create(emitter -> {
+                    String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
+                    String endDateStr = endDate;
+                    if ((endDateStr == null || endDateStr.isEmpty())) {
+                        endDateStr = today;
                     }
-                    emitter.onSuccess(Collections.emptyList());
-                    return;
-                } else if (imageList == null || imageList.isEmpty()) {
-                    JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_IMG_DAILY, data.toString());
-                } else {
-                    newImageDailyList.setImgs(mergeImageLists(imageList, newList));
-                    JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_IMG_DAILY, gson.toJson(newImageDailyList));
-                    newList = filterBeforeDate(newImageDailyList.getImgs(), endDateStr, false);
-                }
-                emitter.onSuccess(newList);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+
+                    if (oldestImageDailyDate != null && endDateStr.compareTo(oldestImageDailyDate) <= 0) {
+                        emitter.onSuccess(Collections.emptyList());
+                        return;
+                    }
+                    String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_IMG_DAILY);
+                    ImageDailyList cachedImage = cachedData != null ? gson.fromJson(cachedData, ImageDailyList.class) : null;
+
+                    String startDate = DateLocalizationUtil.INSTANCE.getDateBefore(endDate, 60);
+                    List<ImageDaily> imageList = null;
+                    if (cachedImage != null) {
+                        imageList = cachedImage.getImgs();
+                        List<ImageDaily> result = filterBeforeDate(imageList, endDateStr, true);
+                        if (!result.isEmpty()) {
+                            emitter.onSuccess(result);
+                            return;
+                        }
+                    }
+
+
+                    HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_IMAGE_DAILY_GW))
+                            .newBuilder()
+                            .addQueryParameter("start_date", startDate)
+//                    .addQueryParameter("end_date", endDateStr)
+                            .build();
+
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    try (Response response = GWApiManager.shared().getClient().newCall(request).execute()) {
+                        if (!response.isSuccessful()) {
+                            emitter.onError(new IOException("HTTP error: " + response.code()));
+                            return;
+                        }
+                        String responseBody = response.body() != null ? response.body().string() : "";
+                        JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
+                        ImageDailyList newImageDailyList = gson.fromJson(data, ImageDailyList.class);
+                        List<ImageDaily> newList = null;
+                        if (newImageDailyList != null) {
+                            newList = newImageDailyList.getImgs();
+                        }
+                        if (newList == null || newList.isEmpty()) {
+                            if (imageList != null && !imageList.isEmpty()) {
+                                oldestImageDailyDate = imageList.get(imageList.size() - 1).getDate();
+                            }
+                            emitter.onSuccess(Collections.emptyList());
+                            return;
+                        } else if (imageList == null || imageList.isEmpty()) {
+                            JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_IMG_DAILY, data.toString());
+                        } else {
+                            newImageDailyList.setImgs(mergeImageLists(imageList, newList));
+                            JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_IMG_DAILY, gson.toJson(newImageDailyList));
+                            newList = filterBeforeDate(newImageDailyList.getImgs(), endDateStr, false);
+                        }
+                        emitter.onSuccess(newList);
+                    } catch (IOException e) {
+                        emitter.onError(new RuntimeException(e));
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    }
+                })
+                .subscribeOn(Schedulers.io())  // 指定在 IO 线程执行
+                .observeOn(AndroidSchedulers.mainThread());  // 在主线程观察结果
     }
 
     /**

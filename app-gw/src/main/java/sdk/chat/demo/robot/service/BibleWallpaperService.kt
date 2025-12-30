@@ -18,11 +18,11 @@ import org.tinylog.Logger
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.BibleActivity
-import sdk.chat.demo.robot.activities.EditCardActivity
 import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.ImageApi
+import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
@@ -158,11 +158,12 @@ class BibleWallpaperService : WallpaperService() {
                         })
                 )
             }
+            JsonCacheManager.save(MainApp.getContext(),"gwDaily","")
             dm.add(
                 ImageApi.listImageDaily(today).subscribe(
                     { data ->
                         gwImages = data
-//                        Log.e(TAG, "$today get gwImages: ${gwImages?.firstOrNull()?.date}")
+                        Log.e(TAG, "$today get gwImages: ${gwImages.firstOrNull()?.date}")
                         Logger.error { "${TAG}:$today get gwImages: ${gwImages.firstOrNull()?.date}" }
                         if (currentImageData == null) {
                             drawFrame()
@@ -171,69 +172,18 @@ class BibleWallpaperService : WallpaperService() {
                     Consumer { e: Throwable? ->
 //                        Log.e(TAG, "${today} get gwImages error: ${e.toString()}")
                         Logger.error { "${TAG}:$today get gwImages error: ${e.toString()}" }
+//                        Log.e(TAG, "$today get gwImages error: ${e.toString()}")
+//                        e?.printStackTrace()
                     })
             )
-
-//            val imageDailyList = ImageApi.getImageDailyListCache()
-//            if (imageDailyList != null) {
-//                var imgs: MutableList<ImageDaily> = imageDailyList.imgs
-//                var bgList: MutableList<String>? = null
-//                imgs.forEachIndexed { index, element ->
-//                    if (index % 3 == 0) {
-//                        bgList = mutableListOf<String>()
-//                        imageSources.add(bgList)
-//                    }
-//                    var reference = BibleData.parseScriptureReference(element.reference)
-//                    bibleVerses.add(
-//                        BibleVerse(
-//                            book = reference.bookName,
-//                            verseStart = reference.verseStart,
-//                            verseEnd = reference.verseEnd,
-//                            chapter = reference.chapterStart,
-//                            text = element.scripture,
-//                            translation = ""
-//                        )
-//                    )
-//                    bgList?.add(element.backgroundUrl)
-//                    imageDailyCache[element.backgroundUrl] = element
-//                }
-//            }
-////            loadBibleVerses()
-//            selectRandomVerse()
-//            currentImageUrls = imageSources[currentImageSourceIndex]
-//            preloadCurrentSourceImages()
         }
 
-//        /**
-//         * 加载圣经经文
-//         */
-//        private fun loadBibleVerses() {
-//            try {
-//                val inputStream = assets.open("bible_verses.json")
-//                val jsonString = inputStream.bufferedReader().use { it.readText() }
-//                val jsonArray = JSONArray(jsonString)
-//
-//                for (i in 0 until jsonArray.length()) {
-//                    val jsonObject = jsonArray.getJSONObject(i)
-//                    val verse = BibleVerse(
-//                        book = jsonObject.getString("book"),
-//                        chapter = jsonObject.getInt("chapter"),
-//                        verseStart = jsonObject.getInt("verseStart"),
-//                        verseEnd = jsonObject.getInt("verseEnd"),
-//                        text = jsonObject.getString("text"),
-//                        translation = jsonObject.getString("translation")
-//                    )
-//                    bibleVerses.add(verse)
-//                }
-//
-//                selectRandomVerse()
-//
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//                currentVerse = BibleVerse.getDefaultVerse()
-//            }
+//        private fun getStackTraceAsString(t: Throwable): String {
+//            val sw: StringWriter = StringWriter()
+//            val pw: PrintWriter = PrintWriter(sw)
+//            t.printStackTrace(pw)
+//            return sw.toString()
 //        }
-
 
         /**
          * 处理触摸事件
@@ -308,7 +258,7 @@ class BibleWallpaperService : WallpaperService() {
 
             handler.removeCallbacks(drawRunnable)
             if (visible) {
-                handler.postDelayed(drawRunnable, 600000)
+                handler.postDelayed(drawRunnable, 1200000)
             }
         }
 
@@ -357,6 +307,7 @@ class BibleWallpaperService : WallpaperService() {
             if (latest != null && latest.date != today) {
                 initializeData()
             }
+
 
 //            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
 
@@ -452,244 +403,8 @@ class BibleWallpaperService : WallpaperService() {
                     })
             }
 
-//            val disposable = PermissionRequestHandler
-//                .requestWriteExternalStorage(this@SettingWallpaperActivity)
-//                .andThen<Bitmap?>( // After permission is granted, execute the following operations
-//                    Observable.create<Bitmap?>(ObservableOnSubscribe { emitter: ObservableEmitter<Bitmap?>? ->
-//                        getInstance()
-//                            .generateBibleCard(
-//                                applicationContext,
-//                                R.layout.item_image_greeting,
-//                                request,
-//                                false,
-//                                { result: Bitmap? ->
-//                                    emitter!!.onNext(result!!) // 发送成功结果
-//                                    emitter.onComplete() // 完成
-//                                    Unit
-//                                }, { err: Throwable? ->
-//                                    emitter!!.onError(err!!)
-//                                    Unit
-//                                })
-//                    })
-//                        .subscribeOn(Schedulers.io())
-//                )
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(
-//                    Consumer { bitmap: Bitmap? ->
-//                        if (bitmap != null && !bitmap.isRecycled) {
-//                            // 绘制缓存的图片
-//                            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-//                            canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-//                            scaledBitmap.recycle()
-//                        }
-//                    },
-//                    Consumer { e: Throwable? ->
-//                        if (e != null) {
-//                            Log.e(
-//                                TAG,
-//                                "drawBackgroundImage getCachedImage ${currentUrl} ${bitmap == null},${bitmap?.isRecycled}"
-//                            )
-//                        }
-//                    }
-//                )
-//            dm.add(disposable)
-
-
-//            val currentUrl = currentImageUrls.getOrNull(currentImageIndex) ?: return
-//            val bitmap = getCachedImage(currentUrl)
-//
-//            if (bitmap != null && !bitmap.isRecycled) {
-//                // 绘制缓存的图片
-//                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-//                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-//                scaledBitmap.recycle()
-//            } else {
-//                Log.e(
-//                    "biblewallGlide",
-//                    "drawBackgroundImage getCachedImage ${currentUrl} ${bitmap == null},${bitmap?.isRecycled}"
-//                )
-//                // 绘制默认背景
-//                drawDefaultBackground(canvas)
-//
-//                // 异步加载图片
-//                if (!loadingUrls.contains(currentUrl)) {
-//                    loadImageWithGlide(currentUrl, false)
-//                }
-//            }
         }
 
-//        /**
-//         * 绘制默认背景
-//         */
-//        private fun drawDefaultBackground(canvas: Canvas) {
-////            val gradient = LinearGradient(
-////                0f, 0f, width.toFloat(), height.toFloat(),
-////                Color.parseColor("#2C3E50"), Color.parseColor("#3498DB"),
-////                Shader.TileMode.CLAMP
-////            )
-////            val paint = Paint().apply {
-////                shader = gradient
-////            }
-////            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
-////
-////            // 显示加载信息
-////            textPaint.color = Color.WHITE
-////            textPaint.textSize = 36f
-////            canvas.drawText("加载精美图片中...", width / 2f, height / 2f, textPaint)
-//            try {
-//
-//                val bitmap = BitmapFactory.decodeResource(
-//                    resources,
-//                    R.mipmap.bg_default
-//                )
-//
-//                // 缩放图片以适应屏幕
-//                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-//
-//                // 绘制图片
-//                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-//
-//                // 添加半透明遮罩，让文字更清晰
-//                canvas.drawColor(Color.argb(50, 0, 0, 0))
-//
-//                // 回收bitmap
-//                scaledBitmap.recycle()
-//                bitmap.recycle()
-//            } catch (e: Exception) {
-//                // 如果图片加载失败，绘制纯色背景
-//                canvas.drawColor(getBackgroundColorByIndex(currentImageIndex))
-//            }
-//        }
-
-        private fun getBackgroundColorByIndex(index: Int): Int {
-            return when (index % 5) {
-                0 -> Color.parseColor("#FF6B6B")
-                1 -> Color.parseColor("#4ECDC4")
-                2 -> Color.parseColor("#45B7D1")
-                3 -> Color.parseColor("#96CEB4")
-                4 -> Color.parseColor("#FECA57")
-                else -> Color.BLUE
-            }
-        }
-
-//        /**
-//         * 绘制圣经经文
-//         */
-//        private fun drawBibleVerse(canvas: Canvas) {
-//            val verse = currentVerse ?: return
-//            val rect = verseRect ?: return
-//
-//            // 绘制背景
-//            canvas.drawRoundRect(rect, 20f, 20f, backgroundPaint)
-//            canvas.drawRoundRect(rect, 20f, 20f, borderPaint)
-//
-//            // 绘制经文
-//            textPaint.color = Color.WHITE
-//            textPaint.textSize = 36f
-//            textPaint.textAlign = Paint.Align.CENTER
-//
-//            drawMultilineText(canvas, verse.getDisplayText(), rect)
-//
-////            // 绘制引用
-////            textPaint.textSize = 24f
-////            textPaint.color = Color.LTGRAY
-////            canvas.drawText(
-////                "${verse.book} ${verse.chapter}:${verse.verseStart}-${verse.verseEnd} (${verse.translation})",
-////                rect.centerX(),
-////                rect.bottom - 480f,
-////                textPaint
-////            )
-//        }
-
-//        /**
-//         * 绘制信息文本
-//         */
-//        private fun drawInfoText(canvas: Canvas) {
-//            val currentTime = System.currentTimeMillis()
-//            val nextImageTime = (imageChangeInterval - (currentTime - lastImageChangeTime)) / 1000
-//            val nextSourceTime =
-//                (sourceChangeInterval - (currentTime - lastSourceChangeTime)) / 1000
-//
-//            val infoText = "图片源 ${currentImageSourceIndex + 1}/${imageSources.size} | " +
-//                    "下张图片: ${nextImageTime}s | " +
-//                    "切换主题: ${nextSourceTime / 60}m"
-//
-//            infoPaint.color = Color.argb(150, 255, 255, 255)
-//            canvas.drawText(infoText, width - 20f, 40f, infoPaint.apply {
-//                textAlign = Paint.Align.RIGHT
-//            })
-//        }
-//
-//        /**
-//         * 绘制多行文本
-//         */
-//        private fun drawMultilineText(canvas: Canvas, text: String, rect: RectF) {
-//            val maxWidth = rect.width() - 40f
-//            val lines = breakTextIntoLines(text, maxWidth)
-//            val lineHeight = 50f
-//            val startY = rect.top + 60f
-//
-//            for ((index, line) in lines.withIndex()) {
-//                if (index >= 3) break
-//                canvas.drawText(line, rect.centerX(), startY + index * lineHeight, textPaint)
-//            }
-//        }
-
-//        /**
-//         * 文本自动换行
-//         */
-//        private fun breakTextIntoLines(text: String, maxWidth: Float): List<String> {
-//            val lines = mutableListOf<String>()
-//            val words = text.split(" ")
-//            var currentLine = StringBuilder()
-//
-//            for (word in words) {
-//                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
-//                val testWidth = textPaint.measureText(testLine)
-//
-//                if (testWidth <= maxWidth) {
-//                    currentLine.append(if (currentLine.isEmpty()) word else " $word")
-//                } else {
-//                    if (currentLine.isNotEmpty()) {
-//                        lines.add(currentLine.toString())
-//                    }
-//                    currentLine = StringBuilder(word)
-//                }
-//            }
-//
-//            if (currentLine.isNotEmpty()) {
-//                lines.add(currentLine.toString())
-//            }
-//
-//            return lines
-//        }
-
-//        /**
-//         * 绘制触摸反馈
-//         */
-//        private fun drawTouchFeedback(canvas: Canvas) {
-//            val rect = verseRect ?: return
-//            val highlightPaint = Paint().apply {
-//                color = Color.argb(80, 255, 255, 255)
-//                style = Paint.Style.FILL
-//                isAntiAlias = true
-//            }
-//            canvas.drawRoundRect(rect, 20f, 20f, highlightPaint)
-//        }
-
-//        /**
-//         * 获取缓存的图片
-//         */
-//        private fun getCachedImage(url: String): Bitmap? {
-//            return imageCache[url]
-//        }
-//
-//        /**
-//         * 检查图片是否已缓存
-//         */
-//        private fun isImageCached(url: String): Boolean {
-//            return imageCache.containsKey(url)
-//        }
 
         override fun onDestroy() {
             super.onDestroy()

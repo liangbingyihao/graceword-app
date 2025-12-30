@@ -214,8 +214,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                     .subscribe(Consumer { networkEvent: NetworkEvent? ->
                         highlightOverlay?.finishGuideBeginner()
                         if (WelcomeHolder.isWelcomeMsg(networkEvent!!.getMessage())) {
-                            vHomeMenu.visibility = View.GONE
-                            vTaskMenu.visibility = View.GONE
+//                            vHomeMenu.visibility = View.GONE
+//                            vTaskMenu.visibility = View.GONE
                             findViewById<View>(R.id.red_dot).visibility = View.GONE
                             findViewById<View>(R.id.red_dot3).visibility = View.GONE
                         } else {
@@ -684,7 +684,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         val redDot: View = findViewById<View>(R.id.red_dot)
         val redDot3: View = findViewById<View>(R.id.red_dot3)
         if (!hasShownWelcome) {
-            redDot.visibility = vHomeMenu.visibility
+//            redDot.visibility = vHomeMenu.visibility
             redDot3.visibility = View.VISIBLE
 //            vDgwMenu.post({
 //                val drawables: Array<Drawable?> = vDgwMenu.getCompoundDrawables()
