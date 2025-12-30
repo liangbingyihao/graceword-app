@@ -176,8 +176,9 @@ open class SongsContainerViewHolder<T : MessageHolder>(itemView: View) :
         bindSendStatus(t)
     }
 
-    fun onBind(holder: T, isMultiSelectMode: Boolean) {
+    fun onBind(holder: T, isMultiSelectMode: Boolean, position: Int) {
         this.isMultiSelectMode = isMultiSelectMode
+        holder.pos = position
         bindListeners(holder)
         bind(holder)
     }

@@ -86,8 +86,9 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        }
     }
 
-    fun onBind(holder: T, isMultiSelectMode: Boolean) {
+    fun onBind(holder: T, isMultiSelectMode: Boolean, position: Int) {
         this.isMultiSelectMode = isMultiSelectMode
+        holder.pos = position
         bindListeners(holder)
         bind(holder)
     }

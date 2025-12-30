@@ -50,7 +50,7 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun setMultiSelectMode(enabled: Boolean) {
         if (_isMultiSelectMode != enabled) {
             _isMultiSelectMode = enabled
-            if(!_isMultiSelectMode){
+            if (!_isMultiSelectMode) {
                 clearSelections()
             }
             notifyDataSetChanged()
@@ -142,9 +142,10 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun getSelectedItems(): MutableList<TextHolder?> {
         val selectedItems: MutableList<TextHolder?> = ArrayList<TextHolder?>()
         for (item in items) {
-            (item as? TextHolder)?.takeIf { it.isAiSelected || it.isUserSelected||it.hasSelectedHymns() }?.run{
-                selectedItems.add(item)
-            }
+            (item as? TextHolder)?.takeIf { it.isAiSelected || it.isUserSelected || it.hasSelectedHymns() }
+                ?.run {
+                    selectedItems.add(item)
+                }
         }
         return selectedItems
     }
@@ -313,12 +314,13 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             is TextHolder -> {
                 if (item.isSong) {
                     TYPE_SONG
-                } else if (WelcomeHolder.isWelcomeMsg(item.message)){
+                } else if (WelcomeHolder.isWelcomeMsg(item.message)) {
                     TYPE_WELCOME
                 } else {
                     TYPE_TEXT
                 }
             }
+
             is ImageHolder -> TYPE_IMAGE
             is TimeHolder -> TYPE_TIME
             is WelcomeHolder -> TYPE_WELCOME
@@ -338,6 +340,7 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     parent
                 )
             )
+
             TYPE_SONG -> SongsContainerViewHolder<TextHolder>(
                 inflateView(
                     R.layout.item_songs_container,
@@ -351,12 +354,14 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     parent
                 )
             )
+
             TYPE_WELCOME -> WelcomeViewHolder(
                 inflateView(
                     R.layout.item_feed_welcome,
                     parent
                 )
             )
+
             TYPE_TIME -> TimeViewHolder(inflateView(R.layout.item_date_header, parent))
             TYPE_FOOTER -> FooterViewHolder(inflateView(R.layout.item_list_footer, parent))
             else -> throw IllegalArgumentException("Unknown view type")
@@ -372,7 +377,11 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val item = getItem(position)
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    (holder as ChatTextViewHolder<TextHolder>).onBind(item as TextHolder,isMultiSelectMode)
+                    (holder as ChatTextViewHolder<TextHolder>).onBind(
+                        item as TextHolder,
+                        isMultiSelectMode,
+                        position
+                    )
                     bindListeners(holder, item)
                 } catch (e: ClassCastException) {
 //                    holder.onError(e)
@@ -383,7 +392,11 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val item = getItem(position)
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    (holder as SongsContainerViewHolder<TextHolder>).onBind(item as TextHolder,isMultiSelectMode)
+                    (holder as SongsContainerViewHolder<TextHolder>).onBind(
+                        item as TextHolder,
+                        isMultiSelectMode,
+                        position
+                    )
                     bindListeners(holder, item)
                 } catch (e: ClassCastException) {
 //                    holder.onError(e)
@@ -394,7 +407,10 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val item = getItem(position)
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    (holder as ChatImageViewHolder<ImageHolder>).onBind(item as ImageHolder,isMultiSelectMode)
+                    (holder as ChatImageViewHolder<ImageHolder>).onBind(
+                        item as ImageHolder,
+                        isMultiSelectMode
+                    )
                     bindListeners(holder, item)
                 } catch (e: ClassCastException) {
 //                    holder.onError(e)
@@ -407,7 +423,7 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 holder.bind(header, item as ExploreHolder)
             }
 
-            is WelcomeViewHolder ->{
+            is WelcomeViewHolder -> {
                 val item = getItem(position)
                 holder.bind(item as WelcomeHolder)
             }

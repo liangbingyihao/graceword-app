@@ -255,10 +255,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
 
-        if (reference != null && savedInstanceState == null) {
+        if ((reference == null || reference.isEmpty()) && savedInstanceState == null) {
             checkPreLaunchActivity()
             LogUploader.chatEntrance("app_launch")
         }
+        checkWallPaper()
 
         highlightOverlay?.handleStatic(
             this@MainDrawerActivity,
@@ -351,6 +352,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 }
         }
 
+    }
+
+    private fun checkWallPaper() {
         if ((System.currentTimeMillis() - (application as MainApp).startTimeStamp) < 4000) {
             var config = CardApiService.getRawWallPaperConfig()
             if (config != null && config.isDynamic && config.cntSkip < 2) {
@@ -378,7 +382,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                 "startime:${System.currentTimeMillis() - (application as MainApp).startTimeStamp}"
             )
         }
-
     }
 
     private fun onBillChanged() {

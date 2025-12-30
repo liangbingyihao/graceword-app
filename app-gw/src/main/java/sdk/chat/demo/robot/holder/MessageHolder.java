@@ -62,6 +62,7 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
     protected boolean isReply;
 
     protected boolean isDirty = true;
+    protected int pos = 0;
 
     public MessageHolder(Message message) {
         this.message = message;
@@ -103,6 +104,14 @@ public class MessageHolder implements IMessage, Consumer<Throwable> {
 
         isReply = message.isReply();
 
+    }
+
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
     }
 
     public boolean isUserSelected() {

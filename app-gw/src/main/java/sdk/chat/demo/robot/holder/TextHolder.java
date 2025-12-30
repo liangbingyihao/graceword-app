@@ -45,14 +45,17 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
 
     public MessageDetail getAiFeedback() {
         if (aiFeedback == null) {
-            if (false&&action == AIExplore.ExploreItem.action_local_bible_pic) {
-                aiFeedback = new MessageDetail();
-                AIFeedback ai = new AIFeedback();
-                ai.setBible(message.stringForKey(Keys.ImageText));
-                aiFeedback.setFeedback(ai);
-            } else if (!message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK).isEmpty()) {
+            if (!message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK).isEmpty()) {
                 aiFeedback = GWMsgHandler.getAiFeedback(message);
             }
+//            if (false&&action == AIExplore.ExploreItem.action_local_bible_pic) {
+//                aiFeedback = new MessageDetail();
+//                AIFeedback ai = new AIFeedback();
+//                ai.setBible(message.stringForKey(Keys.ImageText));
+//                aiFeedback.setFeedback(ai);
+//            } else if (!message.stringForKey(GWThreadHandler.KEY_AI_FEEDBACK).isEmpty()) {
+//                aiFeedback = GWMsgHandler.getAiFeedback(message);
+//            }
         }
         return aiFeedback;
     }

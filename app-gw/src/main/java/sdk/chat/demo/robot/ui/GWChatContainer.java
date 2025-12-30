@@ -7,8 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -26,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.noties.markwon.Markwon;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.SingleSource;
@@ -42,7 +39,6 @@ import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.WebViewActivity;
 import sdk.chat.demo.robot.adpter.ChatAdapter;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
-import sdk.chat.demo.robot.api.model.MessageEntry;
 import sdk.chat.demo.robot.api.model.ShareRequest;
 import sdk.chat.demo.robot.api.model.ShareRequestKt;
 import sdk.chat.demo.robot.api.model.Song;
@@ -52,8 +48,6 @@ import sdk.chat.demo.robot.handlers.SocialShareHandler;
 import sdk.chat.demo.robot.holder.HolderProvider;
 import sdk.chat.demo.robot.holder.MessageHolder;
 import sdk.chat.demo.robot.holder.TextHolder;
-import sdk.chat.demo.robot.holder.WelcomeHolder;
-import sdk.chat.demo.robot.utils.CompatHtmlEscape;
 import sdk.chat.demo.robot.utils.SocialShareUtils;
 import sdk.chat.demo.robot.utils.TemplateUtils;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -122,6 +116,12 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 if (id == R.id.btn_share_text) {
                     holder.setAiSelected(true);
                     messagesListAdapter.setMultiSelectMode(true);
+
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
+                    if(layoutManager!=null){
+                        layoutManager.scrollToPositionWithOffset(holder.getPos(), 200);
+                    }
+
                     LogUploader.reportEvent(
                             "mod_share", List.of(
                                     new KeyValuePair("share_action", "0")
@@ -129,6 +129,12 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 } else if (id == R.id.btn_share_user_text) {
                     holder.setUserSelected(true);
                     messagesListAdapter.setMultiSelectMode(true);
+
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
+                    if(layoutManager!=null){
+                        layoutManager.scrollToPositionWithOffset(holder.getPos(), 200);
+                    }
+
                     LogUploader.reportEvent(
                             "mod_share", List.of(
                                     new KeyValuePair("share_action", "0")
