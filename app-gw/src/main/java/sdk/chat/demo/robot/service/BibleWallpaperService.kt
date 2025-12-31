@@ -158,7 +158,7 @@ class BibleWallpaperService : WallpaperService() {
                         })
                 )
             }
-            JsonCacheManager.save(MainApp.getContext(),"gwDaily","")
+
             dm.add(
                 ImageApi.listImageDaily(today).subscribe(
                     { data ->
