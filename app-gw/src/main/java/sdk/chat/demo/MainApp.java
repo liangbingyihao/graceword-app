@@ -15,6 +15,7 @@ import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.extensions.FirebaseReport;
 import sdk.chat.demo.robot.extensions.TinyLoggerManager;
+import sdk.chat.demo.robot.handlers.AuthService;
 import sdk.chat.demo.robot.handlers.CardApiService;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
@@ -101,9 +102,9 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 //            ContactBookModule.shared()
 
             chatSDK = ChatSDK.shared();
-            dm.add(ChatSDK.auth().authenticate()
+            dm.add(AuthService.INSTANCE.authenticate()
                     .observeOn(RX.main())
-                    .doFinally(GWAuthenticationHandler::ensureDatabase)
+                    .doFinally(AuthService.INSTANCE::ensureDatabase)
                     .subscribe(
                             () -> {
                                 Logger.error("authenticate done");

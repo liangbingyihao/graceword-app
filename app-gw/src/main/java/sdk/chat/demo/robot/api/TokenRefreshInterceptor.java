@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.api;
 
 import okhttp3.*;
+import sdk.chat.demo.robot.handlers.AuthService;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,7 +63,7 @@ public class TokenRefreshInterceptor implements Interceptor {
     }
 
     private Request addAuthHeader(Request originalRequest) {
-        return addAuthHeader(originalRequest, GWApiManager.shared().getAccessToken());
+        return addAuthHeader(originalRequest, AuthService.INSTANCE.getAccessToken());
     }
 
     private Request addAuthHeader(Request originalRequest, String token) {

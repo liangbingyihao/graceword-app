@@ -46,6 +46,7 @@ import sdk.chat.demo.robot.api.model.FavoriteList;
 import sdk.chat.demo.robot.api.model.SystemConf;
 import sdk.chat.demo.robot.api.model.TaskProgress;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
+import sdk.chat.demo.robot.handlers.AuthService;
 import sdk.chat.demo.robot.handlers.BillingManager;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
 import sdk.chat.demo.robot.push.UpdateTokenWorker;
@@ -56,7 +57,6 @@ import sdk.guru.common.RX;
 public class GWApiManager {
     private final Gson gson = new Gson();
     private final OkHttpClient client;
-    private String accessToken;
     //    private final static String URL = "https://api-test.grace-word.com/api/";
 //    private final static String URL = "https://api.grace-word.com/api/";
     public final static int contentTypeUser = 1;
@@ -71,6 +71,8 @@ public class GWApiManager {
 
     private final static String URL;
 
+    public final static String URL_V1;
+
     static {
 
         if (BuildConfig.DEBUG) {
@@ -80,6 +82,7 @@ public class GWApiManager {
         } else {
             URL = "https://api.grace-word.com/api/";
         }
+        URL_V1 = URL+"v1/";
     }
 
     private final static String URL_LOGIN = URL + "auth/login";
@@ -126,15 +129,14 @@ public class GWApiManager {
         return client;
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
-
+//    public String getAccessToken() {
+//        return accessToken;
+//    }
+//
     @SuppressLint("CheckResult")
     public String refreshTokenSync() {
-        accessToken = null;
-        authenticate(ChatSDK.auth().cachedAccountDetails()).blockingGet();
-        return accessToken;
+        AuthService.INSTANCE.authenticate().blockingGet();
+        return AuthService.INSTANCE.getAccessToken();
     }
 
     public static Request buildPostRequest(Map<String, String> params, String url) {
@@ -184,67 +186,67 @@ public class GWApiManager {
 
     }
 
-    public Single<AccountDetails> authenticate(final AccountDetails details) {
-        return Single.create((SingleOnSubscribe<AccountDetails>) emitter -> {
-            Map<String, String> params = new HashMap<>();
-            if (details.type == AccountDetails.Type.Username) {
-                params.put("username", details.username);
-                params.put("password", details.password);
-            } else if (details.type == AccountDetails.Type.Custom) {
-                params.put("guest", details.token);
-            } else {
-                emitter.onError(new Exception("login type error"));
-            }
-            String fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx());
-            params.put("fcmToken", fcmToken);
-            String gsonData = new JSONObject(params).toString();
-
-            RequestBody body = RequestBody.create(
-                    gsonData,
-                    MediaType.parse("application/json; charset=utf-8")
-            );
-
-            Request request = new Request.Builder()
-                    .url(URL_LOGIN)
-                    .post(body)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException error) {
-                    System.err.println("请求失败: " + error.getMessage());
-                    emitter.onError(error);
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    JsonObject resp = gson.fromJson(response.body().string(), JsonObject.class);
-                    try {
-                        if (resp != null && !resp.get("success").getAsBoolean()) {
-                            throw new Exception("login failed:" + resp.get("message").getAsString());
-                        }
-                        JsonObject data = resp.getAsJsonObject("data");
-                        accessToken = "Bearer " + data.get("access_token").getAsString();
-                        details.setMetaValue("userId", data.get("user_id").getAsString());
-                        int expiredAt = 0;
-                        if(data.has("membership_expired_at")){
-                            expiredAt = data.get("membership_expired_at").getAsInt();
-                            if(expiredAt>0){
-                                BillingManager.Companion.getInstance().setExpiredAt(expiredAt* 1000L);
-                            }
-//                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                            String expiredAtStr = sdf.format(new Date(System.currentTimeMillis()+expiredAt*1000));
-//                            Log.e("BillingManager","expiredAtStr:"+expiredAtStr+","+expiredAt);
-                        }
-                        Logger.error("BillingManager: expiredAt "+expiredAt);
-                        emitter.onSuccess(details);
-                    } catch (Exception e) {
-                        emitter.onError(e);
-                    }
-                }
-            });
-        }).subscribeOn(RX.io());
-    }
+//    public Single<AccountDetails> authenticate(final AccountDetails details) {
+//        return Single.create((SingleOnSubscribe<AccountDetails>) emitter -> {
+//            Map<String, String> params = new HashMap<>();
+//            if (details.type == AccountDetails.Type.Username) {
+//                params.put("username", details.username);
+//                params.put("password", details.password);
+//            } else if (details.type == AccountDetails.Type.Custom) {
+//                params.put("guest", details.token);
+//            } else {
+//                emitter.onError(new Exception("login type error"));
+//            }
+//            String fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx());
+//            params.put("fcmToken", fcmToken);
+//            String gsonData = new JSONObject(params).toString();
+//
+//            RequestBody body = RequestBody.create(
+//                    gsonData,
+//                    MediaType.parse("application/json; charset=utf-8")
+//            );
+//
+//            Request request = new Request.Builder()
+//                    .url(URL_LOGIN)
+//                    .post(body)
+//                    .build();
+//
+//            client.newCall(request).enqueue(new Callback() {
+//                @Override
+//                public void onFailure(Call call, IOException error) {
+//                    System.err.println("请求失败: " + error.getMessage());
+//                    emitter.onError(error);
+//                }
+//
+//                @Override
+//                public void onResponse(Call call, Response response) throws IOException {
+//                    JsonObject resp = gson.fromJson(response.body().string(), JsonObject.class);
+//                    try {
+//                        if (resp != null && !resp.get("success").getAsBoolean()) {
+//                            throw new Exception("login failed:" + resp.get("message").getAsString());
+//                        }
+//                        JsonObject data = resp.getAsJsonObject("data");
+//                        accessToken = "Bearer " + data.get("access_token").getAsString();
+//                        details.setMetaValue("userId", data.get("user_id").getAsString());
+//                        int expiredAt = 0;
+//                        if(data.has("membership_expired_at")){
+//                            expiredAt = data.get("membership_expired_at").getAsInt();
+//                            if(expiredAt>0){
+//                                BillingManager.Companion.getInstance().setExpiredAt(expiredAt* 1000L);
+//                            }
+////                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+////                            String expiredAtStr = sdf.format(new Date(System.currentTimeMillis()+expiredAt*1000));
+////                            Log.e("BillingManager","expiredAtStr:"+expiredAtStr+","+expiredAt);
+//                        }
+//                        Logger.error("BillingManager: expiredAt "+expiredAt);
+//                        emitter.onSuccess(details);
+//                    } catch (Exception e) {
+//                        emitter.onError(e);
+//                    }
+//                }
+//            });
+//        }).subscribeOn(RX.io());
+//    }
 
     public Single<JsonObject> saveSession(String robotId) {
         return Single.create(emitter -> {
@@ -592,13 +594,6 @@ public class GWApiManager {
     }
 
 
-    public boolean isAuthenticated() {
-        return accessToken != null && !accessToken.isEmpty();
-    }
-
-    public void logout() {
-        accessToken = null;
-    }
 
     public Single<JsonObject> getMessageDetail(String contextId, int retry, int stop) {
         return Single.create(emitter -> {

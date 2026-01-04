@@ -21,6 +21,7 @@ import sdk.chat.core.utils.StringChecker;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.GWApiManager;
+import sdk.chat.demo.robot.handlers.AuthService;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.utils.ToastHelper;
 // 基础导入
@@ -111,7 +112,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                 handler.postDelayed(this::proceedToMain, Math.max(500 - cost, 0));
             } else if (System.currentTimeMillis() - app.startTimeStamp > 3000) {
                 try {
-                    GWAuthenticationHandler.ensureDatabase();
+                    AuthService.INSTANCE.ensureDatabase();
                 } catch (Exception e) {
                     hasShownGuide = false;
                     Logger.error("app.isInitialized ensureDatabase e:" + e.getMessage());

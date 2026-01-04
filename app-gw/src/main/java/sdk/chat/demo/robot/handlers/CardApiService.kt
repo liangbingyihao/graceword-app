@@ -50,9 +50,9 @@ data class WallpaperConfig(
 )
 
 object CardApiService {
-    val URL_CARD_DATA: String = ImageApi.URL2_MAIN + "campaign/card"
-    val URL_CAMPAIGN_DATA: String = ImageApi.URL2_MAIN + "campaign/current"
-    val URL_CARD_SHARE: String = ImageApi.URL2_MAIN + "campaign/card/share"
+    val URL_CARD_DATA: String = GWApiManager.URL_V1 + "campaign/card"
+    val URL_CAMPAIGN_DATA: String = GWApiManager.URL_V1 + "campaign/current"
+    val URL_CARD_SHARE: String = GWApiManager.URL_V1 + "campaign/card/share"
     var blessData: BlessData? = null
     var campaign: Campaign? = null
     val KEY_CACHE_CONFIG: String = "cache_wallpaper_config"

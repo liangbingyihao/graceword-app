@@ -39,6 +39,7 @@ import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.ImageApi;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.FirebaseReport;
+import sdk.chat.demo.robot.handlers.AuthService;
 import sdk.chat.demo.robot.handlers.GWAuthenticationHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.utils.ToastHelper;
@@ -228,7 +229,7 @@ public class GuideActivity extends BaseActivity {
                     .observeOn(RX.main())
                     .doFinally(() -> {
                         btnNext.setText(getString(R.string.retry));
-                        GWAuthenticationHandler.ensureDatabase();
+                        AuthService.INSTANCE.ensureDatabase();
                         retrying = false;
                     })
                     .subscribe(

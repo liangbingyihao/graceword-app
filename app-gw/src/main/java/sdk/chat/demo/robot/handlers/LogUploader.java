@@ -41,7 +41,7 @@ import sdk.chat.demo.robot.utils.DeviceInfoUtils;
 
 public class LogUploader {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private final static String URL_EVENT = ImageApi.URL2_MAIN + "log/event";
+    private final static String URL_EVENT = GWApiManager.URL_V1 + "log/event";
     private static final Gson gson = new Gson();
     private static final Stack<String> stackChatEntrance = new Stack<>();
 

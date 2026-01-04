@@ -47,9 +47,9 @@ class BillingManager private constructor() {
             ActionConfig(ActionConfig.DAILY_MSG, 5),
             ActionConfig(ActionConfig.DAILY_PIC, 1)
         ).associate { it.actionName to it.dailyLimit }
-        private var URL_ACKNOWLEDGE = ImageApi.URL2_MAIN + "purchase/play"
-        private var URL_PRODUCT = ImageApi.URL2_MAIN + "purchase/plans"
-        private var URL_MEMBERSHIP = ImageApi.URL2_MAIN + "purchase/membership"
+        private var URL_ACKNOWLEDGE = GWApiManager.URL_V1 + "purchase/play"
+        private var URL_PRODUCT = GWApiManager.URL_V1 + "purchase/plans"
+        private var URL_MEMBERSHIP = GWApiManager.URL_V1 + "purchase/membership"
     }
 
     // 内存缓存

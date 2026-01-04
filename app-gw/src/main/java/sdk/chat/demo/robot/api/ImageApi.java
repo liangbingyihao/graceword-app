@@ -61,18 +61,18 @@ public class ImageApi {
     private static String oldestImageDailyDate = null;
     private static GWConfigs gwConfigs = null;
     //    public final static String URL2_MAIN = "https://api-test.kolacdn.xyz/api/v1/";
-    public final static String URL2_MAIN;
+//    public final static String URL2_MAIN;
 
-    static {
+//    static {
+//
+//        if (BuildConfig.DEBUG) {
+//            URL2_MAIN = "https://api-test.kolacdn.xyz/api/v1/";
+//        } else {
+//            URL2_MAIN = "https://api.grace-word.com/api/v1/";
+//        }
+//    }
 
-        if (BuildConfig.DEBUG) {
-            URL2_MAIN = "https://api-test.kolacdn.xyz/api/v1/";
-        } else {
-            URL2_MAIN = "https://api.grace-word.com/api/v1/";
-        }
-    }
-
-    public final static String URL2 = URL2_MAIN + "app/";
+    public final static String URL2 = GWApiManager.URL_V1 + "app/";
     private final static String URL_IMAGE_TAG = URL2 + "scripture/background";
     private final static String URL_IMAGE_DAILY_GW = URL2 + "scripture/daily";
     private final static String URL_CONFIGS = URL2 + "configs";

@@ -3,9 +3,6 @@ package sdk.chat.core.types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by benjaminsmiley-andrews on 03/07/2017.
- */
 
 public class AccountDetails {
 
