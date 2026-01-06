@@ -205,4 +205,13 @@
     <string name="verse_ai">提问</string>
     <string name="verse_ai_prompt">\"%s\"\n是什么意思</string>
     <string name="verse_long_click_tip">长按试试更多操作</string>
+
+
+    <string name="my_account">我的账户</string>
+    <string name="login">登录</string>
+    <string name="logout">退出登录</string>
+    <string name="vip">荣耀会员</string>
+    <string name="next_renewal_time">下次续订时间:%s</string>
+    <string name="membership_status">会员状态</string>
+    <string name="pending_upgrade">待升级</string>
 </resources>

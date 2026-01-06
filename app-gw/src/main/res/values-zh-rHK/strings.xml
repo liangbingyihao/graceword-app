@@ -207,4 +207,12 @@
     <string name="verse_ai">提問</string>
     <string name="verse_ai_prompt">「%s」的含義是什麼？</string>
     <string name="verse_long_click_tip">長按試試更多操作</string>
+
+    <string name="my_account">我的帳戶</string>
+    <string name="login">登入</string>
+    <string name="logout">登出</string>
+    <string name="vip">榮耀會員</string>
+    <string name="next_renewal_time">下次續訂時間:%s</string>
+    <string name="membership_status">會員狀態</string>
+    <string name="pending_upgrade">待升級</string>
 </resources>

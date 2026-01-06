@@ -10,7 +10,7 @@ class CommonHeadersInterceptor() : Interceptor {
         val request = chain.request().newBuilder()
             .addHeader("versionCode", BuildConfig.VERSION_CODE.toString())
             .addHeader("platform", "android")
-            .addHeader("packageName", BuildConfig.APPLICATION_ID)
+            .addHeader("bundleId", BuildConfig.APPLICATION_ID)
             .addHeader("debug", BuildConfig.DEBUG.toString())
             .addHeader("userAgent", getUserAgent())
             .build()

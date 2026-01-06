@@ -9,20 +9,20 @@ data class ApiTokenResponse(
     val refreshToken: String = "",
     @SerializedName("expires_in")
     val expiresIn: Int = 0,
-
     @SerializedName("token_type")
     val tokenType: String = "Bearer",
-
     @SerializedName("user")
-    val user: UserInfo = UserInfo()
-){
+    val user: UserInfo = UserInfo(),
+    var req: ApiTokenRequest? = null,
+    var fullAccessToken: String = "",
+    var expiresAt: Long = 0,
+) {
     // 初始化时计算并存储
-    var fullAccessToken: String = ""
-    var expiresAt: Long = 0
 
-    fun initData(){
-        fullAccessToken= "$tokenType $accessToken".trim()
-        expiresAt = System.currentTimeMillis() + expiresIn
+    fun initData(req: ApiTokenRequest?) {
+        this.req = req
+        fullAccessToken = "$tokenType $accessToken".trim()
+        expiresAt = System.currentTimeMillis() + expiresIn * 1000
     }
 
     /**
@@ -59,3 +59,17 @@ data class UserInfo(
     @SerializedName("membership_expired_at")
     val membershipExpiredAt: Long = 0L
 )
+
+data class ApiTokenRequest(
+    val googleId: String = "",
+    val googleToken: String = "",
+    val guest: String = "",
+) {
+    fun getLocalId(): String {
+        return if (!googleId.isEmpty()) {
+            googleId
+        } else {
+            guest
+        }
+    }
+}

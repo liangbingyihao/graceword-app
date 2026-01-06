@@ -11,9 +11,6 @@ import io.reactivex.functions.Action
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Response
 import org.tinylog.Logger
 import sdk.chat.core.dao.Keys
 import sdk.chat.core.dao.User
@@ -23,13 +20,14 @@ import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ActionLimitConfig.loadDefaultConfigs
+import sdk.chat.demo.robot.api.model.ApiTokenRequest
 import sdk.chat.demo.robot.api.model.ApiTokenResponse
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.api.model.UserInfo
 import sdk.chat.demo.robot.extensions.DeviceIdHelper
 import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
 import sdk.chat.demo.robot.handlers.LimitCounter.initialize
 import sdk.chat.demo.robot.push.UpdateTokenWorker
-import java.io.IOException
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
@@ -39,23 +37,27 @@ object AuthService {
     private var currentUserID: String? = null
     private var isAuthenticatedThisSession: Boolean = false
     private var authDetail: ApiTokenResponse? = null
-    private var expiredAt: Long = 0
+    private var authDetailList: List<ApiTokenResponse> = emptyList()
+//    private var expiredAt: Long = 0
     private val gson: Gson = Gson()
     private const val KEY_CACHE_USER_LIST: String = "userList"
     private val URL_LOGIN_DEVICE = GWApiManager.URL_V1 + "auth/device"
+    private val URL_LOGIN_GOOGLE = GWApiManager.URL_V1 + "auth/oauth/google"
     private val URL_REFRESH_TOKEN = GWApiManager.URL_V1 + "auth/token/refresh"
     private const val TAG = "AuthService"
 
-    fun authenticate(): Completable {
+    fun authenticate(authorReq: ApiTokenRequest? = null): Completable {
+        //userinfo为空时，尽量确保最近一次登录的账号登录状态；
+        //有值时，确保指定账号的登录状态
         return Completable.defer(Callable {
             synchronized(this) {
-                if (isAuthenticated()) {
+                if (isAuthenticated(authorReq)) {
                     Log.d(TAG, "已认证")
                     return@Callable Completable.complete()
                 }
                 if (authenticating == null) {
                     authenticating =
-                        loginDevice().flatMapCompletable(Function { details: ApiTokenResponse ->
+                        authorizeUser(authorReq).flatMapCompletable(Function { details: ApiTokenResponse ->
                             this.loginSuccessful(details)
                         })
                             .doOnSubscribe {
@@ -78,63 +80,134 @@ object AuthService {
         }).doFinally(Action { this.cancel() })
     }
 
-    fun isAuthenticated(): Boolean {
-        return authDetail != null && !authDetail!!.isExpired
-    }
-
-    fun getAccessToken(): String {
-        return if (isAuthenticated()) {
-            authDetail?.fullAccessToken ?: ""
-        } else {
-            ""
+    fun getLastLoginUser(): UserInfo? {
+        var lastAuthor = filterAuthorInfo()
+        if (lastAuthor != null) {
+            return lastAuthor.user
         }
+        return null
     }
 
-    fun getCacheAuthList(): List<ApiTokenResponse> {
+    fun logout(authorReq: ApiTokenRequest): Boolean{
+        if(!authorReq.googleId.isEmpty()){
+
+        }
+        return false
+    }
+
+    private fun filterAuthorInfo(customFilter: ((ApiTokenResponse) -> Boolean)? = null): ApiTokenResponse? {
         return try {
-            val cachedData = JsonCacheManager.get(MainApp.getContext(), KEY_CACHE_USER_LIST)
-            if (cachedData.isNullOrBlank()) {
-                return emptyList()
+
+            // 2. 获取缓存列表（带异常处理）
+            val userList = getCacheAuthList()
+
+            if (userList.isEmpty()) {
+                Log.w(TAG, "用户缓存列表为空")
+                return null
             }
-            val type: Type = object : TypeToken<List<ApiTokenResponse>>() {}.type
-            return gson.fromJson(cachedData, type) ?: emptyList()
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
 
-    fun updateAuth(authList: List<ApiTokenResponse>, auth: ApiTokenResponse) {
-        val newList = authList.toMutableList()
-        val index = newList.indexOfFirst { it.user.id == auth.user.id }
+            Log.d(TAG, "缓存用户列表大小: ${userList.size}")
 
-        if (index != -1) {
-            newList.removeAt(index)
-        }
-
-        newList.add(auth)
-        JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
-    }
-
-    private fun loginDevice(): Single<ApiTokenResponse?> {
-        return Single.fromCallable<ApiTokenResponse?> {
-            val params: MutableMap<String?, String?> = HashMap<String?, String?>()
-            var url = URL_LOGIN_DEVICE
-            var userList = getCacheAuthList()
-            var cacheAuth = authDetail
-            if (cacheAuth != null && !cacheAuth.refreshToken.isEmpty()) {
-                url = URL_REFRESH_TOKEN
-                params.put("refresh_token", cacheAuth.refreshToken)
+            // 3. 过滤匹配的用户
+            val matchingUsers = if (customFilter != null) {
+                // 使用外部提供的过滤函数
+                userList.filter { userEntity ->
+                    try {
+                        customFilter(userEntity)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "自定义过滤函数执行出错: ${e.message}")
+                        false
+                    }
+                }
             } else {
-                if (userList.isEmpty() || userList.last().user.isGuest) {
-                    params.put("guest", DeviceIdHelper.getDeviceId(MainApp.getContext()))
-                } else {
-                    //TODO
+                // 使用默认过滤逻辑
+                // 1. 获取当前用户ID（带空值检查）
+                val lastUserId = getCurrentUserEntityID()?.takeIf { it.isNotEmpty() }
+
+                if (lastUserId == null) {
+                    Log.d(TAG, "未找到当前用户ID，返回null")
+                    return null
+                }
+
+                Log.d(TAG, "当前用户ID: $lastUserId")
+                userList.filter { userEntity ->
+                    try {
+                        // 安全地检查用户ID匹配
+                        lastUserId.contains(userEntity.user.id)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "过滤用户时出错: ${e.message}")
+                        false
+                    }
                 }
             }
+
+            // 4. 检查匹配结果
+            when (matchingUsers.size) {
+                0 -> {
+                    Log.w(TAG, "未找到匹配的用户")
+                    null
+                }
+
+                1 -> {
+                    val dstAuthor = matchingUsers[0]
+                    Log.d(TAG, "成功找到目标作者: ${dstAuthor.user.id}")
+                    dstAuthor
+                }
+
+                else -> {
+                    Log.e(TAG, "找到多个匹配用户(${matchingUsers.size})")
+                    // 如果有多个匹配，返回第一个有效的
+                    matchingUsers[0]
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "获取目标作者时发生异常", e)
+            null
+        }
+    }
+
+    private fun authorizeUser(authorReq: ApiTokenRequest? = null): Single<ApiTokenResponse?> {
+        return Single.fromCallable<ApiTokenResponse?> {
+            val params: MutableMap<String?, String?> = HashMap<String?, String?>()
+            val lastRsp = if (authorReq != null) {
+                filterAuthorInfo { rsp ->
+                    authorReq.getLocalId() == rsp.req?.getLocalId()
+                }
+            } else {
+                filterAuthorInfo()
+            }
+
+            var dstReq = authorReq
+            var url: String? = null
+            if (lastRsp != null && !lastRsp.refreshToken.isEmpty()) {
+                url = URL_REFRESH_TOKEN
+                dstReq = lastRsp.req
+                params.put("refresh_token", lastRsp.refreshToken)
+            } else {
+                if (dstReq == null) {
+                    dstReq =
+                        ApiTokenRequest(guest = DeviceIdHelper.getDeviceId(MainApp.getContext()))
+                }
+
+                if (!dstReq.guest.isEmpty()) {
+                    url = URL_LOGIN_DEVICE
+                    params.put("guest", DeviceIdHelper.getDeviceId(MainApp.getContext()))
+                } else if (!dstReq.googleToken.isEmpty()) {
+                    url = URL_LOGIN_GOOGLE
+                    params.put("id_token", dstReq.googleToken)
+                }
+            }
+
+            if (url == null) {
+                throw Exception("No login data")
+            }
+
             val fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx())
             params.put("fcm_token", fcmToken)
             params.put("bundle_id", MainApp.getContext().packageName)
 
+            Log.e(TAG, "Login..$url,$params:")
             val request = GWApiManager.buildPostRequest(params, url)
 
             // 使用 .use 自动关闭 Response
@@ -145,8 +218,8 @@ object AuthService {
                     ApiTokenResponse::class.java
                 )
                 ret?.let {
-                    it.initData()
-                    updateAuth(userList, it)
+                    it.initData(dstReq)
+                    updateAuth(it)
                     return@use it
                 }
 
@@ -160,59 +233,50 @@ object AuthService {
             }
             .subscribeOn(Schedulers.io())
     }
-//
-//    private fun loginDevice2(): Single<ApiTokenResponse?> {
-//        return Single.create<ApiTokenResponse?> { emitter ->
-//            val params: MutableMap<String?, String?> = HashMap<String?, String?>()
-//            var url = URL_LOGIN_DEVICE
-//            var userList = getCacheAuthList()
-//            if (authDetail != null) {
-//
-//            } else {
-//                if (userList.isEmpty() || userList.last().user.isGuest) {
-//                    params.put("guest", DeviceIdHelper.getDeviceId(MainApp.getContext()))
-//                } else {
-//                    //TODO
-//                }
-//            }
-//            val fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx())
-//            params.put("fcm_token", fcmToken)
-//            params.put("bundle_id", MainApp.getContext().packageName)
-//
-//            val request = GWApiManager.buildPostRequest(params, url)
-//            GWApiManager.shared().client.newCall(request).execute().use { response ->
-//                if (!response.isSuccessful) {
-//                    throw IOException("${response.code}")
-//                }
-//            }
-//            GWApiManager.shared().client.newCall(request).enqueue(object : Callback {
-//                override fun onFailure(call: Call, e: IOException) {
-//                    if (!emitter.isDisposed) {
-//                        emitter.onError(e)
-//                    }
-//                }
-//
-//                override fun onResponse(call: Call, response: Response) {
-//                    try {
-//                        var ret = GWApiManager.shared().handleResponse<ApiTokenResponse?>(
-//                            response,
-//                            ApiTokenResponse::class.java
-//                        )
-//                        ret?.let {
-//                            updateAuth(userList, it)
-//                            emitter.onSuccess(it)
-//                        }
-//                    } catch (e: Exception) {
-//                        if (!emitter.isDisposed) {
-//                            emitter.onError(e)
-//                        }
-//                    }
-//                }
-//            })
-//        }.subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//    }
 
+    fun isAuthenticated(authorReq: ApiTokenRequest? = null): Boolean {
+        var ret = authDetail != null && !authDetail!!.isExpired
+        if (authorReq != null && ret) {
+            ret = authDetail?.req?.getLocalId() == authorReq.getLocalId()
+        }
+        return ret
+    }
+
+    fun getAccessToken(): String {
+        return if (isAuthenticated()) {
+            authDetail?.fullAccessToken ?: ""
+        } else {
+            ""
+        }
+    }
+
+    fun getCacheAuthList(): List<ApiTokenResponse> {
+        return try {
+            if (authDetailList.isEmpty()) {
+                val cachedData = JsonCacheManager.get(MainApp.getContext(), KEY_CACHE_USER_LIST)
+                if (cachedData.isNullOrBlank()) {
+                    return emptyList()
+                }
+                val type: Type = object : TypeToken<List<ApiTokenResponse>>() {}.type
+                authDetailList = gson.fromJson(cachedData, type) ?: emptyList()
+            }
+            authDetailList
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun updateAuth(auth: ApiTokenResponse) {
+        val newList = authDetailList.toMutableList()
+        val index = newList.indexOfFirst { it.user.id == auth.user.id }
+
+        if (index != -1) {
+            newList.removeAt(index)
+        }
+        newList.add(auth)
+        authDetailList = newList
+        JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
+    }
 
     fun setCurrentUserEntityID(userID: String?) {
         currentUserID = userID
@@ -244,9 +308,8 @@ object AuthService {
             initDatabaseByUser(userId)
             setCurrentUserEntityID(userId)
             authDetail = details
-            expiredAt = System.currentTimeMillis() + (authDetail?.expiresIn ?: 0)
 
-            Log.d("Auth", "login success:$expiredAt")
+            Log.d(TAG, "login success:${authDetail?.expiresAt},${authDetail?.expiresIn}")
 //            if (details.type == AccountDetails.Type.Username) {
 //                ChatSDK.shared().getKeyStorage().save(details.username, details.password)
 //            }

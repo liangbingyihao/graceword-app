@@ -51,7 +51,7 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
 
     @Override
     public Completable authenticate() {
-        return AuthService.INSTANCE.authenticate();
+        return AuthService.INSTANCE.authenticate(null);
 //        return Completable.defer(() -> {
 //
 //            if (isAuthenticatedThisSession() || isAuthenticated()) {
@@ -186,7 +186,7 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
     }
 
     public Boolean isAuthenticated() {
-        return AuthService.INSTANCE.isAuthenticated();
+        return AuthService.INSTANCE.isAuthenticated(null);
     }
 
     private final String URL_LOGIN_DEVICE = GWApiManager.URL_V1 + "auth/device";

@@ -34,6 +34,7 @@ import sdk.chat.demo.robot.extensions.LanguageUtils.updateContext
 import sdk.chat.demo.robot.extensions.dpToPx
 import sdk.chat.demo.robot.extensions.showMaterialConfirmationDialog
 import sdk.chat.demo.robot.fragments.GWChatFragment
+import sdk.chat.demo.robot.handlers.AuthService
 import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardApiService.LauncherStep
@@ -56,6 +57,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     private lateinit var vBillingMenu: View
     private lateinit var vRedDotTask: View
     private lateinit var vDgwMenu: TextView
+    private lateinit var vUserMenu: TextView
     private lateinit var lottieAnimationView: LottieAnimationView
 //    private lateinit var vErrorHint: TextView
 
@@ -127,6 +129,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         vDgwMenu.setOnClickListener(this)
         findViewById<View>(R.id.menu_search).setOnClickListener(this)
         findViewById<View>(R.id.menu_setting).setOnClickListener(this)
+        vUserMenu = findViewById<TextView>(R.id.menu_user)
+        vUserMenu.setOnClickListener(this)
         vHomeMenu = findViewById<View>(R.id.menu_home)
         vHomeMenu.setOnClickListener(this)
         vTaskMenu = findViewById<View>(R.id.menu_task)
@@ -255,6 +259,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         TTSHelper.initTTS(this@MainDrawerActivity)
         AsrHelper.initAsrEngine()
 
+        hasShownWelcome = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            .getBoolean("has_shown_welcome", false)
         if ((reference == null || reference.isEmpty()) && savedInstanceState == null) {
             checkPreLaunchActivity()
             LogUploader.chatEntrance("app_launch")
@@ -335,8 +341,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun checkPreLaunchActivity() {
-        hasShownWelcome = getSharedPreferences("app_prefs", MODE_PRIVATE)
-            .getBoolean("has_shown_welcome", false)
         checkPreLaunchBill()
         if (hasShownWelcome) {
             val today: String = DateLocalizationUtil.formatDayAgo(0)
@@ -526,6 +530,13 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
 //        lottieAnimationView.clearAnimation()
         lottieAnimationView.playAnimation()
+
+        var lastUser = AuthService.getLastLoginUser()
+        if (lastUser != null && !lastUser.isGuest) {
+            vUserMenu.text = getString(R.string.my_account)
+        }else{
+            vUserMenu.text = getString(R.string.login)
+        }
     }
 
     override fun getLayout(): Int {
@@ -534,7 +545,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
     override fun onClick(v: View?) {
         var vid = v?.id
-        if (vid != R.id.menu_task && vid != R.id.menu_vip && vid != R.id.ops) {
+        val excludedIds = setOf(R.id.menu_task, R.id.menu_vip, R.id.ops, R.id.menu_user)
+        if (vid !in excludedIds) {
             toggleDrawer()
         }
         when (vid) {
@@ -593,6 +605,25 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
                         KeyValuePair("sidebar_action", "40")
                     )
                 )
+            }
+
+            R.id.menu_user -> {
+                var lastUser = AuthService.getLastLoginUser()
+                if (lastUser != null && !lastUser.isGuest){
+                    startActivity(
+                        Intent(
+                            this@MainDrawerActivity,
+                            AccountActivity::class.java
+                        )
+                    )
+                }else{
+                    startActivity(
+                        Intent(
+                            this@MainDrawerActivity,
+                            LoginActivity::class.java
+                        )
+                    )
+                }
             }
 
             R.id.menu_vip -> {

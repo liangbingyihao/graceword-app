@@ -8,6 +8,8 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLHandshakeException
+import org.tinylog.Logger
+
 
 // 客户端网络异常
 class ClientNetworkException(
@@ -47,7 +49,7 @@ class ErrorClassifierInterceptor : Interceptor {
                     val json = JSONObject(errorBody)
                     errorMessage = json.optString("msg", "Unknown error")
                 } catch (e: Exception) {
-                    println("Raw error response: $errorBody")
+                    Logger.error{"Raw error response: $errorBody"}
                 }
 
                 val crashlytics = FirebaseCrashlytics.getInstance()

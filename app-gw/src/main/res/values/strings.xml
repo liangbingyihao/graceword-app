@@ -214,4 +214,13 @@
     <string name="verse_ai">Ask</string>
     <string name="verse_ai_prompt">What is the meaning of \n\"%s\"?</string>
     <string name="verse_long_click_tip">Long press for more options</string>
+
+
+    <string name="my_account">My Account</string>
+    <string name="login">Login</string>
+    <string name="logout">Log Out</string>
+    <string name="vip">VIP Member</string>
+    <string name="next_renewal_time">Next Renewal:%s</string>
+    <string name="membership_status">Membership Status</string>
+    <string name="pending_upgrade">Pending Upgrade</string>
 </resources>

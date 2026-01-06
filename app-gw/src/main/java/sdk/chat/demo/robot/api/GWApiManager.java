@@ -135,7 +135,7 @@ public class GWApiManager {
 //
     @SuppressLint("CheckResult")
     public String refreshTokenSync() {
-        AuthService.INSTANCE.authenticate().blockingGet();
+        AuthService.INSTANCE.authenticate(null).blockingGet();
         return AuthService.INSTANCE.getAccessToken();
     }
 
@@ -173,7 +173,7 @@ public class GWApiManager {
         JsonPrimitive codePrimitive = jsonObject.getAsJsonPrimitive("code");
         String code = codePrimitive != null ? codePrimitive.getAsString() : null;
         if (!"OK".equals(code)) {
-            String errorMessage = jsonObject.getAsJsonPrimitive("message").getAsString();
+            String errorMessage = jsonObject.getAsJsonPrimitive("msg").getAsString();
             throw new IOException(errorMessage);
         } else {
             JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");

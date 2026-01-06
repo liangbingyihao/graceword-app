@@ -2,6 +2,7 @@ package sdk.chat.demo.robot.activities
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -301,13 +302,13 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             }
 
             R.id.setPrompt -> {
-//                startActivity(
-//                    Intent(
-//                        this@SpeechToTextActivity,
-//                        SettingPromptActivity::class.java
-//                    )
-//                )
-                WallpaperGuideUtil(this@SpeechToTextActivity).guideToSetLiveWallpaper()
+                startActivity(
+                    Intent(
+                        this@SpeechToTextActivity,
+                        LoginActivity::class.java
+                    )
+                )
+//                WallpaperGuideUtil(this@SpeechToTextActivity).guideToSetLiveWallpaper()
             }
 
             R.id.clearCache -> {

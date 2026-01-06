@@ -114,4 +114,10 @@ object DateLocalizationUtil {
         // 3. 格式化为字符串
         return inputFormat.format(calendar.time)
     }
+
+
+    fun getCurrentFormattedDate(timestamp:Long,formatStr:String?="yyyy/MM/dd"): String {
+        val sdf = SimpleDateFormat(formatStr, Locale.getDefault())
+        return sdf.format(Date(timestamp))
+    }
 }

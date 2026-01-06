@@ -83,8 +83,8 @@
                         android:id="@+id/menu_vip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
                         android:layout_gravity="center"
+                        android:layout_marginLeft="10dp"
                         android:padding="6dp"
                         android:src="@mipmap/ic_vip" />
 
@@ -93,9 +93,9 @@
                         android:layout_width="42dp"
                         android:layout_height="42dp"
                         android:layout_margin="4dp"
+                        android:visibility="gone"
                         app:lottie_autoPlay="true"
-                        app:lottie_loop="true"
-                        android:visibility="gone"/>
+                        app:lottie_loop="true" />
                 </LinearLayout>
             </FrameLayout>
 
@@ -147,17 +147,36 @@
             <!--                android:text="debug1"-->
             <!--                android:textColor="@color/item_text_normal" />-->
 
-            <TextView
-                android:id="@+id/menu_setting"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@mipmap/ic_setting"
-                android:drawablePadding="8dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:text="@string/settings"
-                android:textColor="@color/item_text_normal"
-                android:textSize="12sp" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/menu_setting"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:drawableLeft="@mipmap/ic_setting"
+                    android:drawablePadding="8dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
+                    android:text="@string/settings"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="12sp" />
+                <TextView
+                    android:id="@+id/menu_user"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:drawableLeft="@mipmap/ic_padding_user"
+                    android:drawablePadding="8dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
+                    android:text="账号"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
     </androidx.drawerlayout.widget.DrawerLayout>

@@ -102,7 +102,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 //            ContactBookModule.shared()
 
             chatSDK = ChatSDK.shared();
-            dm.add(AuthService.INSTANCE.authenticate()
+            dm.add(AuthService.INSTANCE.authenticate(null)
                     .observeOn(RX.main())
                     .doFinally(AuthService.INSTANCE::ensureDatabase)
                     .subscribe(

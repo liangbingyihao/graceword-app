@@ -205,4 +205,8 @@ dependencies {
 //    implementation "androidx.core:core:1.6.0+"  // 包含字体支持
 //    implementation "androidx.core:core-google-shortcuts:1.0.0"  // 可选，用于 WOFF2
 
+    implementation "androidx.credentials:credentials:1.2.0"
+    implementation "androidx.credentials:credentials-play-services-auth:1.2.0"
+    implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"
+
 }
