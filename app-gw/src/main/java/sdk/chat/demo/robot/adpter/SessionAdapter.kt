@@ -117,7 +117,7 @@ class SessionAdapter(
         fun bind(item: ArticleSession, position: Int) {
             titleText.text = item.title
             if (position == 0) {
-                if(item.isQA){
+                if (item.isQA || items.size == 1) {
                     titleText.background = GradientDrawable().apply {
                         // 设置四角半径（顺序：左上,右上,右下,左下）
                         cornerRadii = floatArrayOf(
@@ -125,6 +125,17 @@ class SessionAdapter(
                             cornerSize, cornerSize,
                             cornerSize, cornerSize,
                             cornerSize, cornerSize,
+                        )
+                        setColor(Color.WHITE)
+                    }
+                } else {
+                    itemView.background = GradientDrawable().apply {
+                        // 设置四角半径（顺序：左上,右上,右下,左下）
+                        cornerRadii = floatArrayOf(
+                            cornerSize, cornerSize,
+                            cornerSize, cornerSize,
+                            0f, 0f,
+                            0f, 0f,
                         )
                         setColor(Color.WHITE)
                     }

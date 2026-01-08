@@ -102,10 +102,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         setContentView(layout)
 //        ImmersionBar.with(this).init()
 
-        Log.e("LogUploader", "mainactivity,${savedInstanceState == null}")
+        Log.e("MainApp", "mainactivity,${savedInstanceState == null}")
         try {
-            ChatSDK.currentUser()
+            require(ChatSDK.currentUser()!=null)
         } catch (e: Exception) {
+            Log.e("MainApp", "mainactivity,e:${e}")
             Logger.error(e, "currentUser error")
             val intent = Intent(this, SplashScreenActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -113,10 +114,11 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             finish()
             return
         }
+        Log.e("MainApp", "mainactivity oncreated")
 
         var reference = intent.getStringExtra(ARG_REFERENCE)
         if (reference != null && savedInstanceState == null) {
-            Log.e("isVerseAreaTouched", "isVerseAreaTouched..and start ${reference}.")
+            Log.e("MainApp", "isVerseAreaTouched..and start ${reference}.")
             BibleActivity.start(this@MainDrawerActivity, reference = reference, fullscreen = false)
         }
 

@@ -959,6 +959,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
     }
 
     public void restoreState(@Nullable Bundle savedInstanceState) {
+        Log.i("MainApp", " chat frament restoreState");
         if (thread == null) {
             GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
             thread = handler.createChatSessions();

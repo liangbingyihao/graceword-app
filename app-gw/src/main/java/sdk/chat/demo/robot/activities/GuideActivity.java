@@ -225,7 +225,7 @@ public class GuideActivity extends BaseActivity {
             retrying = true;
             btnNext.setText(getString(R.string.retrying));
             ToastHelper.show(this, R.string.network_error);
-            dm.add(ChatSDK.auth().authenticate()
+            dm.add(AuthService.INSTANCE.authenticate(null)
                     .observeOn(RX.main())
                     .doFinally(() -> {
                         btnNext.setText(getString(R.string.retry));

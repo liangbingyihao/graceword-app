@@ -123,10 +123,11 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         setupEnhancedCrashReporting();
         LanguageUtils.INSTANCE.initAppLanguage(this);
 
-        String installDay = chatSDK.getKeyStorage().get("install_day");
+        String installDay = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .getString("install_day", "");
         String today = DateLocalizationUtil.INSTANCE.formatDayAgo(0);
-        if (installDay == null || installDay.isEmpty()) {
-            chatSDK.getKeyStorage().put("install_day", today);
+        if (installDay.isEmpty()) {
+            getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("install_day", today).apply();
         }
         isNewUser = today.equals(installDay) ? "1" : "0";
 
@@ -145,9 +146,10 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         return bibleDBManager;
     }
 
-    public static MainApp getInstance(){
+    public static MainApp getInstance() {
         return context;
     }
+
     private void setupEnhancedCrashReporting() {
         Thread.UncaughtExceptionHandler defaultHandler =
                 Thread.getDefaultUncaughtExceptionHandler();

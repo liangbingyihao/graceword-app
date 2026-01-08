@@ -5,6 +5,8 @@ import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.reactivex.Completable
+import io.reactivex.CompletableEmitter
+import io.reactivex.CompletableOnSubscribe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Action
@@ -12,8 +14,8 @@ import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 import org.tinylog.Logger
-import sdk.chat.core.dao.Keys
 import sdk.chat.core.dao.User
+import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.robot.api.GWApiManager
@@ -28,17 +30,21 @@ import sdk.chat.demo.robot.extensions.DeviceIdHelper
 import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
 import sdk.chat.demo.robot.handlers.LimitCounter.initialize
 import sdk.chat.demo.robot.push.UpdateTokenWorker
+import sdk.guru.common.RX
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
 object AuthService {
     var authenticating: Completable? = null
     var loggingOut: Completable? = null
-    private var currentUserID: String? = null
+
+    //    private var currentUserID: String? = null
     private var isAuthenticatedThisSession: Boolean = false
     private var authDetail: ApiTokenResponse? = null
     private var authDetailList: List<ApiTokenResponse> = emptyList()
-//    private var expiredAt: Long = 0
+
+    //    private var expiredAt: Long = 0
     private val gson: Gson = Gson()
     private const val KEY_CACHE_USER_LIST: String = "userList"
     private val URL_LOGIN_DEVICE = GWApiManager.URL_V1 + "auth/device"
@@ -55,20 +61,26 @@ object AuthService {
                     Log.d(TAG, "已认证")
                     return@Callable Completable.complete()
                 }
+                // 如果正在认证，返回同一个认证流
+                if (authenticating != null) {
+                    Log.d(TAG, "已有认证进行中")
+                    return@Callable authenticating!!
+                }
+
                 if (authenticating == null) {
                     authenticating =
                         authorizeUser(authorReq).flatMapCompletable(Function { details: ApiTokenResponse ->
                             this.loginSuccessful(details)
                         })
-                            .doOnSubscribe {
-                                Log.d(TAG, "开始认证流程")
-                            }
-                            .doOnComplete {
-                                Log.d(TAG, "认证成功")
-                            }
-                            .doOnError { error ->
-                                Log.e(TAG, "认证失败", error)
-                            }
+//                            .doOnSubscribe {
+//                                Log.d(TAG, "开始认证流程")
+//                            }
+//                            .doOnComplete {
+//                                Log.d(TAG, "认证成功")
+//                            }
+//                            .doOnError { error ->
+//                                Log.e(TAG, "认证失败", error)
+//                            }
                             .onErrorResumeNext { error ->
                                 // 认证失败时返回错误
                                 Completable.error(error)
@@ -88,11 +100,33 @@ object AuthService {
         return null
     }
 
-    fun logout(authorReq: ApiTokenRequest): Boolean{
-        if(!authorReq.googleId.isEmpty()){
+    private fun clearAuthorInfo() {
+        if (authDetail != null && !authDetail!!.user.isGuest) {
+            val newList = authDetailList.toMutableList()
+            val index = newList.indexOfFirst { it.user.id == authDetail!!.user.id }
 
+            if (index != -1) {
+                newList.removeAt(index)
+            }
+            authDetailList = newList
+            JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
+            authDetail = null
         }
-        return false
+    }
+
+    //    @Override
+    //    public Boolean isAuthenticated() {
+    fun logout(): Completable {
+        return Completable.create(CompletableOnSubscribe { emitter: CompletableEmitter? ->
+            ChatSDK.events().source().accept(NetworkEvent.logout())
+            //            accessToken = null;
+            clearAuthorInfo()
+            (ChatSDK.auth() as GWAuthenticationHandler).clearCurrentUserEntityID()
+            ChatSDK.shared().getKeyStorage().clear()
+
+            ChatSDK.db().closeDatabase()
+            emitter!!.onComplete()
+        }).subscribeOn(RX.computation())
     }
 
     private fun filterAuthorInfo(customFilter: ((ApiTokenResponse) -> Boolean)? = null): ApiTokenResponse? {
@@ -122,11 +156,11 @@ object AuthService {
             } else {
                 // 使用默认过滤逻辑
                 // 1. 获取当前用户ID（带空值检查）
-                val lastUserId = getCurrentUserEntityID()?.takeIf { it.isNotEmpty() }
+                val lastUserId = ChatSDK.auth().getCurrentUserEntityID()?.takeIf { it.isNotEmpty() }
 
                 if (lastUserId == null) {
-                    Log.d(TAG, "未找到当前用户ID，返回null")
-                    return null
+                    Log.d(TAG, "未找到当前用户ID，当前是退出登录的状态")
+                    return userList.firstOrNull { !it.user.isGuest } ?: userList[0]
                 }
 
                 Log.d(TAG, "当前用户ID: $lastUserId")
@@ -278,18 +312,18 @@ object AuthService {
         JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
     }
 
-    fun setCurrentUserEntityID(userID: String?) {
-        currentUserID = userID
-        isAuthenticatedThisSession = true
-        ChatSDK.shared().getKeyStorage().put(Keys.CurrentUserID, currentUserID)
-    }
-
-    fun getCurrentUserEntityID(): String? {
-        if (currentUserID == null || !isAuthenticated()) {
-            currentUserID = ChatSDK.shared().getKeyStorage().get(Keys.CurrentUserID)
-        }
-        return currentUserID
-    }
+//    fun setCurrentUserEntityID(userID: String?) {
+//        currentUserID = userID
+//        isAuthenticatedThisSession = true
+//        ChatSDK.shared().getKeyStorage().put(Keys.CurrentUserID, currentUserID)
+//    }
+//
+//    fun getCurrentUserEntityID(): String? {
+//        if (currentUserID == null || !isAuthenticated()) {
+//            currentUserID = ChatSDK.shared().getKeyStorage().get(Keys.CurrentUserID)
+//        }
+//        return currentUserID
+//    }
 
     fun setAuthStateToIdle() {
         authenticating = null
@@ -306,38 +340,107 @@ object AuthService {
             //            String userId = details.getMetaValue("userId");
             val userId = "user_" + details.user.id
             initDatabaseByUser(userId)
-            setCurrentUserEntityID(userId)
+            ChatSDK.auth().setCurrentUserEntityID(userId)
             authDetail = details
 
             Log.d(TAG, "login success:${authDetail?.expiresAt},${authDetail?.expiresIn}")
-//            if (details.type == AccountDetails.Type.Username) {
-//                ChatSDK.shared().getKeyStorage().save(details.username, details.password)
-//            }
-            val handler = ChatSDK.thread() as GWThreadHandler
-            ImageApi.getServerConfigs().subscribe()
-            getInstance().getBillingHelper().subscribe()
-            SocialShareHandler.getHeaderImageAsync().subscribe()
-            handler.createChatSessions()
+            startAsyncTasks()
             // 初始化计数器
             initialize(MainApp.getContext(), null)
             loadDefaultConfigs()
-            ImageApi.listImageTags().subscribe()
             setAuthStateToIdle()
 
+//            executeSyncTasks()
 
-            ImageApi.listImageDaily(null)
-                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-                .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
-                    if (data != null && !data.isEmpty()) {
-                        val url = data.get(0)!!.getUrl()
-                        Glide.with(MainApp.getContext())
-                            .load(url)
-                            .preload()
-                    }
-                })
+//            ImageApi.listImageTags().subscribe()
+
+//            val handler = ChatSDK.thread() as GWThreadHandler
+//            ImageApi.getServerConfigs().subscribe()
+//            getInstance().getBillingHelper().subscribe()
+//            SocialShareHandler.getHeaderImageAsync().subscribe()
+//            handler.createChatSessions()
+//            handler.triggerNetworkSync()
+//
+//
+//            ImageApi.listImageDaily(null)
+//                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
+//                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
+//                .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
+//                    if (data != null && !data.isEmpty()) {
+//                        val url = data.get(0)!!.getUrl()
+//                        Glide.with(MainApp.getContext())
+//                            .load(url)
+//                            .preload()
+//                    }
+//                })
             Completable.complete()
-        })
+        }).andThen(executeSyncTasks())  // 等待 executeSyncTasks 完成
+            .doOnComplete {
+                Log.d(TAG, "loginSuccessful completed")
+            }
+    }
+
+
+    private fun executeSyncTasks(): Completable {
+        // 这些任务需要等待结果
+        return Completable.merge(
+            listOf(
+                // 关键任务1：获取用户信息
+                ImageApi.getServerConfigs()
+                    .doOnSubscribe { Log.d(TAG, "开始获取服务器配置") }
+                    .doOnSuccess { configs ->
+                        Log.d(TAG, "获取到服务器配置")
+                    }
+                    .ignoreElement()
+                    .timeout(10, TimeUnit.SECONDS)  // 添加超时
+                    .onErrorComplete(),
+                getInstance().getBillingHelper()
+                    .doOnSubscribe { Log.d(TAG, "开始获取账单信息") }
+                    .doOnSuccess { Log.d(TAG, "账单信息获取完成") }
+                    .timeout(10, TimeUnit.SECONDS)
+                    .ignoreElement(),
+                Completable.fromAction(Action { (ChatSDK.thread() as GWThreadHandler).createChatSessions() })
+                    .subscribeOn(Schedulers.io())
+                    .doOnSubscribe { Log.d(TAG, "开始创建聊天会话") }
+                    .doOnComplete { Log.d(TAG, "聊天会话创建完成") }
+                    .timeout(10, TimeUnit.SECONDS)
+                    .onErrorComplete(),
+            )
+        ).timeout(60, TimeUnit.SECONDS)  // 总体超时
+            .doOnSubscribe { Log.d(TAG, "开始执行同步任务") }
+            .doOnComplete {
+                Log.d(TAG, "所有同步任务完成")
+            }
+            .doOnError { error ->
+                Log.e(TAG, "同步任务执行失败", error)
+            }
+    }
+
+    private fun startAsyncTasks() {
+        // 这些任务会自己启动，不阻塞主流程
+
+        ImageApi.listImageDaily(null)
+            .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
+            .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
+            .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
+                if (data != null && !data.isEmpty()) {
+                    val url = data.get(0)!!.getUrl()
+                    Glide.with(MainApp.getContext())
+                        .load(url)
+                        .preload()
+                }
+            })
+        SocialShareHandler.getHeaderImageAsync()
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                { Log.d(TAG, "Login log uploaded") },
+                { e -> Log.e(TAG, "Login log upload failed", e) }
+            )
+
+        ImageApi.listImageTags().subscribe()
+
+
+        (ChatSDK.thread() as GWThreadHandler).triggerNetworkSync()
     }
 
     fun ensureDatabase() {

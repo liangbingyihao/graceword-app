@@ -29,8 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import sdk.chat.core.base.AbstractThreadHandler;
 import sdk.chat.core.dao.CachedFile;
 import sdk.chat.core.dao.DaoCore;
@@ -391,7 +393,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 .flatMap(data -> {
                     String imageUrl = ImageApi.getRandomImageByTag("");
                     Log.d("verse_pic", "获取图片: " + imageUrl);
-                    if(imageUrl==null||imageUrl.isEmpty()){
+                    if (imageUrl == null || imageUrl.isEmpty()) {
                         return Single.error(new Exception("no image..."));
                     }
                     return new MessageSendRig(
@@ -1034,23 +1036,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
                     ret.add(s);
                     Log.e("listSessions", s.isQA() + "," + s.getTitle() + "," + thread.getType());
                 }
-//                    for (int i = 0; i < threads.size(); i++) {
-//                        if (headTopic.equals(threads.get(i).getName())) {
-//                            testThread = threads.remove(i); // 从原位置移除
-//                            break;
-//                        }
-//                    }
-
-//                    // 如果找到headTopic线程，则插入到第一位
-//                    if (testThread != null) {
-//                        threads.add(0, testThread); // 添加到列表开头
-//                    }
             }
 
-//                List<Thread> data = ChatSDK.db().fetchThreadsWithType(ThreadType.None);
-//                Collections.sort(data, (a, b) -> {
-//                    return Long.compare(b.getEntityID(), a.getCreationDate().getTime()); // 倒序
-//                });
 
             ret.add(new ArticleSession(chatSessionId, Objects.requireNonNull(LanguageUtils.INSTANCE.getString(R.string.draft)), false));
             sessionCache = new ArrayList<>(ret);
@@ -1118,6 +1105,12 @@ public class GWThreadHandler extends AbstractThreadHandler {
     }
 
     public final static String chatSessionId = "0";
+
+    public Completable createChatSessionsAsync() {
+        return Completable.fromAction(this::createChatSessions)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
 
     public Thread createChatSessions() {
         //FIXME

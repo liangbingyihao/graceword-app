@@ -1,28 +1,16 @@
 package sdk.chat.demo.robot.activities
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
-import sdk.chat.core.session.ChatSDK
-import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.api.model.KeyValuePair
-import sdk.chat.demo.robot.extensions.LanguageUtils
 import sdk.chat.demo.robot.handlers.AuthService
 import sdk.chat.demo.robot.handlers.BillingManager
-import sdk.chat.demo.robot.handlers.LogUploader
-import sdk.chat.demo.robot.utils.ToastHelper
+import sdk.guru.common.RX
 import siyamed.shapeimageview.PorterShapeImageView
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -119,16 +107,23 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
 
 
             R.id.log_out -> {
-                startActivity(
-                    Intent(
-                        this@AccountActivity,
-                        SettingLangsActivity::class.java
-                    )
-                )
-                LogUploader.reportEvent(
-                    "mod_settings", listOf<KeyValuePair?>(
-                        KeyValuePair("settings_action", "10"),
-                    )
+
+                dm.add(
+                    AuthService.logout()
+                        .observeOn(RX.main())
+                        .andThen(AuthService.authenticate())
+                        .subscribe(
+                            {
+                                startActivity(Intent(this, MainDrawerActivity::class.java))
+                                finish()
+                            },
+                            { error -> // onError
+                                Toast.makeText(
+                                    this@AccountActivity,
+                                    error.message,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            })
                 )
             }
 

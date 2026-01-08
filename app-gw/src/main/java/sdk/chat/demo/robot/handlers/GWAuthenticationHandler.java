@@ -51,7 +51,7 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
 
     @Override
     public Completable authenticate() {
-        return AuthService.INSTANCE.authenticate(null);
+        return null;
 //        return Completable.defer(() -> {
 //
 //            if (isAuthenticatedThisSession() || isAuthenticated()) {
@@ -99,45 +99,6 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
 //        Logger.error("ensureDatabase done");
 //    }
 
-//    @SuppressLint("CheckResult")
-//    protected Completable loginSuccessful(AccountDetails details) {
-//        return Completable.defer(() -> {
-////            String userId = details.getMetaValue("userId");
-//            String userId = "user_" + details.getMetaValue("userId");
-//            initDatabaseByUser(userId);
-//            setCurrentUserEntityID(userId);
-//
-//            if (details.type == AccountDetails.Type.Username) {
-//                ChatSDK.shared().getKeyStorage().save(details.username, details.password);
-//            }
-//            GWThreadHandler handler = (GWThreadHandler) ChatSDK.thread();
-//            ImageApi.getServerConfigs().subscribe();
-//            BillingManager.Companion.getInstance().getBillingHelper().subscribe();
-//            SocialShareHandler.getHeaderImageAsync().subscribe();
-//            handler.createChatSessions();
-//            // 初始化计数器
-//            LimitCounter.INSTANCE.initialize(MainApp.getContext(), null);
-//            ActionLimitConfig.INSTANCE.loadDefaultConfigs();
-//            ImageApi.listImageTags().subscribe();
-//            setAuthStateToIdle();
-//
-//
-//            ImageApi.listImageDaily(null)
-//                    .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-//                    .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-//                    .subscribe(data -> {
-//                        if (data != null && !data.isEmpty()) {
-//                            String url = data.get(0).getUrl();
-//                            Glide.with(MainApp.getContext())
-//                                    .load(url)
-//                                    .preload();
-//                        }
-//                    });
-//
-//            return Completable.complete();
-//        });
-//    }
-
     public AccountDetails cachedAccountDetails() {
 //        AccountDetails accountDetails = AccountDetails.username(ChatSDK.shared().getKeyStorage().get(KeyStorage.UsernameKey), ChatSDK.shared().getKeyStorage().get(KeyStorage.PasswordKey));
 //        if (!accountDetails.areValid()) {
@@ -158,17 +119,18 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
 //    }
     @Override
     public Completable logout() {
-        return Completable.create(emitter -> {
-
-            ChatSDK.events().source().accept(NetworkEvent.logout());
-//            accessToken = null;
-            clearCurrentUserEntityID();
-            ChatSDK.shared().getKeyStorage().clear();
-
-            ChatSDK.db().closeDatabase();
-
-            emitter.onComplete();
-        }).subscribeOn(RX.computation());
+//        return Completable.create(emitter -> {
+//
+//            ChatSDK.events().source().accept(NetworkEvent.logout());
+////            accessToken = null;
+//            clearCurrentUserEntityID();
+//            ChatSDK.shared().getKeyStorage().clear();
+//
+//            ChatSDK.db().closeDatabase();
+//
+//            emitter.onComplete();
+//        }).subscribeOn(RX.computation());
+        return null;
     }
 
     // TODO: Implement this
@@ -189,69 +151,5 @@ public class GWAuthenticationHandler extends AbstractAuthenticationHandler {
         return AuthService.INSTANCE.isAuthenticated(null);
     }
 
-    private final String URL_LOGIN_DEVICE = GWApiManager.URL_V1 + "auth/device";
-
-    private Single<AccountDetails> loginDevice(final AccountDetails details) {
-        return Single.create((SingleOnSubscribe<AccountDetails>) emitter -> {
-            Map<String, String> params = new HashMap<>();
-            if (details.type == AccountDetails.Type.Username) {
-                params.put("username", details.username);
-                params.put("password", details.password);
-            } else if (details.type == AccountDetails.Type.Custom) {
-                params.put("guest", details.token);
-            } else {
-                emitter.onError(new Exception("login type error"));
-            }
-            String fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx());
-            params.put("fcmToken", fcmToken);
-
-            Request request = GWApiManager.buildPostRequest(params, URL_LOGIN_DEVICE);
-
-            GWApiManager.shared().getClient().newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException error) {
-                    emitter.onError(error);
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    try {
-                        ApiTokenResponse jsonObject = GWApiManager.shared().handleResponse(response, ApiTokenResponse.class);
-                        details.setMetaValue("userId", jsonObject.getUser().getId());
-                        emitter.onSuccess(details);
-                    } catch (Exception e) {
-                        emitter.onError(e);
-                    } finally {
-                        if (response != null) {
-                            response.close();
-                        }
-                    }
-
-//                    JsonObject resp = gson.fromJson(response.body().string(), JsonObject.class);
-//                    try {
-//                        if (resp != null && !resp.get("success").getAsBoolean()) {
-//                            throw new Exception("login failed:" + resp.get("message").getAsString());
-//                        }
-//                        JsonObject data = resp.getAsJsonObject("data");
-//                        accessToken = "Bearer " + data.get("access_token").getAsString();
-//                        int expiredAt = 0;
-//                        if(data.has("membership_expired_at")){
-//                            expiredAt = data.get("membership_expired_at").getAsInt();
-//                            if(expiredAt>0){
-//                                BillingManager.Companion.getInstance().setExpiredAt(expiredAt* 1000L);
-//                            }
-////                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-////                            String expiredAtStr = sdf.format(new Date(System.currentTimeMillis()+expiredAt*1000));
-////                            Log.e("BillingManager","expiredAtStr:"+expiredAtStr+","+expiredAt);
-//                        }
-//                        Logger.error("BillingManager: expiredAt "+expiredAt);
-//                        emitter.onSuccess(details);
-//                    } catch (Exception e) {
-//                        emitter.onError(e);
-//                    }
-                }
-            });
-        }).subscribeOn(RX.io());
-    }
 
 }

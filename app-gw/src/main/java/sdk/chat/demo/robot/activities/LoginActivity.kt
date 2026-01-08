@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.activities
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -59,13 +60,19 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
                         if (ret != null) {
                             showProgressDialog("登录中")
                             try {
-
                                 AuthService.authenticate(
                                     ApiTokenRequest(
                                         googleId = ret.id,
                                         googleToken = ret.idToken
                                     )
                                 ).blockingAwait()
+                                startActivity(
+                                    Intent(
+                                        this@LoginActivity,
+                                        MainDrawerActivity::class.java
+                                    )
+                                )
+                                finish()
                             } catch (e: Exception) {
                                 ToastHelper.show(this@LoginActivity, e.toString())
                             }
