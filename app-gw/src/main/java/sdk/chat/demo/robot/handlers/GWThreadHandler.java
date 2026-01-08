@@ -5,7 +5,6 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -15,7 +14,6 @@ import com.google.gson.JsonObject;
 import org.greenrobot.greendao.query.QueryBuilder;
 import org.tinylog.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -331,49 +329,9 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 }
                 ++i;
             }
-//            int i = messages.size() - 1;
-//            if (i >= 0) {
-//                AIExplore newAiExplore = null;
-//                while (newAiExplore == null && i < messages.size()) {
-//                    Message tmp = messages.get(i);
-//                    MessageDetail aiFeedback = GWMsgHandler.getAiFeedback(tmp);
-//                    if (aiFeedback != null && aiFeedback.getFeedback() != null) {
-//                        newAiExplore = AIExplore.loads(tmp);
-//                    }
-//                    --i;
-//                }
-//                if (newAiExplore != null) {
-////                    Message oldMsg = aiExplore != null ? aiExplore.getMessage() : null;
-//                    aiExplore = newAiExplore;
-//                    Log.d("aiExplore", "aiExplore2=" + aiExplore.getMessage().getId());
-////                    if (oldMsg != null) {
-////                        ChatSDK.events().source().accept(NetworkEvent.messageUpdated(oldMsg));
-////                    }
-//                }
-//            }
             return Single.just(messages);
         }).subscribeOn(RX.db());
     }
-//    @Override
-//    public Single<List<Message>> loadMoreMessagesBefore(Thread thread, @Nullable Date before) {
-//        return super.loadMoreMessagesBefore(thread, before);
-//    }
-//
-//    @Override
-//    public Single<List<Message>> loadMoreMessagesBefore(Thread thread, @Nullable Date before, boolean loadFromServer) {
-//        return super.loadMoreMessagesBefore(thread, before, loadFromServer);
-//    }
-
-//    @Override
-//    public Single<List<Message>> loadMoreMessagesAfter(Thread thread, @Nullable Date after, boolean loadFromServer) {
-
-    /// /        return super.loadMoreMessagesAfter(thread, after, loadFromServer);
-//
-//        return super.loadMoreMessagesAfter(thread, after, loadFromServer).flatMap(localMessages -> {
-//            ArrayList<Message> mergedMessages = new ArrayList<>(localMessages);
-//            return Single.just(mergedMessages);
-//        });
-//    }
     public Completable removeUsersFromThread(final Thread thread, List<User> users) {
         return Completable.complete();
     }
@@ -430,88 +388,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
                     Log.d("verse_pic", "获取图片失败: " + throwable.toString());
                     return Single.error(throwable);
                 });
-//        return new MessageSendRig(
-//                new MessageType(MessageType.Text),
-//                ChatSDK.db().fetchThreadWithEntityID(chatSessionId), message -> {
-////            message.setText(text);
-//            message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
-//        }).localOnly().run2().flatMap(
-//                message ->
-//                        ImageApi.listImageTags()
-//                                .subscribeOn(RX.io())
-//                                .map(data -> {
-//
-//                                    DaoCore daoCore = ChatSDK.db().getDaoCore();
-//                                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-//                                    qb.where(MessageDao.Properties.Id.lt(message.getId()));
-//                                    qb.orderDesc(MessageDao.Properties.Id);
-//                                    qb.limit(1);
-//                                    List<Message> lastMsg = qb.list();
-//
-//                                    MessageDetail messageDetail = new MessageDetail();
-//                                    messageDetail.setStatus(2);
-//                                    AIFeedback aiFeedback = new AIFeedback();
-//                                    messageDetail.setFeedback(aiFeedback);
-//                                    aiFeedback.setBible(text);
-//                                    if (lastMsg != null && !lastMsg.isEmpty()) {
-//                                        MessageDetail lastAI = GWMsgHandler.getAiFeedback(lastMsg.get(0));
-//                                        aiFeedback.setExplore(lastAI.getFeedback().getExplore());
-//                                    }
-//                                    String imageUrl = ImageApi.getRandomImageByTag("");
-//                                    message.setMetaValue(Keys.ImageUrl, imageUrl);
-//                                    updateMessage(message, gson.toJsonTree(messageDetail).getAsJsonObject());
-//                                    Log.d("verse_pic", "获取图片: " + imageUrl);
-//                                    return message;
-//                                })
-//                                .onErrorResumeNext(throwable -> {
-//                                    // 错误处理：即使获取标签失败，也继续流程
-//                                    Log.d("verse_pic", "获取图片失败: " + throwable.toString());
-//                                    return Single.just(message);
-//                                })
-//        );
     }
 
-    public Single<Message> sendLocalBiblePic2(final String text) {
-        return new MessageSendRig(
-                new MessageType(MessageType.Text),
-                ChatSDK.db().fetchThreadWithEntityID(chatSessionId), message -> {
-//            message.setText(text);
-            message.setMetaValue("action", AIExplore.ExploreItem.action_local_bible_pic);
-        }).localOnly().run2().flatMap(
-                message ->
-                        ImageApi.listImageTags()
-                                .subscribeOn(RX.io())
-                                .map(data -> {
-
-                                    DaoCore daoCore = ChatSDK.db().getDaoCore();
-                                    QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-                                    qb.where(MessageDao.Properties.Id.lt(message.getId()));
-                                    qb.orderDesc(MessageDao.Properties.Id);
-                                    qb.limit(1);
-                                    List<Message> lastMsg = qb.list();
-
-                                    MessageDetail messageDetail = new MessageDetail();
-                                    messageDetail.setStatus(2);
-                                    AIFeedback aiFeedback = new AIFeedback();
-                                    messageDetail.setFeedback(aiFeedback);
-                                    aiFeedback.setBible(text);
-                                    if (lastMsg != null && !lastMsg.isEmpty()) {
-                                        MessageDetail lastAI = GWMsgHandler.getAiFeedback(lastMsg.get(0));
-                                        aiFeedback.setExplore(lastAI.getFeedback().getExplore());
-                                    }
-                                    String imageUrl = ImageApi.getRandomImageByTag("");
-                                    message.setMetaValue(Keys.ImageUrl, imageUrl);
-                                    updateMessage(message, gson.toJsonTree(messageDetail).getAsJsonObject());
-                                    Log.d("verse_pic", "获取图片: " + imageUrl);
-                                    return message;
-                                })
-                                .onErrorResumeNext(throwable -> {
-                                    // 错误处理：即使获取标签失败，也继续流程
-                                    Log.d("verse_pic", "获取图片失败: " + throwable.toString());
-                                    return Single.just(message);
-                                })
-        );
-    }
 
     public Completable sendExploreMessage(final String text, final Message contextMsg, int action, String params) {
         if (action == AIExplore.ExploreItem.action_bible_pic) {
@@ -1071,9 +949,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
     @SuppressLint("CheckResult")
     public void triggerNetworkSync() {
-        GWApiManager.shared().listSession(1, 500)
+        MainApp.addGlobalDisposable(GWApiManager.shared().listSession(1, 500)
                 .subscribeOn(RX.io())
-//                .observeOn(RX.io())
                 .subscribe(
                         networkSessions -> {
                             boolean modified = false;
@@ -1101,7 +978,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                         },
                         error -> {
                         }
-                );
+                ));
     }
 
     public final static String chatSessionId = "0";
@@ -1223,47 +1100,6 @@ public class GWThreadHandler extends AbstractThreadHandler {
         return message;
     }
 
-
-//    @SuppressLint("CheckResult")
-//    public Single<Message> getWelcomeMsg() {
-//        if (welcome != null) {
-//            return Single.just(welcome);
-//        }
-//        return Single.fromCallable(() -> {
-//            try {
-//                DaoCore daoCore = ChatSDK.db().getDaoCore();
-//                QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-//                qb.where(MessageDao.Properties.EntityID.eq("welcome")).limit(1);
-//                List<Message> data = qb.list();
-//
-//                if (data.isEmpty()) {
-//                    ImageApi.getServerConfigs()
-//                            .subscribeOn(RX.io())
-//                            .subscribe(
-//                                    json -> {
-//                                    },
-//                                    error -> {
-//                                    }
-//                            );
-//                }
-//                welcome = data.get(0);
-//                return welcome;
-//            } catch (Exception e) {
-//                throw new IOException("Failed to get threads", e);
-//            }
-//        }).subscribeOn(RX.io());
-//
-
-    /// /    / /        return listSessions()
-    /// /    / /                .flatMap(Single::just)
-    /// /    / /                .onErrorResumeNext(error -> {
-    /// /    / /                    // 错误处理逻辑
-    /// /    / /                    if (error instanceof IOException) {
-    /// /    / /                        return Single.error(new IOException("Failed to list sessions", error));
-    /// /    / /                    }
-    /// /    / /                    return Single.error(error);
-    /// /    / /                });
-//    }
     public void updateMessage(Message message, JsonObject json) {
         if (json == null || message == null) {
             return;
@@ -1326,12 +1162,6 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 }
                 message.setMessageStatus(MessageSendStatus.Sent, false);
 
-//                if (aiFeedback.getFeedback() != null && (aiExplore == null || aiExplore.getMessage().getId() <= message.getId())) {
-//                    AIExplore newAIExplore = AIExplore.loads(message);
-//                    if (newAIExplore != null) {
-//                        aiExplore = newAIExplore;
-//                    }
-//                }
             }
 
             MessageHolder holder = HolderProvider.INSTANCE.getExitsMessageHolder(message);

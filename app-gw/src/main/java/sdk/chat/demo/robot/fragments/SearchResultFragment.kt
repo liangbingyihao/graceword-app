@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.activities.BibleActivity
 import sdk.chat.demo.robot.activities.ChatActivity
@@ -31,6 +32,7 @@ class SearchResultFragment : BaseFragment() {
     private lateinit var myAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>
     private var currentPage = 1
     private var searchingKey = ""
+    private var gson = Gson()
 
     companion object {
         private const val ARG_QUERY_TYPE = "query_type"
@@ -183,7 +185,7 @@ class SearchResultFragment : BaseFragment() {
             GWApiManager.shared().listMessage(queryType, searchingKey, page, 20)
                 .observeOn(RX.main())
                 .subscribe(
-                    { messages ->
+                    { data ->
                         var adapter = myAdapter as SearchResultAdapter
                         adapter.isLoading = false
                         if (page == 1) {
@@ -192,6 +194,8 @@ class SearchResultFragment : BaseFragment() {
                         } else {
                             swipeRefreshLayout.setLoadingMore(false)
                         }
+
+                        var messages: FavoriteList = gson.fromJson(data, FavoriteList::class.java)
                         if (messages.items == null || messages.items.isEmpty()) {
                             swipeRefreshLayout.setCanLoadMore(false)
                             Toast.makeText(

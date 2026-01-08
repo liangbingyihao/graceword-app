@@ -2,11 +2,15 @@ package sdk.chat.demo;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentCallbacks;
+import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 //import sdk.chat.contact.ContactBookModule;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import sdk.chat.core.session.ChatSDK;
 import sdk.chat.core.utils.Device;
 import sdk.chat.demo.bible.DynamicBibleDatabaseManager;
@@ -37,18 +41,26 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import org.tinylog.Logger;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MainApp extends Application implements Configuration.Provider, Application.ActivityLifecycleCallbacks {
     private static MainApp context;
-    private final DisposableMap dm = new DisposableMap();
     private boolean isInitialized = false;
     private Activity currentActivity;
     private ChatSDK chatSDK;
     public long startTimeStamp;
     public static String isNewUser = "0";
     private DynamicBibleDatabaseManager bibleDBManager;
+
+
+    // 全局的 CompositeDisposable
+    private static final CompositeDisposable appDisposables = new CompositeDisposable();
+
+    // 模块级的 disposables
+    private static final Map<Class<?>, CompositeDisposable> moduleDisposables = new HashMap<>();
 
     public static Context getContext() {
         return context;
@@ -102,7 +114,7 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 //            ContactBookModule.shared()
 
             chatSDK = ChatSDK.shared();
-            dm.add(AuthService.INSTANCE.authenticate(null)
+            addGlobalDisposable(AuthService.INSTANCE.authenticate(null)
                     .observeOn(RX.main())
                     .doFinally(AuthService.INSTANCE::ensureDatabase)
                     .subscribe(
@@ -134,6 +146,24 @@ public class MainApp extends Application implements Configuration.Provider, Appl
         bibleDBManager = DynamicBibleDatabaseManager.Companion.getInstance(this);
         bibleDBManager.initialize(this);
         CardApiService.INSTANCE.setLauncherStep(CardApiService.LauncherStep.INIT);
+
+// 注册内存警告监听
+        registerComponentCallbacks(new ComponentCallbacks2() {
+            @Override
+            public void onTrimMemory(int level) {
+                handleMemoryPressure(level);
+            }
+
+            @Override
+            public void onConfigurationChanged(@NonNull android.content.res.Configuration configuration) {
+
+            }
+
+            @Override
+            public void onLowMemory() {
+                clearAllDisposables();
+            }
+        });
 
         LogUploader.reportEvent(
                 "app_launch", List.of(
@@ -222,6 +252,79 @@ public class MainApp extends Application implements Configuration.Provider, Appl
 
     }
 
+    /**
+     * 添加全局 Disposable
+     */
+    public static void addGlobalDisposable(Disposable disposable) {
+        if (disposable != null && !disposable.isDisposed()) {
+            appDisposables.add(disposable);
+        }
+    }
+
+    /**
+     * 添加模块级 Disposable
+     */
+    public static <T> void addModuleDisposable(Class<T> moduleClass, Disposable disposable) {
+        if (disposable == null || disposable.isDisposed()) {
+            return;
+        }
+
+        synchronized (moduleDisposables) {
+            CompositeDisposable cd = moduleDisposables.computeIfAbsent(moduleClass, k -> new CompositeDisposable());
+            cd.add(disposable);
+        }
+    }
+
+    /**
+     * 清理指定模块的 Disposable
+     */
+    public static <T> void clearModuleDisposables(Class<T> moduleClass) {
+        synchronized (moduleDisposables) {
+            CompositeDisposable cd = moduleDisposables.remove(moduleClass);
+            if (cd != null) {
+                cd.clear();
+            }
+        }
+    }
+    /**
+     * 处理内存压力
+     */
+    private void handleMemoryPressure(int level) {
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+            // 应用进入后台，清理非必要的 Disposable
+//            clearLowPriorityDisposables();
+        }
+
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
+            // 内存紧张，清理更多
+//            clearMediumPriorityDisposables();
+        }
+
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE) {
+            // 内存极度紧张，清理所有可清理的
+            clearAllDisposables();
+        }
+    }
+
+
+    private void clearAllDisposables() {
+        appDisposables.clear();
+        synchronized (moduleDisposables) {
+            for (CompositeDisposable cd : moduleDisposables.values()) {
+                cd.clear();
+            }
+            moduleDisposables.clear();
+        }
+    }
+
+    @Override
+    public void onTerminate() {
+        // 应用终止时彻底清理
+        if (!appDisposables.isDisposed()) {
+            appDisposables.dispose();
+        }
+        super.onTerminate();
+    }
 
     public boolean isInitialized() {
         return isInitialized;

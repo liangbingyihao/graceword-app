@@ -13,10 +13,16 @@ import io.reactivex.functions.Action
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
+import org.greenrobot.greendao.query.QueryBuilder
 import org.tinylog.Logger
+import sdk.chat.core.dao.DaoCore
+import sdk.chat.core.dao.Message
+import sdk.chat.core.dao.MessageDao
 import sdk.chat.core.dao.User
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.core.types.MessageSendStatus
+import sdk.chat.core.types.MessageType
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
@@ -24,10 +30,13 @@ import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ActionLimitConfig.loadDefaultConfigs
 import sdk.chat.demo.robot.api.model.ApiTokenRequest
 import sdk.chat.demo.robot.api.model.ApiTokenResponse
+import sdk.chat.demo.robot.api.model.FavoriteList
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.api.model.MessageList
 import sdk.chat.demo.robot.api.model.UserInfo
+import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.DeviceIdHelper
-import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
+//import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
 import sdk.chat.demo.robot.handlers.LimitCounter.initialize
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.guru.common.RX
@@ -67,26 +76,15 @@ object AuthService {
                     return@Callable authenticating!!
                 }
 
-                if (authenticating == null) {
-                    authenticating =
-                        authorizeUser(authorReq).flatMapCompletable(Function { details: ApiTokenResponse ->
-                            this.loginSuccessful(details)
-                        })
-//                            .doOnSubscribe {
-//                                Log.d(TAG, "开始认证流程")
-//                            }
-//                            .doOnComplete {
-//                                Log.d(TAG, "认证成功")
-//                            }
-//                            .doOnError { error ->
-//                                Log.e(TAG, "认证失败", error)
-//                            }
-                            .onErrorResumeNext { error ->
-                                // 认证失败时返回错误
-                                Completable.error(error)
-                            }
-                            .cache()
-                }
+                authenticating =
+                    authorizeUser(authorReq).flatMapCompletable(Function { details: ApiTokenResponse ->
+                        this.loginSuccessful(details)
+                    })
+                        .onErrorResumeNext { error ->
+                            // 认证失败时返回错误
+                            Completable.error(error)
+                        }
+                        .cache()
                 authenticating ?: Completable.error(NullPointerException("认证流程为空"))
             }
         }).doFinally(Action { this.cancel() })
@@ -253,6 +251,7 @@ object AuthService {
                 )
                 ret?.let {
                     it.initData(dstReq)
+                    Log.e(TAG, "Login..${it.fullAccessToken}")
                     updateAuth(it)
                     return@use it
                 }
@@ -394,7 +393,7 @@ object AuthService {
                     .ignoreElement()
                     .timeout(10, TimeUnit.SECONDS)  // 添加超时
                     .onErrorComplete(),
-                getInstance().getBillingHelper()
+                BillingManager.getInstance().getBillingHelper()
                     .doOnSubscribe { Log.d(TAG, "开始获取账单信息") }
                     .doOnSuccess { Log.d(TAG, "账单信息获取完成") }
                     .timeout(10, TimeUnit.SECONDS)
@@ -403,6 +402,11 @@ object AuthService {
                     .subscribeOn(Schedulers.io())
                     .doOnSubscribe { Log.d(TAG, "开始创建聊天会话") }
                     .doOnComplete { Log.d(TAG, "聊天会话创建完成") }
+                    .timeout(10, TimeUnit.SECONDS)
+                    .onErrorComplete(),
+                initMessageFromServer()
+                    .doOnSubscribe { Log.d(TAG, "开始initMessageFromServer") }
+                    .doOnComplete { Log.d(TAG, "initMessageFromServer完成") }
                     .timeout(10, TimeUnit.SECONDS)
                     .onErrorComplete(),
             )
@@ -419,23 +423,26 @@ object AuthService {
     private fun startAsyncTasks() {
         // 这些任务会自己启动，不阻塞主流程
 
-        ImageApi.listImageDaily(null)
-            .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-            .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-            .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
-                if (data != null && !data.isEmpty()) {
-                    val url = data.get(0)!!.getUrl()
-                    Glide.with(MainApp.getContext())
-                        .load(url)
-                        .preload()
-                }
-            })
-        SocialShareHandler.getHeaderImageAsync()
+        MainApp.addGlobalDisposable(
+            ImageApi.listImageDaily(null)
+                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
+                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
+                .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
+                    if (data != null && !data.isEmpty()) {
+                        val url = data.get(0)!!.getUrl()
+                        Glide.with(MainApp.getContext())
+                            .load(url)
+                            .preload()
+                    }
+                })
+        )
+        MainApp.addGlobalDisposable(
+            SocialShareHandler.getHeaderImageAsync()
             .subscribeOn(Schedulers.io())
             .subscribe(
                 { Log.d(TAG, "Login log uploaded") },
                 { e -> Log.e(TAG, "Login log upload failed", e) }
-            )
+            ))
 
         ImageApi.listImageTags().subscribe()
 
@@ -465,5 +472,91 @@ object AuthService {
         }
         Log.d(TAG, "initDatabaseByUser $userId")
         Logger.error { "ensureDatabase done" }
+    }
+
+    fun initMessageFromServer(): Completable {
+        return Completable.defer {
+
+            val daoCore: DaoCore = ChatSDK.db().getDaoCore()
+            val qb: QueryBuilder<Message?> =
+                daoCore.getDaoSession().queryBuilder(Message::class.java)
+                    .orderDesc(MessageDao.Properties.Id).limit(1)
+            val messages: List<Message?>? = qb.list()
+
+            return@defer if (messages?.isNotEmpty() == true) {
+                val lastMessage = messages[0]
+                val entityId = lastMessage?.entityID
+
+                Log.d(TAG, "最新消息 entityID: $entityId")
+
+                if (entityId != null && entityId.length > 13) {
+                    Log.d(TAG, "最新消息 entityID 长度(${entityId.length}) > 13，无需从服务器加载")
+                    Completable.complete()
+                } else {
+                    Log.d(TAG, "最新消息 entityID 长度不足或为空，从服务器加载")
+                    loadMessagesAndSaveToLocal()
+//                    loadMessagesFromServer()
+                }
+            } else {
+                Log.d(TAG, "本地无消息，从服务器加载")
+                loadMessagesAndSaveToLocal()
+//                loadMessagesFromServer()
+            }
+        }
+
+    }
+
+
+    private fun loadMessagesAndSaveToLocal(): Completable {
+        return GWApiManager.shared().listMessage(null, null, 1, 200)
+            .flatMapCompletable { data ->
+                Completable.fromAction {
+                    var messages: MessageList = gson.fromJson(data, MessageList::class.java)
+                    Log.d(TAG, "服务器信息长度:${messages.items.size}")
+                    saveMessagesToLocal(messages)
+                }
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .timeout(10, TimeUnit.SECONDS)
+            .onErrorComplete()
+            .doOnSubscribe { Log.d(TAG, "开始从服务器加载消息") }
+            .doOnComplete { Log.d(TAG, "服务器消息处理完成") }
+            .doOnError { error -> Log.e(TAG, "服务器消息处理失败", error) }
+    }
+
+    private fun saveMessagesToLocal(messages: MessageList) {
+        try {
+            val daoCore = ChatSDK.db().getDaoCore()
+            val daoSession = daoCore.getDaoSession()
+            val convertedMessages = mutableListOf<Message>()
+            var sender = ChatSDK.currentUser().id
+            for (item in messages.items) {
+                try {
+                    val message = Message().apply {
+                        entityID = item.id
+                        text = item.content
+                        date = DateLocalizationUtil.parseUTCString(item.createdAt)
+                        senderId = sender
+                        type = MessageType.Text
+                        status = MessageSendStatus.Sent.ordinal
+                    }
+                    convertedMessages.add(message)
+                } catch (e: Exception) {
+                    Log.e(TAG, "convertedMessages失败", e)
+                }
+            }
+
+            // 使用事务批量插入
+            daoSession.runInTx {
+                val messageDao = daoSession.messageDao
+                messageDao.insertOrReplaceInTx(convertedMessages)
+            }
+
+            Log.d(TAG, "✅ 成功保存 ${convertedMessages.size} 条消息到本地数据库")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "保存消息到数据库失败", e)
+        }
     }
 }

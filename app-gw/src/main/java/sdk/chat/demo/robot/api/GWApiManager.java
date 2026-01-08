@@ -554,7 +554,6 @@ public class GWApiManager {
     public Single<JsonObject> listSession(int page, int limit) {
         return Single.create(emitter -> {
 
-
             HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_SESSION))
                     .newBuilder()
                     .addQueryParameter("page", Integer.toString(page))
@@ -719,10 +718,13 @@ public class GWApiManager {
         });
     }
 
-    public Single<FavoriteList> listMessage(String sessionType, String search, int page, int limit) {
+    public Single<JsonObject> listMessage(String sessionType, String search, int page, int limit) {
         return Single.create(emitter -> {
-
-            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_MESSAGE + "/filter"))
+            String path = URL_MESSAGE;
+            if(search!=null&&!search.isEmpty()){
+                path+="/filter";
+            }
+            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(path))
                     .newBuilder()
                     .addQueryParameter("session_type", sessionType)
                     .addQueryParameter("search", search)
@@ -751,8 +753,8 @@ public class GWApiManager {
                         }
                         String responseBody = response.body() != null ? response.body().string() : "";
                         JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-                        FavoriteList res = gson.fromJson(data, FavoriteList.class);
-                        emitter.onSuccess(res); // 请求成功
+//                        FavoriteList res = gson.fromJson(data, FavoriteList.class);
+                        emitter.onSuccess(data); // 请求成功
                     } catch (Exception e) {
                         emitter.onError(e);
                     } finally {

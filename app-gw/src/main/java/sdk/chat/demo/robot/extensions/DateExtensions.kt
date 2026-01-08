@@ -1,22 +1,88 @@
 package sdk.chat.demo.robot.extensions
 
 import android.content.Context
+import android.os.Build
 import android.text.format.DateUtils
+import androidx.annotation.RequiresApi
 import com.vojtkovszky.billinghelper.BillingHelper
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 
 object DateLocalizationUtil {
     val dayFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     var sdf: SimpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+
+    // 常见的 UTC 时间格式
+    private val utcPatterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd HH:mm:ss",
+        "yyyy/MM/dd HH:mm:ss",
+        "EEE, dd MMM yyyy HH:mm:ss 'GMT'",  // HTTP 日期格式
+        "yyyy-MM-dd"
+    )
+
+    /**
+     * 通用 UTC 时间解析
+     */
+    fun parseUTCString(utcString: String): Date? {
+//        // 1. 尝试使用 Instant.parse（最准确）
+//        try {
+//            val instant = Instant.parse(utcString)
+//            return Date.from(instant)
+//        } catch (e: DateTimeParseException) {
+//            // 继续尝试其他方法
+//        }
+
+        // 2. 尝试各种日期格式
+        for (pattern in utcPatterns) {
+            try {
+                val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                sdf.isLenient = false
+                return sdf.parse(utcString)
+            } catch (e: Exception) {
+                // 继续尝试下一个格式
+            }
+        }
+
+        // 3. 尝试解析为时间戳
+        try {
+            val timestamp = utcString.toLong()
+            return Date(timestamp)
+        } catch (e: Exception) {
+            // 不是时间戳
+        }
+
+        return null
+    }
+
+    /**
+     * 安全解析，带默认值
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun parseUTCStringOrDefault(
+        utcString: String?,
+        default: Date = Date()
+    ): Date {
+        return if (utcString.isNullOrBlank()) {
+            default
+        } else {
+            parseUTCString(utcString) ?: default
+        }
+    }
+
 
     fun getFriendlyDate(context: Context, date: Date): String {
         val now = Calendar.getInstance()
