@@ -73,7 +73,7 @@ import sdk.guru.common.RX;
 public class GWThreadHandler extends AbstractThreadHandler {
     private final AtomicBoolean hasSyncedWithNetwork = new AtomicBoolean(false);
     private List<ArticleSession> sessionCache;
-    private Message welcome;
+//    private Message welcome;
     //    private AIExplore aiExplore;
     //    private Message playingMsg;
     private Boolean isCustomPrompt = null;
@@ -1182,9 +1182,9 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
     }
 
-    public Message getWelcome() {
-        return welcome;
-    }
+//    public Message getWelcome() {
+//        return welcome;
+//    }
 
     private final CompositeDisposable disposables = new CompositeDisposable();
     private final AtomicInteger retryCount = new AtomicInteger(0);    // 配置参数

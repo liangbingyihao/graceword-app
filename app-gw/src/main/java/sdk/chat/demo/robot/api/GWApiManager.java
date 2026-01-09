@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import com.google.protobuf.Any;
 
 import org.json.JSONObject;
 import org.tinylog.Logger;
@@ -139,7 +140,7 @@ public class GWApiManager {
         return AuthService.INSTANCE.getAccessToken();
     }
 
-    public static Request buildPostRequest(Map<String, String> params, String url) {
+    public static Request buildPostRequest(Map params, String url) {
         String gsonData = new JSONObject(params).toString();
 
         RequestBody body = RequestBody.create(
@@ -718,7 +719,7 @@ public class GWApiManager {
         });
     }
 
-    public Single<JsonObject> listMessage(String sessionType, String search, int page, int limit) {
+    public Single<JsonObject> listMessage(String sessionType,String olderThan, String search, int page, int limit) {
         return Single.create(emitter -> {
             String path = URL_MESSAGE;
             if(search!=null&&!search.isEmpty()){

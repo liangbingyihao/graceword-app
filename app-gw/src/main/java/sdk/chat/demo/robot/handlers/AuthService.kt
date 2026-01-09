@@ -1,8 +1,10 @@
 package sdk.chat.demo.robot.handlers
 
+//import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
 import android.util.Log
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import io.reactivex.Completable
 import io.reactivex.CompletableEmitter
@@ -13,6 +15,7 @@ import io.reactivex.functions.Action
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
+import okhttp3.Request
 import org.greenrobot.greendao.query.QueryBuilder
 import org.tinylog.Logger
 import sdk.chat.core.dao.DaoCore
@@ -30,16 +33,18 @@ import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ActionLimitConfig.loadDefaultConfigs
 import sdk.chat.demo.robot.api.model.ApiTokenRequest
 import sdk.chat.demo.robot.api.model.ApiTokenResponse
-import sdk.chat.demo.robot.api.model.FavoriteList
 import sdk.chat.demo.robot.api.model.ImageDaily
+import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.api.model.MessageList
 import sdk.chat.demo.robot.api.model.UserInfo
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil
 import sdk.chat.demo.robot.extensions.DeviceIdHelper
-//import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
 import sdk.chat.demo.robot.handlers.LimitCounter.initialize
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.guru.common.RX
+import java.io.IOException
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -59,6 +64,7 @@ object AuthService {
     private val URL_LOGIN_DEVICE = GWApiManager.URL_V1 + "auth/device"
     private val URL_LOGIN_GOOGLE = GWApiManager.URL_V1 + "auth/oauth/google"
     private val URL_REFRESH_TOKEN = GWApiManager.URL_V1 + "auth/token/refresh"
+    private val URL_USER_PROFILE = GWApiManager.URL_V1 + "user/profile"
     private const val TAG = "AuthService"
 
     fun authenticate(authorReq: ApiTokenRequest? = null): Completable {
@@ -100,15 +106,19 @@ object AuthService {
 
     private fun clearAuthorInfo() {
         if (authDetail != null && !authDetail!!.user.isGuest) {
-            val newList = authDetailList.toMutableList()
-            val index = newList.indexOfFirst { it.user.id == authDetail!!.user.id }
-
-            if (index != -1) {
-                newList.removeAt(index)
+            val targetItem = authDetailList.find { it.user.id == authDetail?.user?.id }
+            targetItem?.let { item ->
+                item.accessToken = ""
+                item.refreshToken = ""
+                item.fullAccessToken = ""
             }
-            authDetailList = newList
-            JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
+            JsonCacheManager.save(
+                MainApp.getContext(),
+                KEY_CACHE_USER_LIST,
+                gson.toJson(authDetailList)
+            )
             authDetail = null
+
         }
     }
 
@@ -125,6 +135,23 @@ object AuthService {
             ChatSDK.db().closeDatabase()
             emitter!!.onComplete()
         }).subscribeOn(RX.computation())
+    }
+
+    fun exitsGoogleId(googleId: String?): Boolean {
+        val userList = getCacheAuthList()
+
+        if (userList.isEmpty()) {
+            Log.w(TAG, "用户缓存列表为空")
+            return false
+        }
+
+        return if (googleId.isNullOrEmpty()) {
+            userList.indexOfFirst { it -> !it.user.isGuest } >= 0
+        } else {
+            userList.indexOfFirst { it -> it.req?.googleId == googleId } >= 0
+        }
+
+        return false
     }
 
     private fun filterAuthorInfo(customFilter: ((ApiTokenResponse) -> Boolean)? = null): ApiTokenResponse? {
@@ -201,7 +228,7 @@ object AuthService {
 
     private fun authorizeUser(authorReq: ApiTokenRequest? = null): Single<ApiTokenResponse?> {
         return Single.fromCallable<ApiTokenResponse?> {
-            val params: MutableMap<String?, String?> = HashMap<String?, String?>()
+            val params: MutableMap<String?, Any?> = HashMap<String?, Any?>()
             val lastRsp = if (authorReq != null) {
                 filterAuthorInfo { rsp ->
                     authorReq.getLocalId() == rsp.req?.getLocalId()
@@ -228,6 +255,10 @@ object AuthService {
                 } else if (!dstReq.googleToken.isEmpty()) {
                     url = URL_LOGIN_GOOGLE
                     params.put("id_token", dstReq.googleToken)
+                    if (dstReq.binding) {
+                        params.put("binding", true)
+                        dstReq.binding = false
+                    }
                 }
             }
 
@@ -239,7 +270,7 @@ object AuthService {
             params.put("fcm_token", fcmToken)
             params.put("bundle_id", MainApp.getContext().packageName)
 
-            Log.e(TAG, "Login..$url,$params:")
+            Log.e(TAG, "Login..$url,${dstReq?.binding}")
             val request = GWApiManager.buildPostRequest(params, url)
 
             // 使用 .use 自动关闭 Response
@@ -251,7 +282,7 @@ object AuthService {
                 )
                 ret?.let {
                     it.initData(dstReq)
-                    Log.e(TAG, "Login..${it.fullAccessToken}")
+                    Log.e(TAG, "Login..${it.bindingResult}")
                     updateAuth(it)
                     return@use it
                 }
@@ -311,22 +342,32 @@ object AuthService {
         JsonCacheManager.save(MainApp.getContext(), KEY_CACHE_USER_LIST, gson.toJson(newList))
     }
 
-//    fun setCurrentUserEntityID(userID: String?) {
-//        currentUserID = userID
-//        isAuthenticatedThisSession = true
-//        ChatSDK.shared().getKeyStorage().put(Keys.CurrentUserID, currentUserID)
-//    }
-//
-//    fun getCurrentUserEntityID(): String? {
-//        if (currentUserID == null || !isAuthenticated()) {
-//            currentUserID = ChatSDK.shared().getKeyStorage().get(Keys.CurrentUserID)
-//        }
-//        return currentUserID
-//    }
+    private fun setLocalDisplayName(displayName: String) {
+
+        if (authDetail != null && !authDetail!!.user.isGuest) {
+            val targetItem = authDetailList.find { it.user.id == authDetail?.user?.id }
+            targetItem?.let { item ->
+                item.user.displayName = displayName
+            }
+            JsonCacheManager.save(
+                MainApp.getContext(),
+                KEY_CACHE_USER_LIST,
+                gson.toJson(authDetailList)
+            )
+
+        }
+    }
 
     fun setAuthStateToIdle() {
         authenticating = null
         loggingOut = null
+    }
+
+    fun isOauthAlreadyLinked(): Boolean {
+        if (authDetail != null && authDetail!!.bindingResult == "OAUTH_ALREADY_LINKED") {
+            return true
+        }
+        return false
     }
 
 
@@ -348,30 +389,6 @@ object AuthService {
             initialize(MainApp.getContext(), null)
             loadDefaultConfigs()
             setAuthStateToIdle()
-
-//            executeSyncTasks()
-
-//            ImageApi.listImageTags().subscribe()
-
-//            val handler = ChatSDK.thread() as GWThreadHandler
-//            ImageApi.getServerConfigs().subscribe()
-//            getInstance().getBillingHelper().subscribe()
-//            SocialShareHandler.getHeaderImageAsync().subscribe()
-//            handler.createChatSessions()
-//            handler.triggerNetworkSync()
-//
-//
-//            ImageApi.listImageDaily(null)
-//                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-//                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-//                .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
-//                    if (data != null && !data.isEmpty()) {
-//                        val url = data.get(0)!!.getUrl()
-//                        Glide.with(MainApp.getContext())
-//                            .load(url)
-//                            .preload()
-//                    }
-//                })
             Completable.complete()
         }).andThen(executeSyncTasks())  // 等待 executeSyncTasks 完成
             .doOnComplete {
@@ -438,11 +455,11 @@ object AuthService {
         )
         MainApp.addGlobalDisposable(
             SocialShareHandler.getHeaderImageAsync()
-            .subscribeOn(Schedulers.io())
-            .subscribe(
-                { Log.d(TAG, "Login log uploaded") },
-                { e -> Log.e(TAG, "Login log upload failed", e) }
-            ))
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    { Log.d(TAG, "Login log uploaded") },
+                    { e -> Log.e(TAG, "Login log upload failed", e) }
+                ))
 
         ImageApi.listImageTags().subscribe()
 
@@ -494,12 +511,12 @@ object AuthService {
                     Completable.complete()
                 } else {
                     Log.d(TAG, "最新消息 entityID 长度不足或为空，从服务器加载")
-                    loadMessagesAndSaveToLocal()
+                    MessageService.loadMessagesAndSaveToLocal(null, 1, 200)
 //                    loadMessagesFromServer()
                 }
             } else {
                 Log.d(TAG, "本地无消息，从服务器加载")
-                loadMessagesAndSaveToLocal()
+                MessageService.loadMessagesAndSaveToLocal(null, 1, 200)
 //                loadMessagesFromServer()
             }
         }
@@ -507,56 +524,57 @@ object AuthService {
     }
 
 
-    private fun loadMessagesAndSaveToLocal(): Completable {
-        return GWApiManager.shared().listMessage(null, null, 1, 200)
-            .flatMapCompletable { data ->
-                Completable.fromAction {
-                    var messages: MessageList = gson.fromJson(data, MessageList::class.java)
-                    Log.d(TAG, "服务器信息长度:${messages.items.size}")
-                    saveMessagesToLocal(messages)
+    fun setDisplayName(displayName: String): Completable {
+        return Completable.create { emitter ->
+            try {
+                if (displayName.isBlank()) {
+                    val error = IllegalArgumentException("Display name cannot be empty or blank")
+                    Log.e(TAG, "setDisplayName: Invalid input", error)
+                    emitter.onError(error)
+                    return@create
                 }
-            }
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .timeout(10, TimeUnit.SECONDS)
-            .onErrorComplete()
-            .doOnSubscribe { Log.d(TAG, "开始从服务器加载消息") }
-            .doOnComplete { Log.d(TAG, "服务器消息处理完成") }
-            .doOnError { error -> Log.e(TAG, "服务器消息处理失败", error) }
-    }
+                if(displayName == authDetail?.user?.displayName){
+                    emitter.onComplete()
+                    return@create
+                }
 
-    private fun saveMessagesToLocal(messages: MessageList) {
-        try {
-            val daoCore = ChatSDK.db().getDaoCore()
-            val daoSession = daoCore.getDaoSession()
-            val convertedMessages = mutableListOf<Message>()
-            var sender = ChatSDK.currentUser().id
-            for (item in messages.items) {
-                try {
-                    val message = Message().apply {
-                        entityID = item.id
-                        text = item.content
-                        date = DateLocalizationUtil.parseUTCString(item.createdAt)
-                        senderId = sender
-                        type = MessageType.Text
-                        status = MessageSendStatus.Sent.ordinal
+                // 创建 JSON 请求体
+                val json = """
+                {
+                    "display_name": "$displayName"
+                }
+            """.trimIndent()
+
+                val requestBody =
+                    json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+                // 构建请求
+                val requestBuilder = Request.Builder()
+                    .url(URL_USER_PROFILE)
+                    .patch(requestBody)
+                    .addHeader("Content-Type", "application/json")
+
+                val request = requestBuilder.build()
+
+                GWApiManager.shared().client.newCall(request).execute().use { response ->
+
+                    var ret = GWApiManager.shared().handleResponse<JsonObject?>(
+                        response,
+                        JsonObject::class.java
+                    )
+                    if (ret != null) {
+                        Log.e(TAG, "setDisplayName..done")
+                        setLocalDisplayName(displayName)
+                        emitter.onComplete()
+                    } else {
+                        emitter.onError(IOException("set error"))
                     }
-                    convertedMessages.add(message)
-                } catch (e: Exception) {
-                    Log.e(TAG, "convertedMessages失败", e)
                 }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "setDisplayName..${e}")
+                emitter.onError(e)
             }
-
-            // 使用事务批量插入
-            daoSession.runInTx {
-                val messageDao = daoSession.messageDao
-                messageDao.insertOrReplaceInTx(convertedMessages)
-            }
-
-            Log.d(TAG, "✅ 成功保存 ${convertedMessages.size} 条消息到本地数据库")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "保存消息到数据库失败", e)
-        }
+        }.subscribeOn(RX.io())
     }
 }

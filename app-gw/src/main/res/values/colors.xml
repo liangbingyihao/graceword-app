@@ -28,4 +28,5 @@
     <color name="black_translucent">#CC000000</color>
     <color name="default_verse_background">#00FFFFFF</color>
     <color name="selected_verse_background">#26CF4B3F</color>
+    <color name="user_agreement">#E58888</color>
 </resources>

@@ -1,12 +1,19 @@
 package sdk.chat.demo.robot.activities
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.handlers.AuthService
 import sdk.chat.demo.robot.handlers.BillingManager
@@ -15,10 +22,12 @@ import siyamed.shapeimageview.PorterShapeImageView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.graphics.drawable.toDrawable
+import sdk.chat.demo.robot.utils.ToastHelper
 
 class AccountActivity : BaseActivity(), View.OnClickListener {
     private lateinit var tvGetVip: TextView
-    private lateinit var tvLang: TextView
+    private lateinit var tvUserName: TextView
 //    private lateinit var loadingDialog: AlertDialog
 //    private lateinit var vVipHint: View
 //    private var exportInfo: ExportInfo? = null
@@ -39,7 +48,8 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                 .placeholder(R.color.bg_bill_menu)
                 .error(R.mipmap.ic_launcher)
                 .into(imAvatar)
-            findViewById<TextView>(R.id.user_name).text = lastUser.displayName
+            tvUserName = findViewById<TextView>(R.id.user_name)
+            tvUserName.text = lastUser.displayName
             var vipStatus = findViewById<TextView>(R.id.vip_status)
             var getVip = findViewById<TextView>(R.id.get_vip)
             var renewal = findViewById<TextView>(R.id.renewal_time)
@@ -60,32 +70,11 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                 getVip.visibility = View.VISIBLE
                 vipStatus.visibility = View.GONE
                 renewal.visibility = View.INVISIBLE
+                findViewById<View>(R.id.vip_status_container).setOnClickListener(this)
             }
         }
         findViewById<View>(R.id.log_out).setOnClickListener(this)
-//        findViewById<View>(R.id.config_lang).setOnClickListener(this)
-//        findViewById<View>(R.id.feedback).setOnClickListener(this)
-//        findViewById<View>(R.id.my_userid).setOnClickListener(this)
-//        findViewById<View>(R.id.contact_email).setOnClickListener(this)
-//        findViewById<View>(R.id.restore_subscription).setOnClickListener(this)
-//        vVipHint = findViewById<View>(R.id.export_vip)
-//        tvLang = findViewById<TextView>(R.id.lang_value)
-//        initView()
-//        getSettings()
-//        if (BuildConfig.DEBUG) {
-//            var v = findViewById<View>(R.id.debug)
-//            v.visibility = View.VISIBLE
-//            v.setOnClickListener(this)
-//        }
-//        if (ImageApi.getGwConfigs() != null) {
-//            contactEmail = ImageApi.getGwConfigs().contactEmail
-//            findViewById<TextView>(R.id.email).setText(contactEmail)
-//        }
-//        LogUploader.reportEvent(
-//            "mod_settings", listOf<KeyValuePair?>(
-//                KeyValuePair("settings_action", "0"),
-//            )
-//        )
+        tvUserName.setOnClickListener(this)
     }
 
     override fun onResume() {
@@ -105,6 +94,13 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                 finish()
             }
 
+            R.id.vip_status_container -> {
+                BillingActivity.start(this@AccountActivity, "account")
+            }
+
+            R.id.user_name -> {
+                showCustomInputDialog()
+            }
 
             R.id.log_out -> {
 
@@ -118,11 +114,10 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                                 finish()
                             },
                             { error -> // onError
-                                Toast.makeText(
+                                ToastHelper.show(
                                     this@AccountActivity,
-                                    error.message,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                    error.message
+                                )
                             })
                 )
             }
@@ -130,5 +125,67 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
         }
     }
 
+    fun showCustomInputDialog() {
+        // 创建自定义布局
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_username, null)
 
+        val editText = dialogView.findViewById<EditText>(R.id.main_content)
+        editText.setText(tvUserName.text)
+        editText.setSelection(tvUserName.text.length)
+        val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.submit)
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
+
+        // 设置确认按钮点击事件
+        btnConfirm.setOnClickListener {
+            val inputText = editText.text.toString().trim()
+
+            if (inputText.isNotEmpty()) {
+                // 处理输入内容
+//                handleInput(inputText)
+                setDisplayName(inputText)
+                dialog.dismiss()
+            } else {
+                // 输入为空时的提示
+                editText.error = "no input"
+                ToastHelper.show(this, "input your display name...")
+            }
+        }
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        dialog.show()
+
+        // 自动弹出键盘
+        editText.postDelayed({
+            editText.requestFocus()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+        }, 300)
+
+    }
+
+    private fun setDisplayName(displayName: String) {
+        if (displayName.isEmpty()) {
+            return
+        }
+        dm.add(
+            AuthService.setDisplayName(displayName)
+                .observeOn(RX.main())
+                .subscribe(
+                    {
+                        ToastHelper.show(
+                            this@AccountActivity,
+                            "success"
+                        )
+                        tvUserName.text = displayName
+                    },
+                    { error -> // onError
+                        ToastHelper.show(
+                            this@AccountActivity,
+                            error.message
+                        )
+                    })
+        )
+    }
 }

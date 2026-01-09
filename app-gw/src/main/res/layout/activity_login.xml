@@ -32,29 +32,75 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center|bottom"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
-        android:layout_marginBottom="64dp"
+        android:layout_marginTop="160dp"
+        android:gravity="center_horizontal"
         android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="恩语留痕，主恩随行"
+            android:textColor="@color/white"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Daily Grace, Trace Faith"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:textStyle="bold" />
 
         <View
             android:layout_width="1dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_media_logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="36dp"
+            android:text="@string/login_save_records"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/login"
-            android:layout_width="match_parent"
-            android:layout_height="42dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginLeft="12dp"
-            android:backgroundTint="@android:color/transparent"
-            android:text="@string/conversations"
+            android:backgroundTint="@color/white"
+            android:drawableLeft="@mipmap/ic_google_logo"
+            android:minWidth="230dp"
+            android:minHeight="50dp"
+            android:text="使用Google继续登录"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/item_text_normal"
             android:textSize="14sp"
             app:cornerRadius="21dp"
             app:strokeColor="#FFFFFF"
             app:strokeWidth="2dp" />
+
+        <TextView
+            android:id="@+id/tv_agreement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="54dp"
+            android:layout_marginBottom="24dp"
+            android:text="@string/login_agreement_prefix"
+            android:textColor="@color/user_agreement"
+            android:textSize="12sp" />
+
     </LinearLayout>
+
+    <include layout="@layout/dialog_import_device_data" />
 </FrameLayout>

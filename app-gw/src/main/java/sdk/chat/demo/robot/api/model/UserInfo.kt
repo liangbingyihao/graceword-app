@@ -4,9 +4,11 @@ import com.google.gson.annotations.SerializedName
 
 data class ApiTokenResponse(
     @SerializedName("access_token")
-    val accessToken: String = "",
+    var accessToken: String = "",
     @SerializedName("refresh_token")
-    val refreshToken: String = "",
+    var refreshToken: String = "",
+    @SerializedName("binding_result")
+    val bindingResult: String = "",
     @SerializedName("expires_in")
     val expiresIn: Int = 0,
     @SerializedName("token_type")
@@ -48,7 +50,7 @@ data class UserInfo(
     val isGuest: Boolean = false,
 
     @SerializedName("display_name")
-    val displayName: String = "",
+    var displayName: String = "",
 
     @SerializedName("avatar_url")
     val avatarUrl: String = "",
@@ -64,6 +66,7 @@ data class ApiTokenRequest(
     val googleId: String = "",
     val googleToken: String = "",
     val guest: String = "",
+    var binding: Boolean = false
 ) {
     fun getLocalId(): String {
         return if (!googleId.isEmpty()) {

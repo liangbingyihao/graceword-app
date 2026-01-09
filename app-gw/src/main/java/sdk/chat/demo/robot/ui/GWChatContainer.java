@@ -397,6 +397,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
         } else {
             startId = 0L;
             String messageId = delegate.getMessageId();
+            Log.e("loadmsg","msgid:"+messageId);
             if (messageId != null && !messageId.isEmpty()) {
                 Message msg = ChatSDK.db().fetchMessageWithEntityID(messageId);
                 if (msg != null) {
@@ -594,6 +595,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             if (isInit) {
                 String messageId = delegate.getMessageId();
                 if (messageId != null && !messageId.isEmpty()) {
+                        Log.e("loadmsg", "pos:" + (toAdd.size() - 1) + ",messageId:" + latestMsgId);
                     layoutManager.scrollToPositionWithOffset(toAdd.size() - 1, 300);
                 } else {
                     latestMsgId = toAdd.get(toAdd.size() - 1).message.getId();

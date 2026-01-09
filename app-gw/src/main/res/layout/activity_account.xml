@@ -34,7 +34,6 @@
         android:layout_marginTop="20dp"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
-        android:src="@mipmap/ic_qr_verse"
         app:siShape="@drawable/shape_rounded_rectangle"
         app:siSquare="true" />
 
@@ -45,6 +44,9 @@
         android:layout_marginTop="10dp"
         android:maxLines="1"
         android:text="userName"
+        android:gravity="center_vertical"
+        android:drawablePadding="8dp"
+        android:drawableRight="@mipmap/ic_edit_gray"
         android:textColor="@color/item_text_normal"
         android:textSize="16sp" />
 
@@ -67,8 +69,10 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/vip_status_container"
                 android:layout_width="match_parent"
                 android:layout_height="74dp"
+                android:gravity="center_vertical"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -101,11 +105,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
+                        android:paddingLeft="30dp"
                         android:drawableRight="@drawable/ic_arrow_right"
                         android:drawablePadding="4dp"
                         android:text="@string/pending_upgrade"
-                        android:textColor="@color/text_gray"
                         android:visibility="invisible"
+                        android:textColor="@color/text_gray"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -114,6 +119,7 @@
                     android:id="@+id/renewal_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="@string/next_renewal_time"
                     android:visibility="invisible"
                     android:textColor="@color/text_gray"

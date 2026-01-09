@@ -156,10 +156,6 @@
     <string name="auto_renew_text">Auto-renewable, cancel anytime</string>
     <string name="start_trial_button">Start Free Trial</string>
 
-    <!-- 底部链接 -->
-    <string name="terms_of_service">Terms of Service</string>
-    <string name="privacy_policy">Privacy Policy</string>
-
 
     <!-- 价格周期 -->
     <string name="period_day">day</string>
@@ -223,4 +219,23 @@
     <string name="next_renewal_time">Next Renewal:%s</string>
     <string name="membership_status">Membership Status</string>
     <string name="pending_upgrade">Pending Upgrade</string>
+    <string name="login_save_records">Log in to save your records and favorites</string>
+    <string name="login_agreement">By logging in, you agree to our Privacy Policy and Terms of Service</string>
+    <string name="login_agreement_prefix">By logging in, you agree to our</string>
+    <string name="agreement_and">and</string>
+    <!-- 底部链接 -->
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="privacy_policy">Privacy Policy</string>
+
+    <!-- Dialog title -->
+    <string name="data_import_title">Do you want to import existing personal data (quotes, chat history, favorites, etc.) to this new account?</string>
+
+    <!-- Import option -->
+    <string name="import_option_title">Import</string>
+    <string name="import_option_desc">The new account will have all your existing data</string>
+
+    <!-- Don\'t import option -->
+    <string name="not_import_option_title">Don\'t Import</string>
+    <string name="not_import_option_desc">Data will remain local, and the new account will be completely fresh</string>
+    <string name="account_already_exists">Your account already exists. Currently displaying data for this account. To view data saved before logging in, log out of the current account to view.</string>
 </resources>

@@ -182,7 +182,7 @@ class SearchResultFragment : BaseFragment() {
             (myAdapter as SearchResultAdapter).clear()
         }
         dm.add(
-            GWApiManager.shared().listMessage(queryType, searchingKey, page, 20)
+            GWApiManager.shared().listMessage(queryType, null, searchingKey, page, 20)
                 .observeOn(RX.main())
                 .subscribe(
                     { data ->

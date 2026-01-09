@@ -1,5 +1,5 @@
 package sdk.chat.demo.robot.activities
-
+import android.util.Log
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -193,6 +193,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
 //            // 上拉加载监听
             setOnLoadMoreListener(object : LoadMoreSwipeRefreshLayout.OnLoadMoreListener {
                 override fun onLoadMore() {
+                    Log.e("loadmsg","onLoadMore")
 //                    if (!articleAdapter.isLoading) {
 //                        articleAdapter.isLoading = true
 //                        setLoadingMore(true)
@@ -206,7 +207,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     handler.postDelayed(hideLoadLatestRunnable, 4000)
                 }
             })
-            setCanLoadMore(false)
+            setCanLoadMore(true)
         }
 
     }

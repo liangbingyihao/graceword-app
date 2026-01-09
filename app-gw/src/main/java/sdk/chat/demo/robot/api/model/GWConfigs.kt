@@ -7,6 +7,10 @@ data class GWConfigs(
     val configs: GWConfigItem? = null,
     @SerializedName("contact_email")
     val contactEmail: String? = null,
+    @SerializedName("privacy_agreement")
+    val privacyAgreement: String? = null,
+    @SerializedName("term_of_service")
+    val termOfService: String? = null,
 
     @SerializedName("default_msg")
     val defaultMsg: MessageDetail? = null,
