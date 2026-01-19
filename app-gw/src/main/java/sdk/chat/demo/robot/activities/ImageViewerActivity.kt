@@ -139,8 +139,8 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                     else -> ""
                 }
                 previousPosition = position
-                cntSlide+=1
-                if(cntSlide>1){
+                cntSlide += 1
+                if (cntSlide > 1) {
                     LogUploader.reportEvent(
                         "mod_daily", listOf<KeyValuePair?>(
                             KeyValuePair("daily_action", direction),
@@ -203,25 +203,23 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                 )
         )
 
-        if (false) {
-            dm.add(
-                DailyTaskHandler.getTaskProgress()
-                    .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
-                    .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
-                    .subscribe(
-                        { data ->
-                            if (data != null) {
-                                taskDetail = data.taskDetail
-                                taskDetail?.completeTaskByIndex(0)
-                                DailyTaskHandler.setTaskDetail(taskDetail)
-                            } else {
-                                throw IllegalArgumentException("获取数据失败")
-                            }
-                        },
-                        this
-                    )
-            )
-        }
+        dm.add(
+            DailyTaskHandler.getTaskProgress()
+                .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
+                .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
+                .subscribe(
+                    { data ->
+                        if (data != null) {
+                            taskDetail = data.taskDetail
+                            taskDetail?.completeTaskByIndex(0)
+                            DailyTaskHandler.setTaskDetail(taskDetail)
+                        } else {
+                            throw IllegalArgumentException("获取数据失败")
+                        }
+                    },
+                    this
+                )
+        )
     }
 
     override fun getLayout(): Int {
@@ -257,7 +255,7 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                 finish()
             }
 
-            R.id.wallpaper ->{
+            R.id.wallpaper -> {
                 var imageDaily = adapter.getUrlAt(viewPager.currentItem)
                 if (imageDaily == null) {
                     return
@@ -294,21 +292,21 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
                     )
                 )
 //                if (taskDetail != null) {
-                    val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
-                    var date = adapter.getUrlAt(viewPager.currentItem)?.date
+                val threadHandler: GWThreadHandler = ChatSDK.thread() as GWThreadHandler
+                var date = adapter.getUrlAt(viewPager.currentItem)?.date
 
 //                    var action = AIExplore.ExploreItem.action_daily_gw
 //                    if (!taskDetail!!.isTaskCompleted(TaskDetail.TASK_PRAY_MASK)) {
 //                        action = AIExplore.ExploreItem.action_daily_gw_pray
 //                    }
-                    var action = AIExplore.ExploreItem.action_daily_gw_pray
+                var action = AIExplore.ExploreItem.action_daily_gw_pray
 //                threadHandler.aiExplore.contextId
-                    threadHandler.sendExploreMessage(
-                        "【每日恩语】-${date}",
-                        null,
-                        action,
-                        date
-                    ).subscribe();
+                threadHandler.sendExploreMessage(
+                    "【每日恩语】-${date}",
+                    null,
+                    action,
+                    date
+                ).subscribe();
 //                }
                 LogUploader.chatEntrance("daily")
                 finish()

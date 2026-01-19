@@ -1,5 +1,6 @@
 package sdk.chat.demo.robot.adpter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -55,19 +56,59 @@ class ArticleAdapter(
 
     override fun getItemCount(): Int = currentList.size + 1
 
-    fun getSelect(){
-
+    fun getLastArticle(): Article? {
+        return if (currentList.isEmpty()) {
+            null
+        } else {
+            currentList[currentList.size - 1]
+        }
     }
 
     fun clearAll() {
-        submitList(emptyList()) // 清空并自动通知DiffUtil更新
+        Log.e(
+            "MessageService",
+            Thread.currentThread().name+" start clearAll updatedList:${currentList.size}"
+        )
+        submitList(emptyList()){
+            // 可选的完成回调
+            Log.e(
+                "MessageService",
+                Thread.currentThread().name+" clear all return ${currentList.size}"
+            )
+        }
     }
 
-    fun appendItems(newItems: List<Article>, commitCallback: Runnable?) {
+    fun appendItems(newItems: List<Article>, hasMore: Boolean, commitCallback: Runnable?) {
+        Log.e(
+            "MessageService",
+            Thread.currentThread().name+" start appendItems: ${currentList.size}"
+        )
         val updatedList = currentList.toMutableList().apply {
             addAll(newItems)
         }
-        submitList(updatedList, commitCallback)
+        if (!updatedList.isEmpty()) {
+            var latest = "";
+            var lastDay = updatedList[updatedList.size - 1].day;
+            updatedList.map { it ->
+                if (it.day != latest) {
+                    latest = it.day
+                    it.showDay = true
+                } else {
+                    it.showDay = false
+                }
+                if (!hasMore) {
+                    it.isFirstDay = it.day == lastDay
+                }
+            }
+        }
+        Log.e(
+            "MessageService",
+            "updatedList:${updatedList.size}"
+        )
+        submitList(updatedList) {
+            notifyDataSetChanged()
+            commitCallback?.run()
+        }
     }
 
     fun updateSummaryById(id: String?, newSummary: String): Boolean {
@@ -128,18 +169,16 @@ class ArticleAdapter(
             editTitle.setOnClickListener { _selectId = article;onEditClick(article) }
             tvTitle.setOnClickListener { _selectId = article;onEditClick(article) }
 
+            tvDay.visibility = View.VISIBLE
+            tvContentMask.visibility = View.VISIBLE
             if (!article.showDay) {
                 tvDay.visibility = View.INVISIBLE
                 tvContentMask.visibility = View.INVISIBLE
-            } else {
-                tvDay.visibility = View.VISIBLE
-                tvContentMask.visibility = View.VISIBLE
             }
 
+            tvDashedLine.visibility = View.VISIBLE
             if (article.isFirstDay) {
                 tvDashedLine.visibility = View.GONE
-            } else {
-                tvDashedLine.visibility = View.VISIBLE
             }
         }
 

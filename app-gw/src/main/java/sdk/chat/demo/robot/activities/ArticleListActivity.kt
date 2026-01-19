@@ -1,4 +1,6 @@
 package sdk.chat.demo.robot.activities
+
+import sdk.chat.demo.robot.api.model.MessagePage
 import android.util.Log
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -52,6 +54,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     private lateinit var swipeRefreshLayout: LoadMoreSwipeRefreshLayout
     private lateinit var menuPopup: GenericMenuPopupWindow<ArticleSession, SessionPopupAdapter.SessionItemViewHolder>
     private var sessionId: String = ""
+    private var eldestMsg: Message? = null
     private lateinit var tvTitle: TextView
     private lateinit var vEdSummaryContainer: View
     private lateinit var bConversations: View
@@ -85,6 +88,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
         setContentView(R.layout.activity_article_list)
 
         sessionId = intent.getStringExtra(EXTRA_INITIAL_DATA).toString()
+        eldestMsg = null
 
 
         vEdSummaryContainer = findViewById(R.id.edSummaryContainer)
@@ -136,7 +140,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             onItemClick = { article ->
                 // 处理普通点击
 //                Toast.makeText(this, "点击了: ${article.localId}，${article.title}", Toast.LENGTH_SHORT).show()
-                ChatActivity.start(ArticleListActivity@ this, article.id,"timeline");
+                ChatActivity.start(ArticleListActivity@ this, article.id, "timeline");
                 LogUploader.reportEvent(
                     "mod_timeline", mutableListOf(
                         KeyValuePair("timeline_action", "20"),
@@ -183,6 +187,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             // 下拉刷新监听
             setOnRefreshListener {
                 articleAdapter.isLoading = false
+                eldestMsg = null
                 setLoadingMore(false)
                 loadArticles()
             }
@@ -193,12 +198,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
 //            // 上拉加载监听
             setOnLoadMoreListener(object : LoadMoreSwipeRefreshLayout.OnLoadMoreListener {
                 override fun onLoadMore() {
-                    Log.e("loadmsg","onLoadMore")
-//                    if (!articleAdapter.isLoading) {
-//                        articleAdapter.isLoading = true
-//                        setLoadingMore(true)
-//                        loadArticles(++currentPage)
-//                    }
+                    Log.e("MessageService", "onLoadMore:" + articleAdapter.isLoading)
+                    if (!articleAdapter.isLoading) {
+                        articleAdapter.isLoading = true
+                        setLoadingMore(true)
+                        loadArticles()
+                    }
                 }
 
                 override fun onLoadLatestActive() {
@@ -224,41 +229,6 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
         }
     }
 
-//    private fun checkHeight() {
-//        if(true){
-//            return
-//        }
-//
-//        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
-//        Log.d(
-//            "ViewHeight",
-//            "${sessionId} First: ${layoutManager?.findFirstVisibleItemPosition()},last:${layoutManager?.findLastVisibleItemPosition()},total:${articleAdapter.itemCount}"
-//        )
-//        layoutManager?.findLastVisibleItemPosition()?.let {
-//            if (it < articleAdapter.itemCount) {
-//                val childView = layoutManager.findViewByPosition(it)
-//
-//                if (childView != null) {
-//                    // 获取该View相对于RecyclerView的坐标
-//                    val left = childView.left   // 左边距相对于RecyclerView
-//                    val top = childView.top     // 上边距相对于RecyclerView
-//                    val right = childView.right // 右边距相对于RecyclerView
-//                    val bottom = childView.bottom // 下边距相对于RecyclerView
-//
-//                    Log.d("ViewHeight",
-//                        "位置findLastVisibleItemPosition: " +
-//                                "left=$left, top=$top, right=$right, bottom=$bottom")
-//
-//                    // 2. 为 independentView 设置布局参数，修改高度
-//                    val layoutParams = vLineDash.layoutParams
-//                    layoutParams.height = bottom
-//                    vLineDash.layoutParams = layoutParams
-//                }
-//            }
-//        }
-//
-//    }
-
     private fun initMenuPopup(items: MutableList<ArticleSession>) {
         var selectedPosition = items.indexOfFirst { it.id == sessionId }.let {
             if (it < 0) 0 else it
@@ -283,6 +253,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     } else {
                         tvTitle.text = item.title
                         sessionId = item.id
+                        eldestMsg = null
                         menuPopup.setTitle(item.title)
                         loadArticles()
 
@@ -310,15 +281,6 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     fun loadSessions() {
         dm.add(
             threadHandler.listSessions()
-//                .flatMap(Function { sessions: MutableList<Thread> ->
-//                    val articleSessions = sessions.map { session ->
-//                        ArticleSession(
-//                            id = session.entityID,
-//                            title = session.name,
-//                        )
-//                    }
-//                    Single.just(articleSessions)
-//                } as Function<in MutableList<Thread>, SingleSource<MutableList<ArticleSession>>>)
                 .observeOn(RX.main())
                 .subscribe(
                     { articleSessions ->
@@ -337,12 +299,24 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
     }
 
     fun loadArticles() {
+        if (eldestMsg == null) {
+            articleAdapter.clearAll()
+            swipeRefreshLayout.setCanLoadMore(true)
+        }
         dm.add(
-            threadHandler.loadMessagesBySession(sessionId)
-                .flatMap(Function { messages: List<Message> ->
-                    var lastDay = "";
-                    var firstDay =
-                        DateLocalizationUtil.dateStr(messages.lastOrNull()?.date).split(" ")[0]
+            threadHandler.loadMessagesBySession(sessionId, eldestMsg)
+                .flatMap(Function { data: MessagePage ->
+                    var messages = data.items
+//                    var lastDay = articleAdapter.getLastArticle()?.day;
+
+//                    var firstDay =
+//                        DateLocalizationUtil.dateStr(messages.lastOrNull()?.date).split(" ")[0]
+                    if (!data.isHasMore) {
+                        swipeRefreshLayout.setCanLoadMore(false)
+                    }
+                    if (!messages.isEmpty()) {
+                        eldestMsg = messages[messages.size - 1]
+                    }
                     val articleList = messages.map { message ->
                         var dateStr = DateLocalizationUtil.dateStr(message.date)
                         val parts = dateStr.split(" ")
@@ -353,8 +327,6 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                             thisTime = parts[1]
                         }
 
-                        var showDay = thisDay != lastDay
-                        lastDay = thisDay
                         val aiFeedback: MessageDetail? = GWMsgHandler.getAiFeedback(message)
                         Article(
                             id = message.entityID,
@@ -370,31 +342,46 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                                 .getOrElse { exception ->
                                     "#FFFBE8".toColorInt()
                                 },
-                            showDay = showDay,
-                            isFirstDay = thisDay == firstDay
+                            showDay = true,
+                            isFirstDay = false,
                         )
                     }.filter { article ->
                         // 过滤条件：只保留符合条件的 message
                         !article.content.isEmpty()
                     }
-                    Single.just(articleList)
-                } as Function<List<Message?>?, SingleSource<List<Article?>?>?>)
+                    Single.just(Pair(articleList, data.isHasMore))
+                })
                 .observeOn(RX.main())
+                .doFinally {
+                    articleAdapter.isLoading = false
+                    swipeRefreshLayout.isRefreshing = false
+                    swipeRefreshLayout.setLoadingMore(false)
+                }
                 .subscribe(
-                    { messages ->
-                        swipeRefreshLayout.isRefreshing = false
-                        articleAdapter.submitList(messages)
-                        if (messages != null && !messages.isEmpty()) {
+                    { articleList ->
+                        val (messages, isHasMore) = articleList
+                        var isFirst = articleAdapter.itemCount == 1
+                        articleAdapter.appendItems(messages, isHasMore) {
+                            if (isFirst) {
+                                recyclerView.scrollToPosition(0);
+                            }
+//                            Log.e(
+//                                "MessageService",
+//                                Thread.currentThread().name + " after refresh updatedList:${articleAdapter.itemCount}"
+//                            )
+                        }
+                        if (!messages.isEmpty()) {
                             setEmptyRecord(false)
-                        } else {
+                        } else if (isFirst) {
                             setEmptyRecord(true)
                         }
-                        recyclerView.scrollToPosition(0);
-//                        recyclerView.postDelayed({ checkHeight() }, 500)
                     },
                     { error -> // onError
-                        swipeRefreshLayout.isRefreshing = false
-                        FirebaseReport.reportExportEvent("load.err", error.message.toString(), error)
+                        FirebaseReport.reportExportEvent(
+                            "load.err",
+                            error.message.toString(),
+                            error
+                        )
                         Toast.makeText(
                             this@ArticleListActivity,
                             error.message,

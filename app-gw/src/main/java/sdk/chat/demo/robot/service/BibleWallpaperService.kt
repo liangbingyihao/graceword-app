@@ -1,15 +1,18 @@
 package sdk.chat.demo.robot.service
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.RectF
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
+import android.view.WindowManager
 import com.google.gson.Gson
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
@@ -30,12 +33,16 @@ import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
 import java.util.concurrent.Executors
+import android.view.Surface
+import android.hardware.display.DisplayManager
+import android.view.Display
 
 class BibleWallpaperService : WallpaperService() {
     private val TAG = "BibleWallpaperEngine"
     private var isClikable: Boolean = false
     private var wallpaperConfig: WallpaperConfig? = null
     private val dm = CompositeDisposable()
+    private var lastOrientation: Int = -1
 
     override fun onCreateEngine(): Engine {
         return BibleWallpaperEngine()
@@ -67,23 +74,12 @@ class BibleWallpaperService : WallpaperService() {
 
         // 时间控制
         private var lastImageChangeTime = System.currentTimeMillis()
-//        private var lastSourceChangeTime = System.currentTimeMillis()
-//        private val imageChangeInterval = 60 * 1000L // 1分钟切换图片
-//        private val sourceChangeInterval = 10 * 60 * 1000L // 10分钟切换图片源
-
-//        // 图片缓存
-//        private val imageCache = mutableMapOf<String, Bitmap>()
-//        private val loadingUrls = mutableSetOf<String>()
-//        private val imageDailyCache = mutableMapOf<String, ImageDaily>()
-//
-//        // 经文数据
-//        private val bibleVerses = mutableListOf<BibleVerse>()
-//        private var currentVerse: BibleVerse? = null
 
         // 触摸区域
         private var verseRect: RectF? = null
         private var isVerseAreaTouched = false
         private var lastDate: String = ""
+        private var isPortrait = false
 
 //        // 绘图工具
 //        private val textPaint = Paint().apply {
@@ -110,6 +106,7 @@ class BibleWallpaperService : WallpaperService() {
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             this.width = width
             this.height = height
+            this.isPortrait = this.height>this.width
 //            updateVerseRect()
             super.onSurfaceChanged(holder, format, width, height)
         }
@@ -264,7 +261,11 @@ class BibleWallpaperService : WallpaperService() {
 
         private fun drawWallpaper(canvas: Canvas) {
 //            checkAndChangeContent()
-            drawBackgroundImage(canvas)
+            if(this.isPortrait){
+                drawBackgroundImage(canvas)
+            }else{
+                Logger.error { "$TAG, !isPortrait:${this.width},${this.height}" }
+            }
 //            drawBibleVerse(canvas)
 //            drawInfoText(canvas)
 
@@ -350,7 +351,7 @@ class BibleWallpaperService : WallpaperService() {
                 var resId =
                     if (!request.greeting.isNullOrEmpty() && !request.fontUrl.isNullOrEmpty()) R.layout.item_image_greeting else R.layout.item_image_gw
 
-                var isUnderline = wallpaperConfig?.isReadScriptureEnabled ?: false
+                var isUnderline = wallpaperConfig?.isReadScriptureEnabled == true
                 var cacheKey = CardGenerator.getCacheKey(
                     resId, request, false,
                     isUnderline

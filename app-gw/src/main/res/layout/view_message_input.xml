@@ -5,48 +5,67 @@
     android:gravity="center_vertical"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/menus"
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginLeft="26dp">
-        <!--            android:background="#FFEEEB"-->
+        android:layout_below="@id/titleText"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/hymns"
-            style="@style/ExploreButtonStyle"
+        <LinearLayout
+            android:id="@+id/menus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingRight="4dp"
-            android:text="@string/hymns"
-            android:drawableLeft="@mipmap/ic_search_songs"
-            android:textSize="12sp"
-            app:cornerRadius="16dp" />
+            android:layout_marginLeft="26dp"
+            android:layout_marginRight="12dp"
+            android:orientation="horizontal">
+            <!--            android:background="#FFEEEB"-->
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/bible"
-            style="@style/ExploreButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:gravity="center"
-            app:cornerRadius="16dp"
-            android:drawableLeft="@mipmap/ic_read_bible"
-            android:text="@string/read_bible"
-            android:textSize="12sp" />
 
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hymns"
+                style="@style/ExploreButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@mipmap/ic_search_songs"
+                android:gravity="center"
+                android:paddingRight="4dp"
+                android:text="@string/hymns"
+                android:textSize="12sp"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bible"
+                style="@style/ExploreButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:drawableLeft="@mipmap/ic_read_bible"
+                android:gravity="center"
+                android:text="@string/read_bible"
+                android:textSize="12sp"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/study"
+                style="@style/ExploreButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:drawableLeft="@mipmap/ic_bible_study"
+                android:gravity="center"
+                android:text="@string/daily_check_in"
+                android:textSize="12sp"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <TextView
         android:id="@+id/hint_vip_msg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
         android:gravity="center"
-        />
+        android:paddingBottom="8dp" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -120,8 +139,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|left"
-                    android:visibility="gone"
-                    android:layout_marginLeft="12dp">
+                    android:layout_marginLeft="12dp"
+                    android:visibility="gone">
 
                     <sdk.chat.demo.robot.ui.CircleOverlayView
                         android:id="@+id/circleOverlay"

@@ -3,6 +3,8 @@ package sdk.chat.demo.robot.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -24,6 +26,7 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.ArticleListActivity
 import sdk.chat.demo.robot.adpter.SessionAdapter
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.KeyValuePair
@@ -46,6 +49,7 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
+import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.chat.demo.robot.utils.WallpaperGuideUtil
 
 
@@ -104,7 +108,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
         Log.e("MainApp", "mainactivity,${savedInstanceState == null}")
         try {
-            require(ChatSDK.currentUser()!=null)
+            require(ChatSDK.currentUser() != null)
         } catch (e: Exception) {
             Log.e("MainApp", "mainactivity,e:${e}")
             Logger.error(e, "currentUser error")
@@ -536,8 +540,59 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         var lastUser = AuthService.getLastLoginUser()
         if (lastUser != null && !lastUser.isGuest) {
             vUserMenu.text = getString(R.string.my_account)
-        }else{
+//            if (!AuthService.isAuthenticated() && (System.currentTimeMillis() - (application as MainApp).startTimeStamp) < 4000) {
+//                Handler(Looper.getMainLooper()).postDelayed({
+//                    showMaterialConfirmationDialog(
+//                        this@MainDrawerActivity,
+//                        getString(R.string.login_hint_offline),
+//                        getString(R.string.login),
+//                        getString(R.string.skip),
+//                        positiveAction = {
+//                            startActivity(
+//                                Intent(
+//                                    this@MainDrawerActivity,
+//                                    LoginActivity::class.java
+//                                )
+//                            )
+//                        })
+//                }, 1000)
+//            }
+        } else {
             vUserMenu.text = getString(R.string.login)
+
+            var hasLoginHint =
+                getSharedPreferences("app_prefs", MODE_PRIVATE).getBoolean(
+                    "shown_login_hint",
+                    false
+                )
+
+            var loginHintRes = 0
+            if (!hasLoginHint && hasShownGuideOverlay(this@MainDrawerActivity)) {
+                getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .edit() {
+                        putBoolean("shown_login_hint", true)
+                    }
+                loginHintRes = R.string.login_hint
+            } else if (AuthService.hasLoginBefore() && (System.currentTimeMillis() - (application as MainApp).startTimeStamp) < 4000) {
+                loginHintRes = R.string.login_hint_offline
+            }
+            if (loginHintRes > 0) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    showMaterialConfirmationDialog(
+                        this@MainDrawerActivity,
+                        getString(loginHintRes),
+                        getString(R.string.login),
+                        getString(R.string.skip),
+                        positiveAction = {
+                            startActivity(
+                                Intent(
+                                    this@MainDrawerActivity,
+                                    LoginActivity::class.java
+                                )
+                            )
+                        })
+                }, 1000)
+            }
         }
     }
 
@@ -611,14 +666,14 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
             R.id.menu_user -> {
                 var lastUser = AuthService.getLastLoginUser()
-                if (lastUser != null && !lastUser.isGuest){
+                if (lastUser != null && !lastUser.isGuest) {
                     startActivity(
                         Intent(
                             this@MainDrawerActivity,
                             AccountActivity::class.java
                         )
                     )
-                }else{
+                } else {
                     startActivity(
                         Intent(
                             this@MainDrawerActivity,
@@ -676,40 +731,15 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     fun setTaskRedDotView() {
-        if (true) {
-            //FIXME
-            return
-        }
-
         dm.add(
             DailyTaskHandler.getTaskProgress()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(
                     { data ->
-                        if (data != null && !data.taskDetail.isAllUserTaskCompleted && vTaskMenu.isVisible) {
-//                            // 获取菜单图标的宽高
-//                            val menuWidth: Int = vTaskMenu.width
-//
-//                            // 创建布局参数
-//                            val params: FrameLayout.LayoutParams =
-//                                vRedDotTask.layoutParams as FrameLayout.LayoutParams
-//
-//
-//                            // 设置红点位置（菜单图标右上角）
-//                            params.gravity = Gravity.START or Gravity.TOP
-//                            params.leftMargin =
-//                                vTaskMenu.left + menuWidth - vTaskMenu.paddingRight - vRedDotTask.width / 2
-//                            params.topMargin =
-//                                vTaskMenu.top + vTaskMenu.paddingTop - vRedDotTask.height / 2
-//                            vRedDotTask.setLayoutParams(params)
-                            vRedDotTask.visibility = View.VISIBLE
-                        } else {
-                            vRedDotTask.visibility = View.GONE
-                        }
                     },
                     Consumer { error: Throwable? ->
-                        vRedDotTask.visibility = View.GONE
+//                        vRedDotTask.visibility = View.GONE
                     }
                 )
         )

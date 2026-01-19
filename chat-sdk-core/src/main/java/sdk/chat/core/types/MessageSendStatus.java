@@ -15,5 +15,5 @@ public enum MessageSendStatus {
     Failed,
     Sent,
     None,
-//    Incoming,
+    Deleted,
 }

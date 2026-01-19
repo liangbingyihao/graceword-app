@@ -12,6 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.greenrobot.greendao.query.QueryBuilder;
+import org.greenrobot.greendao.query.WhereCondition;
 import org.tinylog.Logger;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ import sdk.chat.demo.robot.api.model.GWConfigs;
 import sdk.chat.demo.robot.api.model.ImageDaily;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.MessageDetail;
+import sdk.chat.demo.robot.api.model.MessagePage;
 import sdk.chat.demo.robot.api.model.SystemConf;
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
@@ -73,14 +75,15 @@ import sdk.guru.common.RX;
 public class GWThreadHandler extends AbstractThreadHandler {
     private final AtomicBoolean hasSyncedWithNetwork = new AtomicBoolean(false);
     private List<ArticleSession> sessionCache;
-//    private Message welcome;
+    //    private Message welcome;
     //    private AIExplore aiExplore;
     //    private Message playingMsg;
     private Boolean isCustomPrompt = null;
     private SystemConf serverPrompt = null;
-    private int batchSize = 30;
+    private int batchSize = 40;
     private final static Gson gson = new Gson();
     public final static String KEY_AI_FEEDBACK = "ai_feedback";
+    public final static String KEY_VERSION = "version";
     public final static String headTopic = "信仰问答";
 //    public static String qaThreadId = null;
 
@@ -150,17 +153,110 @@ public class GWThreadHandler extends AbstractThreadHandler {
         return qb.list();
     }
 
-    public Single<List<Message>> loadMessagesBySession(@Nullable String sessionId) {
+    public Single<MessagePage> loadMessagesBySession(@Nullable String sessionId, Message lastMsg) {
         return Single.defer(() -> {
+            if (lastMsg != null) {
+                Log.e("MessageService", "load more MessagesBySession: " + sessionId + "," + lastMsg.getEntityID());
+            } else {
+                Log.e("MessageService", "start loadMessagesBySession: " + sessionId);
+            }
             DaoCore daoCore = ChatSDK.db().getDaoCore();
             QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
-            if (sessionId != null) {
-                qb.where(MessageDao.Properties.ThreadId.eq(Long.parseLong(sessionId)));
+
+// 构建查询条件
+            List<WhereCondition> conditions = new ArrayList<>();
+
+// 条件1: 如果 lastMsg 不为 null，查询比它更早的消息
+            if (lastMsg != null) {
+                Long lastMsgId = lastMsg.getId();
+                if (lastMsgId != null) {
+                    conditions.add(MessageDao.Properties.Id.lt(lastMsgId));
+                }
             }
-            qb.orderDesc(MessageDao.Properties.Date);
+
+// 条件2: 如果 sessionId 不为 null，过滤指定会话
+            Long threadId = null;
+            if (sessionId != null) {
+                try {
+                    threadId = Long.parseLong(sessionId);
+                    conditions.add(MessageDao.Properties.ThreadId.eq(threadId));
+                } catch (NumberFormatException e) {
+                    // 处理 sessionId 格式错误
+                    Log.e("MessageService", "Invalid sessionId format: " + sessionId, e);
+                }
+            }
+
+// 应用所有条件
+            if (!conditions.isEmpty()) {
+                if (conditions.size() == 1) {
+                    qb.where(conditions.get(0));
+                } else {
+                    qb.where(qb.and(conditions.get(0), conditions.get(1)));
+                }
+            }
+
+            var bs = batchSize;
+            qb.orderDesc(MessageDao.Properties.Date).limit(bs);
             List<Message> data = qb.list();
-            return Single.just(data);
+
+            // 2. 如果需要，异步触发网络同步
+            boolean hasMore = true;
+            if (data.size() < bs) {
+                hasMore = false;
+                Long olderThan = 0L;
+                if (!data.isEmpty()) {
+                    Message msg = data.get(data.size() - 1);
+                    olderThan = msg.getUpdateTs();
+                } else if (lastMsg != null) {
+                    olderThan = lastMsg.getUpdateTs();
+                }
+                if (threadId != null) {
+                    var thread = ChatSDK.db().fetchThreadWithEntityID(sessionId);
+                    if (thread != null) {
+                        var lastUpdateTs = thread.metaValueForKey(Keys.KEY_VERSION);
+                        if(lastUpdateTs==null||lastUpdateTs.getLongValue()>olderThan){
+                            hasMore = true;
+                            triggerNetworkSyncAsync(threadId, olderThan);
+                        }
+                    }
+                }
+            }
+            Log.d("MessageService", threadId + " has more:" + hasMore);
+            MessagePage ret = new MessagePage(data, hasMore);
+            return Single.just(ret);
         }).subscribeOn(RX.db());
+    }
+
+
+    private final AtomicBoolean isSyncing = new AtomicBoolean(false);
+
+    /**
+     * 异步触发网络同步
+     */
+    private void triggerNetworkSyncAsync(Long sessionId, Long olderThan) {
+        if (!isSyncing.compareAndSet(false, true)) {
+            return; // 已经在同步中
+        }
+
+        Log.d("MessageService", sessionId + ",triggerNetworkSyncAsync:" + olderThan);
+        // 异步执行网络同步
+        MainApp.addGlobalDisposable(MessageService.INSTANCE.loadSessionMessagesAndSaveToLocal(sessionId, olderThan, 1, 500)
+                .subscribeOn(Schedulers.io())
+                .doFinally(() -> {
+                    // 完成回调，重置同步状态
+                    isSyncing.set(false);
+                })
+                .subscribe(
+                        () -> {
+                            // 同步成功
+                            Log.d("MessageService", "Network sync completed successfully");
+                        },
+                        error -> {
+                            // 同步失败
+                            Log.e("MessageService", "Network sync failed " + error);
+
+                        }
+                ));
     }
 
     public Single<Boolean> setSummary(String msgId, String summary) {
@@ -288,11 +384,19 @@ public class GWThreadHandler extends AbstractThreadHandler {
             }
             qb.orderDesc(MessageDao.Properties.Date).limit(batchSize);
             List<Message> messages = qb.list();
+            List<Message> ret = new ArrayList<>();
+
             int i = 0;
             boolean isVip = BillingManager.Companion.getInstance().hasSubscriptions();
             while (i < messages.size()) {
 //                while (aiExplore == null && i < messages.size()) {
                 Message tmp = messages.get(i);
+                ++i;
+                if (tmp.getMessageStatus() == MessageSendStatus.Deleted) {
+                    Log.d("loadmsg", tmp.getEntityID() + " STATUS:" + tmp.getStatus());
+                    continue;
+                }
+                ret.add(tmp);
 //                MessageDetail aiFeedback = GWMsgHandler.getAiFeedback(tmp);
 //                if (aiFeedback != null && aiFeedback.getFeedback() != null) {
 //                    aiExplore = AIExplore.loads(tmp);
@@ -304,9 +408,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
                 if (startId == null || startId == 0) {
                     reloadTimeoutMsg(tmp);
                 }
-                ++i;
             }
-            return Single.just(messages);
+            return Single.just(ret);
         }).subscribeOn(RX.db());
     }
 
@@ -332,6 +435,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
             return Single.just(messages);
         }).subscribeOn(RX.db());
     }
+
     public Completable removeUsersFromThread(final Thread thread, List<User> users) {
         return Completable.complete();
     }
@@ -999,7 +1103,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 //        int expireMs = 2 * 60 * 1000;
         for (Message d : data) {
             MessageSendStatus status = d.getMessageStatus();
-            if (status != MessageSendStatus.Sent) {
+            if (status != MessageSendStatus.Sent && status != MessageSendStatus.Deleted) {
                 if (d.isLocalMessage()) {
                     d.setMessageStatus(MessageSendStatus.UploadFailed, false);
                 } else {
@@ -1087,6 +1191,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
 
     public Message newMessage(int type, Thread thread, boolean notify) {
         Message message = new Message();
+        message.setId(System.currentTimeMillis());
         message.setSender(ChatSDK.currentUser());
         message.setDate(new Date());
 
@@ -1145,6 +1250,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                                     new KeyValuePair("chat_action", "34")
                             )
                     );
+                    
                 } else if (aiFeedback.getStatus() == MessageDetail.STATUS_CANCEL || (fb != null && fb.getView() != null && !fb.getView().isEmpty())) {
                     message.setMessageStatus(MessageSendStatus.Sent, false);
                 } else {

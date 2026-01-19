@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.ApiTokenRequest
-import sdk.chat.demo.robot.extensions.showMaterialConfirmationDialog
 import sdk.chat.demo.robot.handlers.AuthService
 import sdk.chat.demo.robot.handlers.AuthService.authenticate
 import sdk.chat.demo.robot.handlers.GoogleIdentityManager
@@ -53,6 +52,12 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
         setupAgreementText()
         dialogImportData = findViewById<View>(R.id.dialog_data_import)
         dialogImportData?.let { dialog ->
+            var lastUser = AuthService.getLastLoginUser()
+            if (lastUser != null && lastUser.membershipActive) {
+                dialog.findViewById<TextView>(R.id.tv_data_import_title).setText(R.string.data_import_title_vip);
+                dialog.findViewById<TextView>(R.id.tv_import_desc).setText(R.string.import_option_desc_vip);
+                dialog.findViewById<TextView>(R.id.tv_not_import_desc).setText(R.string.not_import_option_desc_vip);
+            }
             dialog.visibility = View.GONE
             dialog.findViewById<View>(R.id.btn_confirm)?.setOnClickListener(this)
             cbImport = dialog.findViewById<CheckBox>(R.id.rb_import)
@@ -113,25 +118,6 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
                                 googleToken = ret.idToken
                             )
                             handleGoogleIdCredential()
-//                            showProgressDialog("登录中")
-//                            try {
-//                                AuthService.authenticate(
-//                                    ApiTokenRequest(
-//                                        googleId = ret.id,
-//                                        googleToken = ret.idToken
-//                                    )
-//                                ).blockingAwait()
-//                                startActivity(
-//                                    Intent(
-//                                        this@LoginActivity,
-//                                        MainDrawerActivity::class.java
-//                                    )
-//                                )
-//                                finish()
-//                            } catch (e: Exception) {
-//                                ToastHelper.show(this@LoginActivity, e.message)
-//                            }
-//                            dismissProgressDialog()
                         }
                     }
                 }
@@ -165,6 +151,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
                         if (AuthService.isOauthAlreadyLinked()) {
                             showBindingError()
                         } else {
+                            ToastHelper.show(this@LoginActivity, "Login successful")
                             startActivity(Intent(this, MainDrawerActivity::class.java))
                             finish()
                         }
@@ -197,6 +184,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
             }
         }
         dialog.setOnDismissListener {
+            ToastHelper.show(this@LoginActivity, "Login successful")
             startActivity(Intent(this, MainDrawerActivity::class.java))
             finish()
         }

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -38,6 +39,9 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
         setContentView(R.layout.activity_account)
         findViewById<View>(R.id.home).setOnClickListener(this)
 
+    }
+
+    private fun initView(){
         var lastUser = AuthService.getLastLoginUser()
         if (lastUser != null && !lastUser.isGuest) {
             var imAvatar = findViewById<PorterShapeImageView>(R.id.avatar)
@@ -62,7 +66,7 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                         "yyyy/MM/dd",
                         Locale.getDefault()
                     ).format(Date(lastUser.membershipExpiredAt * 1000))
-                    renewal.text = getString(R.string.next_renewal_time, timeStr)
+                    renewal.text = getString(R.string.vip_expired_time, timeStr)
                 } catch (e: Exception) {
                     renewal.visibility = View.INVISIBLE
                 }
@@ -72,15 +76,14 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                 renewal.visibility = View.INVISIBLE
                 findViewById<View>(R.id.vip_status_container).setOnClickListener(this)
             }
+            findViewById<View>(R.id.log_out).setOnClickListener(this)
+            tvUserName.setOnClickListener(this)
         }
-        findViewById<View>(R.id.log_out).setOnClickListener(this)
-        tvUserName.setOnClickListener(this)
     }
 
     override fun onResume() {
         super.onResume()
-        if (BillingManager.getInstance().hasSubscriptions()) {
-        }
+        initView()
     }
 
 
@@ -108,12 +111,21 @@ class AccountActivity : BaseActivity(), View.OnClickListener {
                     AuthService.logout()
                         .observeOn(RX.main())
                         .andThen(AuthService.authenticate())
+                        .observeOn(RX.main())
+                        .doFinally {
+                            startActivity(Intent(this, MainDrawerActivity::class.java))
+                            finish()
+                        }
                         .subscribe(
                             {
-                                startActivity(Intent(this, MainDrawerActivity::class.java))
-                                finish()
+                                Log.e("AuthService","logout success")
+                                ToastHelper.show(
+                                    this@AccountActivity,
+                                    "Logout success"
+                                )
                             },
                             { error -> // onError
+                                Log.e("AuthService","logout..${error.message}")
                                 ToastHelper.show(
                                     this@AccountActivity,
                                     error.message

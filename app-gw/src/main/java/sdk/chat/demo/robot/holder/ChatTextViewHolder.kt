@@ -106,7 +106,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
         replyText?.visibility = View.GONE
         cbUserText?.visibility = View.GONE
         var action = (t as? TextHolder)?.action
-        if (action != AIExplore.ExploreItem.action_daily_pray && t.message.text != null && !t.message.text.isEmpty()) {
+
+        if (t.message.messageStatus != MessageSendStatus.Deleted && action != AIExplore.ExploreItem.action_daily_pray && t.message.text != null && !t.message.text.isEmpty()) {
             var reply = t.message.stringForKey("reply");
             if (reply != null && !reply.isEmpty()) {
                 replyText?.visibility = View.VISIBLE
@@ -178,16 +179,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        t.message.metaValuesAsMap
         var feedbackText = aiFeedback?.feedbackText ?: ""
         cbAiText?.visibility = View.GONE
-//        feedbackText = aiFeedback?.feedbackText ?: t.message.stringForKey("feedback")
-//        feedbackText = "<span style=\"text-decoration: underline; color: red;\">红色下划线</span> <br/>"+feedbackText
-//        feedbackText = "<span style=\"border-bottom: 1px dotted #666;\">点状虚线下划线</span>"
-//        val markdownText = """
-//            <p>这是一段普通文本。</p>
-//            <p>这是<u class="bible">红色虚线带下划线的文本（带bible类）</u>，点击试试！</p>
-//            <p>这是<u>普通下划线文本（不带类）</u>，使用默认样式。</p>
-//            <p>这是另一段<u class="bible">带有自定义点击事件的红色文本（带bible类）</u>。</p>
-//            <p>混合内容：普通文本，<u class="bible">红色下划线文本（带bible类）</u>，普通文本，<u>普通下划线文本（不带类）</u>。</p>
-//        """.trimIndent().trimIndent()+feedbackText
 
         feedback?.let {
             if (!feedbackText.isEmpty() && isMultiSelectMode) {
@@ -198,10 +189,11 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             it.isClickable = true
             it.isFocusable = true
             MarkdownRenderer.markwon.setMarkdown(it, feedbackText);
-//            Markwon.builder(it.context)
-//                .usePlugin(HtmlPlugin.create().addHandler(RedUnderlineTagHandler()))
-//                .build()
-//                .setMarkdown(it, markdownText)
+        }
+
+        if(feedbackText.isEmpty()&&t.message.messageStatus == MessageSendStatus.Sent){
+            replyErrorHint?.visibility = View.VISIBLE
+            replyErrorHint?.text = bubble?.context?.getString(R.string.no_cached_data) ?: "Retrieve the response data..."
         }
 
 
@@ -340,7 +332,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     open fun bindSendStatus(holder: T): Boolean {
         var aiFeedback: MessageDetail? = (holder as? TextHolder)?.getAiFeedback();
         var status = holder.message.messageStatus
-        Log.d("sending", "bindSendStatus:" + status.name)
+        Log.d("textviewholder", "bindSendStatus:" + status.name+","+holder.message.entityID)
         if (status.ordinal < MessageSendStatus.Replying.ordinal) {
             feedbackMenu?.visibility = View.GONE
             feedback?.visibility = View.GONE
@@ -372,6 +364,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
             if (status == MessageSendStatus.Failed) {
                 replyErrorHint?.visibility = View.VISIBLE
+                replyErrorHint?.text = bubble?.context?.getString(R.string.ai_failed) ?: "Retrieve the response data..."
             } else {
                 replyErrorHint?.visibility = View.GONE
             }

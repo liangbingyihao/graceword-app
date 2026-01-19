@@ -6,6 +6,7 @@ public class MessageDetail {
     public static final int STATUS_INIT = 0;
     public static final int STATUS_PENDING = 1;
     public static final int STATUS_SUCCESS = 2;
+    public static final int STATUS_DELETED = 3;
     public static final int STATUS_ERROR = 4;
     public static final int STATUS_CANCEL = 6;
     private String id;
@@ -22,6 +23,10 @@ public class MessageDetail {
     private AIFeedback feedback;
     @SerializedName("created_at")
     private String createdAt;
+    @SerializedName("created_ts")
+    private Long createdTs;
+    @SerializedName("updated_ts")
+    private Long updatedTs;
 
     public String getId() {
         return id;
@@ -92,5 +97,21 @@ public class MessageDetail {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Long getCreatedTs() {
+        return createdTs;
+    }
+
+    public void setCreatedTs(Long createdTs) {
+        this.createdTs = createdTs;
+    }
+
+    public Long getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(Long updatedTs) {
+        this.updatedTs = updatedTs;
     }
 }

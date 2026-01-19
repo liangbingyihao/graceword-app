@@ -5,6 +5,7 @@ import sdk.chat.core.ui.KeyboardOverlayHandler;
 import sdk.chat.demo.robot.activities.BibleActivity;
 import sdk.chat.demo.robot.activities.BibleBooksActivity;
 import sdk.chat.demo.robot.activities.BillingActivity;
+import sdk.chat.demo.robot.activities.TaskActivity;
 import sdk.chat.demo.robot.api.model.GWConfigs;
 import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.extensions.ActivityExtensionsKt;
@@ -230,6 +231,12 @@ public class GWMsgInput extends RelativeLayout
 //            messageSendButton.setVisibility(VISIBLE);
         } else if (id == R.id.editMode) {
             setEditMode(editMode == MODE_FULLSCREEN ? MODE_NORMAL : MODE_FULLSCREEN, true);
+        } else if (id == R.id.study) {
+            this.getContext().startActivity(
+                    new Intent(this.getContext(),
+                            TaskActivity.class
+                    )
+            );
         } else if (id == R.id.hymns) {
             inputIntentMenus.setVisibility(View.GONE);
             inputIntentView.onClick(view);
@@ -401,6 +408,7 @@ public class GWMsgInput extends RelativeLayout
         editModeButton.setOnClickListener(this);
         findViewById(R.id.hymns).setOnClickListener(this);
         findViewById(R.id.bible).setOnClickListener(this);
+        findViewById(R.id.study).setOnClickListener(this);
         hintVip.setOnClickListener(this);
 //        findViewById(R.id.stopAsr).setOnClickListener(this);
         messageInput.addTextChangedListener(this);

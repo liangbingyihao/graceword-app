@@ -355,6 +355,7 @@ public class ImageApi {
                         if (welcomeMsg != null) {
                             welcomeMsg.addProperty("status", MessageDetail.STATUS_SUCCESS);
                             Message message = new Message();
+                            message.setId(0L);
                             message.setEntityID("welcome");
                             message.setSender(ChatSDK.currentUser());
                             message.setDate(new Date(1640995200000L));

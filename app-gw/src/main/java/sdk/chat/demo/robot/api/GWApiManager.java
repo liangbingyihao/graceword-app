@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 
 import java.util.Date;
+
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
@@ -44,6 +45,7 @@ import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.BuildConfig;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.model.FavoriteList;
+import sdk.chat.demo.robot.api.model.MessageList;
 import sdk.chat.demo.robot.api.model.SystemConf;
 import sdk.chat.demo.robot.api.model.TaskProgress;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
@@ -83,7 +85,7 @@ public class GWApiManager {
         } else {
             URL = "https://api.grace-word.com/api/";
         }
-        URL_V1 = URL+"v1/";
+        URL_V1 = URL + "v1/";
     }
 
     private final static String URL_LOGIN = URL + "auth/login";
@@ -130,7 +132,7 @@ public class GWApiManager {
         return client;
     }
 
-//    public String getAccessToken() {
+    //    public String getAccessToken() {
 //        return accessToken;
 //    }
 //
@@ -154,7 +156,7 @@ public class GWApiManager {
                 .build();
     }
 
-    public <T> T handleResponse(Response response,Class<T> classOfT) throws IOException {
+    public <T> T handleResponse(Response response, Class<T> classOfT) throws IOException {
         if (!response.isSuccessful()) {
             throw new IOException("HTTP " + response.code() + ": " + response.message());
         }
@@ -174,80 +176,19 @@ public class GWApiManager {
         JsonPrimitive codePrimitive = jsonObject.getAsJsonPrimitive("code");
         String code = codePrimitive != null ? codePrimitive.getAsString() : null;
         if (!"OK".equals(code)) {
-            String errorMessage = jsonObject.getAsJsonPrimitive("msg").getAsString();
+            JsonPrimitive msg = jsonObject.getAsJsonPrimitive("msg");
+            String errorMessage = msg != null ? msg.getAsString() : "Unknown error from backend";
             throw new IOException(errorMessage);
         } else {
             JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-            if(classOfT==null||classOfT==JsonObject.class){
+            if (classOfT == null || classOfT == JsonObject.class) {
                 return (T) data;
-            }else{
+            } else {
                 return gson.fromJson(data, classOfT);
             }
         }
 
     }
-
-//    public Single<AccountDetails> authenticate(final AccountDetails details) {
-//        return Single.create((SingleOnSubscribe<AccountDetails>) emitter -> {
-//            Map<String, String> params = new HashMap<>();
-//            if (details.type == AccountDetails.Type.Username) {
-//                params.put("username", details.username);
-//                params.put("password", details.password);
-//            } else if (details.type == AccountDetails.Type.Custom) {
-//                params.put("guest", details.token);
-//            } else {
-//                emitter.onError(new Exception("login type error"));
-//            }
-//            String fcmToken = UpdateTokenWorker.checkAndUpdateToken(ChatSDK.ctx());
-//            params.put("fcmToken", fcmToken);
-//            String gsonData = new JSONObject(params).toString();
-//
-//            RequestBody body = RequestBody.create(
-//                    gsonData,
-//                    MediaType.parse("application/json; charset=utf-8")
-//            );
-//
-//            Request request = new Request.Builder()
-//                    .url(URL_LOGIN)
-//                    .post(body)
-//                    .build();
-//
-//            client.newCall(request).enqueue(new Callback() {
-//                @Override
-//                public void onFailure(Call call, IOException error) {
-//                    System.err.println("请求失败: " + error.getMessage());
-//                    emitter.onError(error);
-//                }
-//
-//                @Override
-//                public void onResponse(Call call, Response response) throws IOException {
-//                    JsonObject resp = gson.fromJson(response.body().string(), JsonObject.class);
-//                    try {
-//                        if (resp != null && !resp.get("success").getAsBoolean()) {
-//                            throw new Exception("login failed:" + resp.get("message").getAsString());
-//                        }
-//                        JsonObject data = resp.getAsJsonObject("data");
-//                        accessToken = "Bearer " + data.get("access_token").getAsString();
-//                        details.setMetaValue("userId", data.get("user_id").getAsString());
-//                        int expiredAt = 0;
-//                        if(data.has("membership_expired_at")){
-//                            expiredAt = data.get("membership_expired_at").getAsInt();
-//                            if(expiredAt>0){
-//                                BillingManager.Companion.getInstance().setExpiredAt(expiredAt* 1000L);
-//                            }
-////                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-////                            String expiredAtStr = sdf.format(new Date(System.currentTimeMillis()+expiredAt*1000));
-////                            Log.e("BillingManager","expiredAtStr:"+expiredAtStr+","+expiredAt);
-//                        }
-//                        Logger.error("BillingManager: expiredAt "+expiredAt);
-//                        emitter.onSuccess(details);
-//                    } catch (Exception e) {
-//                        emitter.onError(e);
-//                    }
-//                }
-//            });
-//        }).subscribeOn(RX.io());
-//    }
 
     public Single<JsonObject> saveSession(String robotId) {
         return Single.create(emitter -> {
@@ -594,7 +535,6 @@ public class GWApiManager {
     }
 
 
-
     public Single<JsonObject> getMessageDetail(String contextId, int retry, int stop) {
         return Single.create(emitter -> {
 
@@ -658,14 +598,8 @@ public class GWApiManager {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     try {
-                        if (!response.isSuccessful()) {
-                            emitter.onError(new IOException("HTTP error: " + response.code()));
-                            return;
-                        }
-                        String responseBody = response.body() != null ? response.body().string() : "";
-                        JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-                        SystemConf tagList = gson.fromJson(data, SystemConf.class);
-                        emitter.onSuccess(tagList); // 请求成功
+                        SystemConf ret = GWApiManager.shared().handleResponse(response, SystemConf.class);
+                        emitter.onSuccess(ret); // 请求成功
                     } catch (Exception e) {
                         emitter.onError(e);
                     } finally {
@@ -701,14 +635,8 @@ public class GWApiManager {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     try {
-                        if (!response.isSuccessful()) {
-                            emitter.onError(new IOException("HTTP error: " + response.code()));
-                            return;
-                        }
-                        String responseBody = response.body() != null ? response.body().string() : "";
-                        JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-                        FavoriteList res = gson.fromJson(data, FavoriteList.class);
-                        emitter.onSuccess(res); // 请求成功
+                        FavoriteList ret = GWApiManager.shared().handleResponse(response, FavoriteList.class);
+                        emitter.onSuccess(ret);
                     } catch (Exception e) {
                         emitter.onError(e);
                     } finally {
@@ -719,13 +647,12 @@ public class GWApiManager {
         });
     }
 
-    public Single<JsonObject> listMessage(String sessionType,String olderThan, String search, int page, int limit) {
+    public Single<FavoriteList> searchMessage(String sessionType, String search, int page, int limit) {
         return Single.create(emitter -> {
-            String path = URL_MESSAGE;
-            if(search!=null&&!search.isEmpty()){
-                path+="/filter";
+            if (search == null || search.isEmpty()) {
+                emitter.onError(new IOException(" Need search str "));
             }
-            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(path))
+            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_MESSAGE + "/filter"))
                     .newBuilder()
                     .addQueryParameter("session_type", sessionType)
                     .addQueryParameter("search", search)
@@ -748,14 +675,82 @@ public class GWApiManager {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     try {
-                        if (!response.isSuccessful()) {
-                            emitter.onError(new IOException("HTTP error: " + response.code()));
-                            return;
-                        }
-                        String responseBody = response.body() != null ? response.body().string() : "";
-                        JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
-//                        FavoriteList res = gson.fromJson(data, FavoriteList.class);
-                        emitter.onSuccess(data); // 请求成功
+                        FavoriteList ret = GWApiManager.shared().handleResponse(response, FavoriteList.class);
+                        emitter.onSuccess(ret);
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    } finally {
+                        response.close(); // 关闭 Response
+                    }
+                }
+            });
+        });
+    }
+
+    public Single<MessageList> listMessage(String olderThan, int page, int limit) {
+        return Single.create(emitter -> {
+            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_MESSAGE))
+                    .newBuilder()
+                    .addQueryParameter("older_than", olderThan)
+                    .addQueryParameter("page", Integer.toString(page))
+                    .addQueryParameter("limit", Integer.toString(limit))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .build();
+
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    emitter.onError(e); // 请求失败
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    try {
+                        MessageList ret = GWApiManager.shared().handleResponse(response, MessageList.class);
+                        emitter.onSuccess(ret); // 请求成功
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    } finally {
+                        response.close(); // 关闭 Response
+                    }
+                }
+            });
+        });
+    }
+
+    public Single<MessageList> listSessionMessage(Long sessionId, Long olderThan, int page, int limit) {
+        return Single.create(emitter -> {
+            HttpUrl.Builder url = Objects.requireNonNull(HttpUrl.parse(URL_SESSION + "/message"))
+                    .newBuilder();
+            if (sessionId != null) {
+                url.addQueryParameter("session_id", Long.toString(sessionId));
+            }
+            if (olderThan != null && olderThan > 0) {
+                url.addQueryParameter("older_than", Long.toString(olderThan));
+            }
+            url.addQueryParameter("page", Integer.toString(page))
+                    .addQueryParameter("limit", Integer.toString(limit));
+
+            Request request = new Request.Builder()
+                    .url(url.build())
+                    .build();
+
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    emitter.onError(e); // 请求失败
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    try {
+                        MessageList ret = GWApiManager.shared().handleResponse(response, MessageList.class);
+                        emitter.onSuccess(ret); // 请求成功
                     } catch (Exception e) {
                         emitter.onError(e);
                     } finally {

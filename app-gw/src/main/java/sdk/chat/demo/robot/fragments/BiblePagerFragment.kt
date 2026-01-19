@@ -269,6 +269,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         isLoading = true
         // 显示加载中
         showLoading()
+        Log.e("bible_data", "loadChapter->getChapterFromDB,${bookId} $chapterNumber,$reference");
 
         BibleApiService.getChapterFromDB(
             dynamicBibleDao,
@@ -293,10 +294,12 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
                     }
                 }
 
+                Log.e("bible_data", "loadChapter->getChapterFromDB back,${bookId} $chapterNumber,$reference");
                 // 更新UI
                 requireView().post {
                     updateChapterUI(chapter)
                     initChapterAdapter()
+                    Log.e("bible_data", "loadChapter->getChapterFromDB  initChapterAdapter done,${bookId} $chapterNumber,$reference");
                 }
             } else {
                 // 显示错误

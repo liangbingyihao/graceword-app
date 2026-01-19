@@ -153,7 +153,7 @@ public class SplashScreenActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         } else {
-            ToastHelper.show(this, R.string.network_error);
+            ToastHelper.show(this, "Initializing data...");
             hasShownGuide = false;
             handler.postDelayed(this::checkInitializationStatus, 200);
         }

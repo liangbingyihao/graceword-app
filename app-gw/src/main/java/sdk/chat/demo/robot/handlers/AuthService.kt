@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.handlers
 
 //import sdk.chat.demo.robot.handlers.BillingManager.Companion.getInstance
+import android.content.Intent
 import android.util.Log
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
@@ -42,6 +43,7 @@ import sdk.chat.demo.robot.extensions.DeviceIdHelper
 import sdk.chat.demo.robot.handlers.LimitCounter.initialize
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import sdk.chat.demo.robot.activities.SplashScreenActivity
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.guru.common.RX
 import java.io.IOException
@@ -83,9 +85,39 @@ object AuthService {
                 }
 
                 authenticating =
-                    authorizeUser(authorReq).flatMapCompletable(Function { details: ApiTokenResponse ->
-                        this.loginSuccessful(details)
-                    })
+                    authorizeUser(authorReq)
+//                        .doOnSuccess {
+//                            Log.e(TAG, "authorizeUser 成功，准备执行后续操作...")
+//                            filterAuthorInfo()?.user?.id
+//                                ?.takeIf { it.isNotEmpty() }
+//                                ?.let { userId ->
+//                                    Log.e(TAG, "authorizeUser doOnSuccess initDatabase $userId")
+//                                    initDatabase(userId)
+//                                }
+//                        }
+//                        .doOnError { error ->
+//                            Log.e(TAG, "authorizeUser 失败: ${error.message}")
+//                            filterAuthorInfo()?.user?.id
+//                                ?.takeIf { it.isNotEmpty() }
+//                                ?.let { userId ->
+//                                    Log.e(TAG, "authorizeUser doFinally initDatabase $userId")
+//                                    initDatabase(userId)
+//                                }
+//                        }
+//                        .doOnDispose { Log.e(TAG, "authorizeUser doOnDispose...") }
+//                        .doOnSubscribe { Log.e(TAG, "authorizeUser doOnSubscribe...") }
+//                        .doOnTerminate { Log.e(TAG, "authorizeUser doOnTerminate...") }
+//                        .doFinally {
+//                            Log.e(TAG, "authorizeUser doFinally...")
+//                        }
+                        .flatMapCompletable(Function { details: ApiTokenResponse ->
+                            Log.e(TAG, "start loginSuccessful...")
+                            this.loginSuccessful(details)
+                        })
+                        .doFinally {
+                            Log.e(TAG, "authenticate doFinally...")
+                            ensureDatabase()
+                        }
                         .onErrorResumeNext { error ->
                             // 认证失败时返回错误
                             Completable.error(error)
@@ -105,20 +137,27 @@ object AuthService {
     }
 
     private fun clearAuthorInfo() {
-        if (authDetail != null && !authDetail!!.user.isGuest) {
-            val targetItem = authDetailList.find { it.user.id == authDetail?.user?.id }
-            targetItem?.let { item ->
-                item.accessToken = ""
-                item.refreshToken = ""
-                item.fullAccessToken = ""
+        authDetail = null
+        try {
+            var user = ChatSDK.currentUser()
+            if (user != null && !user.entityID.isEmpty()) {
+                var uid = user.entityID
+                Log.w(TAG, "clearAuthorInfo:$uid")
+                val targetItem = authDetailList.find { uid.contains(it.user.id) }
+                targetItem?.let { item ->
+                    item.accessToken = ""
+                    item.refreshToken = ""
+                    item.fullAccessToken = ""
+                    item.expiresAt = 0L
+                }
+                JsonCacheManager.save(
+                    MainApp.getContext(),
+                    KEY_CACHE_USER_LIST,
+                    gson.toJson(authDetailList)
+                )
             }
-            JsonCacheManager.save(
-                MainApp.getContext(),
-                KEY_CACHE_USER_LIST,
-                gson.toJson(authDetailList)
-            )
-            authDetail = null
-
+        } catch (e: Exception) {
+            Log.w(TAG, "clearAuthorInfo:$e")
         }
     }
 
@@ -128,14 +167,19 @@ object AuthService {
         return Completable.create(CompletableOnSubscribe { emitter: CompletableEmitter? ->
             ChatSDK.events().source().accept(NetworkEvent.logout())
             //            accessToken = null;
+            (ChatSDK.thread() as GWThreadHandler).clearThreadCache()
             clearAuthorInfo()
             (ChatSDK.auth() as GWAuthenticationHandler).clearCurrentUserEntityID()
             ChatSDK.shared().getKeyStorage().clear()
-
             ChatSDK.db().closeDatabase()
             emitter!!.onComplete()
         }).subscribeOn(RX.computation())
     }
+
+
+//    private fun revokeToken(): Single<Boolean> {
+//
+//    }
 
     fun exitsGoogleId(googleId: String?): Boolean {
         val userList = getCacheAuthList()
@@ -180,24 +224,9 @@ object AuthService {
                 }
             } else {
                 // 使用默认过滤逻辑
-                // 1. 获取当前用户ID（带空值检查）
-                val lastUserId = ChatSDK.auth().getCurrentUserEntityID()?.takeIf { it.isNotEmpty() }
-
-                if (lastUserId == null) {
-                    Log.d(TAG, "未找到当前用户ID，当前是退出登录的状态")
-                    return userList.firstOrNull { !it.user.isGuest } ?: userList[0]
-                }
-
-                Log.d(TAG, "当前用户ID: $lastUserId")
-                userList.filter { userEntity ->
-                    try {
-                        // 安全地检查用户ID匹配
-                        lastUserId.contains(userEntity.user.id)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "过滤用户时出错: ${e.message}")
-                        false
-                    }
-                }
+                var lastRsp = userList.maxByOrNull { it.expiresAt }
+                Log.e(TAG, "返回最后一次登录成功的用户: ${lastRsp?.user?.id}")
+                return lastRsp
             }
 
             // 4. 检查匹配结果
@@ -216,7 +245,7 @@ object AuthService {
                 else -> {
                     Log.e(TAG, "找到多个匹配用户(${matchingUsers.size})")
                     // 如果有多个匹配，返回第一个有效的
-                    matchingUsers[0]
+                    matchingUsers.maxByOrNull { it.expiresAt }
                 }
             }
 
@@ -234,12 +263,13 @@ object AuthService {
                     authorReq.getLocalId() == rsp.req?.getLocalId()
                 }
             } else {
+                //使用最后一次成功登录的用户id登录
                 filterAuthorInfo()
             }
 
             var dstReq = authorReq
             var url: String? = null
-            if (lastRsp != null && !lastRsp.refreshToken.isEmpty()) {
+            if (authorReq == null && lastRsp != null && !lastRsp.user.isGuest && !lastRsp.refreshToken.isEmpty()) {
                 url = URL_REFRESH_TOKEN
                 dstReq = lastRsp.req
                 params.put("refresh_token", lastRsp.refreshToken)
@@ -251,7 +281,7 @@ object AuthService {
 
                 if (!dstReq.guest.isEmpty()) {
                     url = URL_LOGIN_DEVICE
-                    params.put("guest", DeviceIdHelper.getDeviceId(MainApp.getContext()))
+                    params.put("guest", dstReq.guest)
                 } else if (!dstReq.googleToken.isEmpty()) {
                     url = URL_LOGIN_GOOGLE
                     params.put("id_token", dstReq.googleToken)
@@ -270,32 +300,57 @@ object AuthService {
             params.put("fcm_token", fcmToken)
             params.put("bundle_id", MainApp.getContext().packageName)
 
-            Log.e(TAG, "Login..$url,${dstReq?.binding}")
+            Log.e(TAG, "Login..$url,${dstReq?.binding},${dstReq?.guest}")
             val request = GWApiManager.buildPostRequest(params, url)
 
             // 使用 .use 自动关闭 Response
             GWApiManager.shared().client.newCall(request).execute().use { response ->
+                var loginException: Exception? = null
+                try {
+                    var ret = GWApiManager.shared().handleResponse<ApiTokenResponse?>(
+                        response,
+                        ApiTokenResponse::class.java
+                    )
+                    ret?.let {
+                        it.initData(dstReq)
+                        Log.e(TAG, "Login..${it.bindingResult},${it.fullAccessToken}")
+                        updateAuth(it)
+                        authDetail = it
+                        return@use it
+                    }
 
-                var ret = GWApiManager.shared().handleResponse<ApiTokenResponse?>(
-                    response,
-                    ApiTokenResponse::class.java
-                )
-                ret?.let {
-                    it.initData(dstReq)
-                    Log.e(TAG, "Login..${it.bindingResult}")
-                    updateAuth(it)
-                    return@use it
+                } catch (e: Exception) {
+//                    Log.e(TAG, "Login ret :${response.code} e:", e)
+                    loginException = e
                 }
 
-                return@use null
+                if (response.code < 500 && url == URL_REFRESH_TOKEN && lastRsp != null) {
+                    Log.e(TAG, "Business error..Login clear last rsp")
+                    lastRsp.expiresAt = 0L
+                    updateAuth(lastRsp)
+                }
+                throw loginException ?: Exception("login failed..")
             }
         }
             .onErrorResumeNext { error ->
                 // 统一错误处理
-                Log.e(TAG, "Login device error", error)
+                Log.e(TAG, "Login error", error)
                 Single.error(error)
             }
             .subscribeOn(Schedulers.io())
+    }
+
+    private fun initDatabase(uid: String) {
+        val userId = "user_$uid"
+        initDatabaseByUser(userId)
+        ChatSDK.auth().setCurrentUserEntityID(userId)
+        MainApp.addGlobalDisposable(
+            (ChatSDK.thread() as GWThreadHandler)
+                .createChatSessionsAsync().doOnComplete {
+                    Log.e(TAG, "createChatSessionsAsync done")
+                }
+                .subscribe()
+        )
     }
 
     fun isAuthenticated(authorReq: ApiTokenRequest? = null): Boolean {
@@ -312,6 +367,10 @@ object AuthService {
         } else {
             ""
         }
+    }
+
+    fun hasLoginBefore(): Boolean {
+        return authDetailList.size > 1
     }
 
     fun getCacheAuthList(): List<ApiTokenResponse> {
@@ -378,14 +437,14 @@ object AuthService {
     fun loginSuccessful(details: ApiTokenResponse): Completable? {
         return Completable.defer(Callable {
             //            String userId = details.getMetaValue("userId");
-            val userId = "user_" + details.user.id
-            initDatabaseByUser(userId)
-            ChatSDK.auth().setCurrentUserEntityID(userId)
-            authDetail = details
-
+//            val userId = "user_" + details.user.id
+//            initDatabaseByUser(userId)
+//            ChatSDK.auth().setCurrentUserEntityID(userId)
+            ensureDatabase()
             Log.d(TAG, "login success:${authDetail?.expiresAt},${authDetail?.expiresIn}")
             startAsyncTasks()
             // 初始化计数器
+            //FIXME 用户不一致时要切换
             initialize(MainApp.getContext(), null)
             loadDefaultConfigs()
             setAuthStateToIdle()
@@ -407,24 +466,27 @@ object AuthService {
                     .doOnSuccess { configs ->
                         Log.d(TAG, "获取到服务器配置")
                     }
+                    .doOnError { e ->
+                        Log.d(TAG, "获取到服务器配置失败:$e")
+                    }
                     .ignoreElement()
-                    .timeout(10, TimeUnit.SECONDS)  // 添加超时
+                    .timeout(5, TimeUnit.SECONDS)  // 添加超时
                     .onErrorComplete(),
                 BillingManager.getInstance().getBillingHelper()
                     .doOnSubscribe { Log.d(TAG, "开始获取账单信息") }
                     .doOnSuccess { Log.d(TAG, "账单信息获取完成") }
-                    .timeout(10, TimeUnit.SECONDS)
+                    .timeout(5, TimeUnit.SECONDS)
                     .ignoreElement(),
-                Completable.fromAction(Action { (ChatSDK.thread() as GWThreadHandler).createChatSessions() })
-                    .subscribeOn(Schedulers.io())
-                    .doOnSubscribe { Log.d(TAG, "开始创建聊天会话") }
-                    .doOnComplete { Log.d(TAG, "聊天会话创建完成") }
-                    .timeout(10, TimeUnit.SECONDS)
-                    .onErrorComplete(),
+//                Completable.fromAction(Action { (ChatSDK.thread() as GWThreadHandler).createChatSessions() })
+//                    .subscribeOn(Schedulers.io())
+//                    .doOnSubscribe { Log.d(TAG, "开始创建聊天会话") }
+//                    .doOnComplete { Log.d(TAG, "聊天会话创建完成") }
+//                    .timeout(5, TimeUnit.SECONDS)
+//                    .onErrorComplete(),
                 initMessageFromServer()
                     .doOnSubscribe { Log.d(TAG, "开始initMessageFromServer") }
                     .doOnComplete { Log.d(TAG, "initMessageFromServer完成") }
-                    .timeout(10, TimeUnit.SECONDS)
+                    .timeout(5, TimeUnit.SECONDS)
                     .onErrorComplete(),
             )
         ).timeout(60, TimeUnit.SECONDS)  // 总体超时
@@ -446,7 +508,7 @@ object AuthService {
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(Consumer { data: MutableList<ImageDaily?>? ->
                     if (data != null && !data.isEmpty()) {
-                        val url = data.get(0)!!.getUrl()
+                        val url = data[0]!!.url
                         Glide.with(MainApp.getContext())
                             .load(url)
                             .preload()
@@ -457,8 +519,8 @@ object AuthService {
             SocialShareHandler.getHeaderImageAsync()
                 .subscribeOn(Schedulers.io())
                 .subscribe(
-                    { Log.d(TAG, "Login log uploaded") },
-                    { e -> Log.e(TAG, "Login log upload failed", e) }
+                    { Log.d(TAG, "getHeaderImageAsync done") },
+                    { e -> Log.e(TAG, "getHeaderImageAsync failed", e) }
                 ))
 
         ImageApi.listImageTags().subscribe()
@@ -468,11 +530,12 @@ object AuthService {
     }
 
     fun ensureDatabase() {
-        if (!isAuthenticated()) {
-            initDatabaseByUser(ChatSDK.currentUserID())
-        } else {
-            Log.d(TAG, "no need to ensureDatabase")
-        }
+        filterAuthorInfo()?.user?.id
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { userId ->
+                Log.e(TAG, "authorizeUser doFinally initDatabase $userId")
+                initDatabase(userId)
+            }
     }
 
     fun initDatabaseByUser(userId: String?) {
@@ -480,11 +543,20 @@ object AuthService {
             Logger.error { "ensureDatabase no userId" }
             throw java.lang.Exception("no userId")
         }
+        try {
+            var user = ChatSDK.currentUser()
+            if (user != null && user.entityID == userId) {
+                Log.d(TAG, "already initDatabaseByUser $userId")
+                return
+            }
+        } catch (e: Exception) {
+        }
+
         ChatSDK.db().openDatabase(userId)
         val user = ChatSDK.db().fetchOrCreateEntityWithEntityID<User?>(User::class.java, userId)
         val robot = ChatSDK.contact().contacts()
         if (!robot.isEmpty()) {
-            user.addContact(robot.get(0))
+            user.addContact(robot[0])
             ChatSDK.db().update(user)
         }
         Log.d(TAG, "initDatabaseByUser $userId")
@@ -511,12 +583,12 @@ object AuthService {
                     Completable.complete()
                 } else {
                     Log.d(TAG, "最新消息 entityID 长度不足或为空，从服务器加载")
-                    MessageService.loadMessagesAndSaveToLocal(null, 1, 200)
+                    MessageService.loadMessagesAndSaveToLocal(null, 1, 50)
 //                    loadMessagesFromServer()
                 }
             } else {
                 Log.d(TAG, "本地无消息，从服务器加载")
-                MessageService.loadMessagesAndSaveToLocal(null, 1, 200)
+                MessageService.loadMessagesAndSaveToLocal(null, 1, 50)
 //                loadMessagesFromServer()
             }
         }
@@ -533,7 +605,7 @@ object AuthService {
                     emitter.onError(error)
                     return@create
                 }
-                if(displayName == authDetail?.user?.displayName){
+                if (displayName == authDetail?.user?.displayName) {
                     emitter.onComplete()
                     return@create
                 }

@@ -12,4 +12,5 @@ public class MessageList {
     public void setItems(List<MessageDetail> items) {
         this.items = items;
     }
+
 }

@@ -224,7 +224,6 @@ public class GuideActivity extends BaseActivity {
         } else if (!retrying) {
             retrying = true;
             btnNext.setText(getString(R.string.retrying));
-            ToastHelper.show(this, R.string.network_error);
             dm.add(AuthService.INSTANCE.authenticate(null)
                     .observeOn(RX.main())
                     .doFinally(() -> {
@@ -242,7 +241,7 @@ public class GuideActivity extends BaseActivity {
                                 Logger.error(error, "guide.authenticate error");
                                 retrying = false;
                                 btnNext.setText(getString(R.string.retry));
-                                ToastHelper.show(this, R.string.network_error);
+                                ToastHelper.show(this, error.getMessage());
                                 FirebaseReport.INSTANCE.reportExportEvent("app.init", "authenticate error", error);
                             }
                     ));

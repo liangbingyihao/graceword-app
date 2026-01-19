@@ -4,7 +4,7 @@
     <string name="main_title">恩语Grace Word</string>
     <string name="firestream_link"><a href="https://www.google.com/">More Details</a></string>
     <string name="contacts">AI Assistant</string>
-    <string name="conversations" formatted="false">To Record</string>
+    <string name="conversations" formatted="false">Study Verse</string>
     <string name="create_session_hint" formatted="false">Have a try</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
@@ -63,6 +63,7 @@
     <string name="uploading">Patience is a fruit of the Spirit. We\'re working hard to upload.</string>
     <string name="sending">Messages are being sent. Please wait.</string>
     <string name="ai_failed">Reply failed. Please try again.</string>
+    <string name="no_cached_data">Retrieve the response data again.</string>
     <string name="msg_failed">Send failed. Please try again.</string>
     <string name="task_calendar">Check-in Diary</string>
     <string name="guide_drawer">Sidebar</string>
@@ -113,6 +114,7 @@
     <string name="share_total">%d items selected</string>
     <string name="query_hint">Please select any of the following criteria or enter keywords to search</string>
     <string name="read_bible">Read Bible</string>
+    <string name="daily_check_in">Daily Check-in</string>
     <string name="hymns">Hymns</string>
     <string name="hint_search_hymns">Add song title/keyword or search directly</string>
     <string name="prompt_search_hymns">Hymn search: %s</string>
@@ -217,25 +219,34 @@
     <string name="logout">Log Out</string>
     <string name="vip">VIP Member</string>
     <string name="next_renewal_time">Next Renewal:%s</string>
+    <string name="vip_expired_time">Expiration Date:%s</string>
     <string name="membership_status">Membership Status</string>
     <string name="pending_upgrade">Pending Upgrade</string>
     <string name="login_save_records">Log in to save your records and favorites</string>
     <string name="login_agreement">By logging in, you agree to our Privacy Policy and Terms of Service</string>
     <string name="login_agreement_prefix">By logging in, you agree to our</string>
     <string name="agreement_and">and</string>
+    <string name="login_with_google">Continue with Google</string>
     <!-- 底部链接 -->
     <string name="terms_of_service">Terms of Service</string>
     <string name="privacy_policy">Privacy Policy</string>
 
     <!-- Dialog title -->
-    <string name="data_import_title">Do you want to import existing personal data (quotes, chat history, favorites, etc.) to this new account?</string>
+    <string name="data_import_title">Do you want to import existing personal data (grace journal, chat history, favorites, etc.) to this new account?</string>
+    <string name="import_option_desc">The new account will have all your existing data</string>
+    <string name="not_import_option_desc">Data will remain local, and the new account will be completely fresh</string>
+    <string name="data_import_title_vip">Do you want to import your existing VIP benefits and personal data (grace journal, chat history, favorites, etc.) to this new account?</string>
+    <string name="import_option_desc_vip">The new account will inherit your existing VIP benefits and all data</string>
+    <string name="not_import_option_desc_vip">VIP benefits and data will remain locally. The new account will be a completely new account. You can still transfer VIP benefits to the new account via "Settings - Restore Subscription".</string>
+
+
 
     <!-- Import option -->
     <string name="import_option_title">Import</string>
-    <string name="import_option_desc">The new account will have all your existing data</string>
+    <string name="not_import_option_title">Don\'t Import</string>
+    <string name="login_hint">Log in to keep your records safe and never lost, preserving every tender imprint related to your faith.</string>
+    <string name="login_hint_offline">To protect your data security, your login session has expired. After logging in again, you will be able to view your devotional and interaction records normally.</string>
 
     <!-- Don\'t import option -->
-    <string name="not_import_option_title">Don\'t Import</string>
-    <string name="not_import_option_desc">Data will remain local, and the new account will be completely fresh</string>
-    <string name="account_already_exists">Your account already exists. Currently displaying data for this account. To view data saved before logging in, log out of the current account to view.</string>
+      <string name="account_already_exists">Your account already exists. Currently displaying data for this account. To view data saved before logging in, log out of the current account to view.</string>
 </resources>

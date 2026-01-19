@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="50dp"
+        android:layout_margin="42dp"
         android:background="@color/white"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
@@ -28,9 +28,10 @@
 
             <!-- 提示文本 -->
             <TextView
+                android:id="@+id/tv_data_import_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="40dp"
+                android:layout_margin="30dp"
                 android:lineSpacingExtra="4dp"
                 android:text="@string/data_import_title"
                 android:textAlignment="viewStart"
@@ -71,12 +72,11 @@
 
                         <!-- 选项标题 -->
                         <TextView
-                            android:id="@+id/tv_import_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/import_option_title"
                             android:textColor="@color/text_primary"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <!-- 选项描述 -->
@@ -86,7 +86,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/import_option_desc"
-                            android:textSize="14sp" />
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -95,7 +95,8 @@
                         android:id="@+id/rb_import"
                         style="@style/LangSettingButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:checked="true"/>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -137,7 +138,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/not_import_option_title"
                             android:textColor="@color/text_primary"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <!-- 选项描述 -->
@@ -147,7 +148,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/not_import_option_desc"
-                            android:textSize="14sp" />
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -156,8 +157,7 @@
                         android:id="@+id/rb_not_import"
                         style="@style/LangSettingButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"  />
+                        android:layout_height="wrap_content"  />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

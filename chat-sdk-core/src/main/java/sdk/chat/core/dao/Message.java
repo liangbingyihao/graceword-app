@@ -5,6 +5,7 @@ package sdk.chat.core.dao;
 // KEEP INCLUDES - put your token includes here
 
 import android.location.Location;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -830,6 +831,16 @@ public class Message extends AbstractEntity {
         this.date = date;
     }
 
+    public Long getUpdateTs() {
+        long updateTs = 0L;
+        try {
+            updateTs = Long.parseLong(stringForKey(Keys.KEY_VERSION));
+//            Log.e("MessageService", entityID + ":Keys.KEY_VERSION:" + updateTs);
+        } catch (Exception e) {
+            updateTs = date.getTime();
+        }
+        return updateTs;
+    }
 
     public String getEncryptedText() {
         return this.encryptedText;

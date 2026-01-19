@@ -39,7 +39,7 @@
                     android:paddingTop="15dp"
                     android:paddingEnd="16dp"
                     android:textColor="@color/item_text_normal"
-                    android:textSize="13sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/tvTime"
@@ -117,11 +117,11 @@
                 android:textSize="13sp" />
         </FrameLayout>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:src="@drawable/ic_star" />
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="8dp"-->
+<!--            android:src="@drawable/ic_star" />-->
 
         <TextView
             android:id="@+id/tvTitle"
@@ -132,7 +132,7 @@
             android:maxLines="2"
             android:ellipsize="end"
             android:textColor="@color/item_text_normal"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <ImageView

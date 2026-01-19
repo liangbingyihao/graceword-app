@@ -123,7 +123,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
-//        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
 
     }
 
@@ -135,10 +135,10 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
     fun resetLoadState(chapter: BibleChapter? = null, isMultiSelectMode: Boolean = false) {
         setMultiSelectMode(isMultiSelectMode)
         if (bibleChapter?.get() != null) {
-//            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
+            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
             return
         } else if (chapter != null && !chapter.verses.isEmpty()) {
-//            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
+            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
             bibleChapter = WeakReference(chapter)
             if (viewCreated) {
                 requireView().post {

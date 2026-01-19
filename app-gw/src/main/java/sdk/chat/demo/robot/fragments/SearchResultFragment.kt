@@ -32,7 +32,6 @@ class SearchResultFragment : BaseFragment() {
     private lateinit var myAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>
     private var currentPage = 1
     private var searchingKey = ""
-    private var gson = Gson()
 
     companion object {
         private const val ARG_QUERY_TYPE = "query_type"
@@ -182,10 +181,10 @@ class SearchResultFragment : BaseFragment() {
             (myAdapter as SearchResultAdapter).clear()
         }
         dm.add(
-            GWApiManager.shared().listMessage(queryType, null, searchingKey, page, 20)
+            GWApiManager.shared().searchMessage(queryType, searchingKey, page, 20)
                 .observeOn(RX.main())
                 .subscribe(
-                    { data ->
+                    { messages ->
                         var adapter = myAdapter as SearchResultAdapter
                         adapter.isLoading = false
                         if (page == 1) {
@@ -195,7 +194,6 @@ class SearchResultFragment : BaseFragment() {
                             swipeRefreshLayout.setLoadingMore(false)
                         }
 
-                        var messages: FavoriteList = gson.fromJson(data, FavoriteList::class.java)
                         if (messages.items == null || messages.items.isEmpty()) {
                             swipeRefreshLayout.setCanLoadMore(false)
                             Toast.makeText(

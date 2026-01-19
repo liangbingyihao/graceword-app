@@ -166,7 +166,6 @@ object CardApiService {
         }
 
         if (launcherStep == LauncherStep.READY) {
-
             var config = campaign
             if (config != null) {
                 var whenShow = MainApp.getContext().getSharedPreferences("app_prefs", MODE_PRIVATE)
