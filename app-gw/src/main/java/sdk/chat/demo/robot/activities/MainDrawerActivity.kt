@@ -124,6 +124,8 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
         if (reference != null && savedInstanceState == null) {
             Log.e("MainApp", "isVerseAreaTouched..and start ${reference}.")
             BibleActivity.start(this@MainDrawerActivity, reference = reference, fullscreen = false)
+        } else {
+            reference = null
         }
 
         var isInitialized = (application as MainApp).isInitialized
@@ -258,8 +260,17 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             isVipDisplayCrown = configs.isVipDisplayCrown == true
         }
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, GWChatFragment(), chatTag).commit()
+        if (reference == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, GWChatFragment(), chatTag).commit()
+        } else {
+            recyclerView.postDelayed(
+                {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, GWChatFragment(), chatTag).commit()
+                }, 1000
+            )
+        }
 
 
         TTSHelper.initTTS(this@MainDrawerActivity)
@@ -347,7 +358,9 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
     }
 
     private fun checkPreLaunchActivity() {
-        checkPreLaunchBill()
+        vHomeMenu.postDelayed({
+            checkPreLaunchBill()
+        }, 2000)
         if (hasShownWelcome) {
             val today: String = DateLocalizationUtil.formatDayAgo(0)
             var showDate =

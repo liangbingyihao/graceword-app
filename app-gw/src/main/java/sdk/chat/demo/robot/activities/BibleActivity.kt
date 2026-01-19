@@ -30,6 +30,9 @@ class BibleActivity : BaseActivity(), BibleDataProvider {
                 putExtra(ARG_FULLSCREEN, fullscreen)
                 putExtra(ARG_CHAPTER_NUMBER, chapterNumber)
             }
+            if(newTask){
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
             context?.startActivity(intent)
         }
     }

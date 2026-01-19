@@ -23,7 +23,6 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.BlessData
@@ -36,6 +35,8 @@ import java.util.concurrent.Executors
 import android.view.Surface
 import android.hardware.display.DisplayManager
 import android.view.Display
+import sdk.chat.demo.robot.activities.BibleActivity
+import sdk.chat.demo.robot.activities.MainDrawerActivity
 
 class BibleWallpaperService : WallpaperService() {
     private val TAG = "BibleWallpaperEngine"
@@ -211,11 +212,15 @@ class BibleWallpaperService : WallpaperService() {
          */
         private fun handleVerseClick() {
             try {
+                var reference= currentImageData?.reference ?: ""
+                Log.e("bible_data", "handleVerseClick...$reference")
+//                BibleActivity.start(applicationContext, reference = "太1:2", fullscreen = false, newTask = true)
                 MainDrawerActivity.startBibleActivity(
                     applicationContext,
-                    reference = currentImageData?.reference ?: "",
+                    reference = "太1:2",
                 )
             } catch (e: Exception) {
+                Log.e("bible_data", "handleVerseClick...$e")
                 e.printStackTrace()
             }
         }
