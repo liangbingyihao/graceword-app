@@ -197,7 +197,7 @@ class FavoriteListActivity : BaseActivity(), View.OnClickListener {
 
                     R.id.copy -> {
                         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("恩语", item.content)
+                        val clip = ClipData.newPlainText("恩语", item.text)
                         clipboard.setPrimaryClip(clip)
                         ToastHelper.show(
                             MainApp.getContext(),
@@ -208,7 +208,7 @@ class FavoriteListActivity : BaseActivity(), View.OnClickListener {
                     R.id.share -> {
                         val shareIntent = Intent(Intent.ACTION_SEND)
                         shareIntent.setType("text/plain") // 或具体类型如 "image/jpeg"
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, item.content)
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, item.text)
                         shareIntent.putExtra(Intent.EXTRA_SUBJECT, "恩语之声") // 临时权限
 
                         startActivity(Intent.createChooser(shareIntent, "分享到"))

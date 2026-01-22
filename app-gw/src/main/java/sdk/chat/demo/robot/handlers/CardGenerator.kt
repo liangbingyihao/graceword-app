@@ -417,7 +417,7 @@ object CardGenerator {
                     CoroutineScope(Dispatchers.Main).launch {
                         try {
 
-                            val bitmap = captureLayoutAsync(
+                            val bitmap = captureLayoutAsync2(
                                 context,
                                 resId,
                                 imageDetail,
@@ -577,6 +577,124 @@ object CardGenerator {
             createBitmap(
                 viewContent.measuredWidth.coerceAtLeast(1),
                 viewContent.measuredHeight.coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            ).apply {
+                Canvas(this).run { viewContent.draw(this) }
+            }.compressToSafeSize()
+        } catch (e: Exception) {
+            Log.e("biblewallGlide", "captureLayoutAsync failed $e")
+        } as Bitmap?
+    }
+
+
+    suspend fun captureLayoutAsync2(
+        context: Context,
+        layoutResId: Int,
+        imageDetail: ImageDaily,
+        withQRCode: Boolean = true,
+        isUnderline: Boolean = false,
+        bitmaps: Bitmap,
+    ): Bitmap? = withContext(Dispatchers.Main) {
+        val view = LayoutInflater.from(context).inflate(layoutResId, null, false).apply {
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        }
+
+        val img = view.findViewById<ImageView>(R.id.photoView)
+        img.setImageBitmap(bitmaps)
+
+        try {
+            view.findViewById<TextView>(R.id.bible).apply {
+                text = imageDetail.scripture
+            }
+            view.findViewById<TextView>(R.id.reference)?.apply {
+                var reference = imageDetail.reference?.let { "($it)" }.orEmpty()
+                if(isUnderline){
+                    val spannable = SpannableString(reference)
+                    spannable.setSpan(
+                        UnderlineSpan(),
+                        0, // 开始位置
+                        reference.length, // 结束位置
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE
+                    )
+                    text = spannable
+                }else{
+                    text = reference
+                }
+            }
+            view.findViewById<TextView>(R.id.day)?.apply {
+                visibility = View.INVISIBLE
+            }
+            view.findViewById<TextView>(R.id.month)?.apply {
+                visibility = View.INVISIBLE
+            }
+            if (!withQRCode) {
+                view.findViewById<View>(R.id.footer).apply {
+                    visibility = View.INVISIBLE
+                }
+            }
+
+            if (layoutResId == R.layout.item_image_greeting) {
+                var typeface: Typeface? = null
+                if (!imageDetail.greeting.isNullOrEmpty()) {
+                    var fontManager = FontManager.getInstance(MainApp.getContext())
+                    var font =
+                        fontManager.getCacheFile(imageDetail.fontUrl)
+                    typeface = FontUtils.loadFont(
+                        MainApp.getContext(),
+                        font
+                    )
+                }
+
+                view.findViewById<TextView>(R.id.messageInput).apply {
+                    this.typeface = typeface
+                    text = imageDetail.greeting
+                }
+
+            }
+            var viewContent: View = view.findViewById<View>(R.id.content)
+            val widthSpec =
+                View.MeasureSpec.makeMeasureSpec(
+                    getScreenWidth(context),
+                    View.MeasureSpec.EXACTLY
+                )
+            // 对于高度，使用UNSPECIFIED让视图能够根据内容自动调整高度
+            var heightSpec = 0
+            heightSpec = if(R.layout.view_popup_image_bible==layoutResId){
+                //长图..
+                View.MeasureSpec.makeMeasureSpec(
+                    0,
+                    View.MeasureSpec.UNSPECIFIED
+                )
+            }else{
+                View.MeasureSpec.makeMeasureSpec(
+                    getScreenHeight(context),
+                    View.MeasureSpec.EXACTLY
+                )
+            }
+            viewContent.measure(widthSpec, heightSpec)
+
+            // 确保高度至少为屏幕高度的一半，避免内容过少时图片太小
+            val minHeight = getScreenHeight(context) / 2
+            val finalHeight = maxOf(viewContent.measuredHeight, minHeight)
+
+            viewContent.layout(0, 0, viewContent.measuredWidth, finalHeight)
+            var rv = view.findViewById<TextView>(R.id.reference)
+            if(rv!=null&&isUnderline){
+                var cacheKey: String? = getCacheKey(layoutResId, imageDetail, withQRCode,isUnderline)
+                if (cacheKey != null && !cacheKey.isEmpty()) {
+                    var rect = ViewCoordinateUtils.getViewBoundsInBitmap(
+                        rv,
+                        viewContent
+                    )
+                    rectCache.put(cacheKey, rect)
+                }
+            }
+
+            // 使用计算好的最终高度创建bitmap，确保长文本能够完整显示
+
+            createBitmap(
+                viewContent.measuredWidth.coerceAtLeast(1),
+                finalHeight.coerceAtLeast(1),
                 Bitmap.Config.ARGB_8888
             ).apply {
                 Canvas(this).run { viewContent.draw(this) }

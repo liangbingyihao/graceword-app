@@ -1,6 +1,8 @@
 package sdk.chat.demo.robot.adpter
+
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
+import android.text.Html
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +20,34 @@ import com.github.chrisbanes.photoview.PhotoView
 import sdk.chat.demo.pre.R
 import androidx.recyclerview.widget.DiffUtil
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import sdk.chat.demo.robot.activities.BibleActivity
 import sdk.chat.demo.robot.api.model.ImageDaily
+
+object CommonClickListener : View.OnClickListener {
+    private const val TAG = "CommonClickListener"
+
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.reference -> {
+                var reference = (v as TextView).text.toString()
+                // 处理分享逻辑
+                BibleActivity.start(
+                    v.context,
+                    reference = reference
+                )
+            }
+            // 添加更多按钮处理...
+            else -> {
+                // 处理其他点击事件
+                handleCustomClick(v)
+            }
+        }
+    }
+
+    private fun handleCustomClick(v: View) {
+        // 通过tag获取额外信息
+    }
+}
 
 class ImagePagerAdapter(
     private val lifecycle: Lifecycle
@@ -57,9 +86,9 @@ class ImagePagerAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val context = holder.photoView.context
-        holder.content.visibility= View.INVISIBLE
-        holder.footer.visibility= View.INVISIBLE
-        val item:ImageDaily  = getItem(position)
+        holder.content.visibility = View.INVISIBLE
+        holder.footer.visibility = View.INVISIBLE
+        val item: ImageDaily = getItem(position)
         var url = item.backgroundUrl
         Glide.with(context)
             .load(url)
@@ -87,10 +116,11 @@ class ImagePagerAdapter(
                     // 仅在 Lifecycle 活跃时更新 UI
                     Log.d("Glide", "数据来源: $dataSource");
                     if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                        holder.content.visibility= View.VISIBLE
+                        holder.content.visibility = View.VISIBLE
                         holder.day.text = item.date.substring(8)
-                        holder.month.text = item.date.substring(0,7)
-                        holder.bible.text = item.scripture+"\n("+item.reference+")"
+                        holder.month.text = item.date.substring(0, 7)
+//                        holder.bible.text = item.scripture
+//                        holder.reference.text = Html.fromHtml("<u>("+item.reference+")</u>", Html.FROM_HTML_MODE_LEGACY)
                         holder.photoView.setImageDrawable(resource)
                         return false
                     }
@@ -98,6 +128,10 @@ class ImagePagerAdapter(
                 }
             })
             .into(holder.photoView)
+        holder.bible.text = item.scripture
+        holder.reference.text =
+            Html.fromHtml("<u>(" + item.reference + ")</u>", Html.FROM_HTML_MODE_LEGACY)
+        holder.reference.setOnClickListener(CommonClickListener)
     }
 
     private fun adjustImageScale(photoView: PhotoView, drawable: Drawable?, position: Int) {

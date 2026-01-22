@@ -1,33 +1,26 @@
 package sdk.chat.demo.robot.api;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
-
-import java.util.Date;
 
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
-import com.google.protobuf.Any;
 
 import org.json.JSONObject;
-import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Single;
-import io.reactivex.SingleOnSubscribe;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
@@ -38,27 +31,24 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import sdk.chat.core.dao.Message;
-import sdk.chat.core.session.ChatSDK;
-import sdk.chat.core.types.AccountDetails;
 import sdk.chat.core.types.MessageSendStatus;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.BuildConfig;
-import sdk.chat.demo.pre.R;
+import sdk.chat.demo.robot.api.model.AIFeedback;
+import sdk.chat.demo.robot.api.model.AIFeedbackDeserializer;
+import sdk.chat.demo.robot.api.model.FavoriteItemDeserializer;
 import sdk.chat.demo.robot.api.model.FavoriteList;
 import sdk.chat.demo.robot.api.model.MessageList;
 import sdk.chat.demo.robot.api.model.SystemConf;
-import sdk.chat.demo.robot.api.model.TaskProgress;
 import sdk.chat.demo.robot.extensions.LanguageUtils;
 import sdk.chat.demo.robot.handlers.AuthService;
-import sdk.chat.demo.robot.handlers.BillingManager;
-import sdk.chat.demo.robot.handlers.GWThreadHandler;
-import sdk.chat.demo.robot.push.UpdateTokenWorker;
-import sdk.guru.common.RX;
 
 //mysql -h 172.17.0.3 -u root coze_data -p
 
 public class GWApiManager {
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(FavoriteList.FavoriteItem.class, new FavoriteItemDeserializer())
+            .create();
     private final OkHttpClient client;
     //    private final static String URL = "https://api-test.grace-word.com/api/";
 //    private final static String URL = "https://api.grace-word.com/api/";

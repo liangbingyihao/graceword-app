@@ -124,6 +124,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
         Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+        loadChapter(currentBookId, currentChapterNumber, reference)
 
     }
 
@@ -135,10 +136,16 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
     fun resetLoadState(chapter: BibleChapter? = null, isMultiSelectMode: Boolean = false) {
         setMultiSelectMode(isMultiSelectMode)
         if (bibleChapter?.get() != null) {
-            Log.e("bible_data", "resetLoadState 1,${currentBookId} $currentChapterNumber");
+            Log.e(
+                "bible_data",
+                "resetLoadState bibleChapter!=null,${currentBookId} $currentChapterNumber"
+            );
             return
         } else if (chapter != null && !chapter.verses.isEmpty()) {
-            Log.e("bible_data", "resetLoadState 2,${currentBookId} $currentChapterNumber");
+            Log.e(
+                "bible_data",
+                "resetLoadState chapter&&bibleChapter==null,${chapter.bookId} $currentChapterNumber"
+            );
             bibleChapter = WeakReference(chapter)
             if (viewCreated) {
                 requireView().post {
@@ -147,14 +154,23 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
             }
             return
         }
-        if (!isLoading) {
-//            Log.e("bible_data", "resetLoadState 3,${currentBookId} $currentChapterNumber");
+        if (!isLoading && viewCreated && adapter==null) {
+            Log.e(
+                "bible_data",
+                "resetLoadState chapter==null&&bibleChapter==null,${currentBookId} $currentChapterNumber,$viewCreated"
+            );
             loadChapter(currentBookId, currentChapterNumber, "")
         }
     }
 
     // 加载经文章节
     private fun loadChapter(bookId: Int, chapterNumber: Int, reference: String) {
+        bibleChapter?.get()?.let { data ->
+            if (!data.verses.isEmpty()) {
+                updateChapterUI(data)
+                return
+            }
+        }
         // 设置加载状态为true
         isLoading = true
         // 显示加载中
@@ -164,7 +180,11 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
             dynamicBibleDao, bookId, chapterNumber, reference
         ) { chapter ->
             if (chapter != null) {
-                resetLoadState(chapter)
+//                resetLoadState(chapter)
+//                updateChapterUI(chapter)
+                requireView().post {
+                    updateChapterUI(chapter)
+                }
             } else {
                 // 显示错误
                 showError()
@@ -178,9 +198,13 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 更新章节UI
     private fun updateChapterUI(chapter: BibleChapter, reference: String = "") {
+        Log.e("bible_data", "updateChapterUI,${chapter.bookId},${chapter.chapterNumber}");
         currentBookId = chapter.bookId
         currentChapterCount = chapter.chapterCount
         currentChapterNumber = chapter.chapterNumber
+        if(adapter!=null){
+            return
+        }
 //        chapterProgress.text = ""
 //        // 更新标题和进度
 //        chapterTitle.text = "${chapter.bookName} ${chapter.chapterNumber}"

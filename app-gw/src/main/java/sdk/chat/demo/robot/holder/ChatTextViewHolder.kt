@@ -191,7 +191,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             MarkdownRenderer.markwon.setMarkdown(it, feedbackText);
         }
 
-        if(feedbackText.isEmpty()&&t.message.messageStatus == MessageSendStatus.Sent){
+        if(feedbackText.isEmpty()&& action != AIExplore.ExploreItem.action_local_bible_pic&&t.message.messageStatus == MessageSendStatus.Sent){
             replyErrorHint?.visibility = View.VISIBLE
             replyErrorHint?.text = bubble?.context?.getString(R.string.no_cached_data) ?: "Retrieve the response data..."
         }

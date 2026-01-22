@@ -26,6 +26,7 @@ public class FavoriteList {
         @SerializedName("created_at")
         private String createdAt;
         private String content;
+        private List<Song> songs;
 
         private boolean isExpanded;
 
@@ -57,6 +58,19 @@ public class FavoriteList {
             return content;
         }
 
+        public String getText(){
+            if(songs!=null&&!songs.isEmpty()){
+                StringBuilder sb = new StringBuilder();
+                for(Song s : songs){
+                    sb.append(s.getTitle()).append("\n\n");
+                    sb.append(s.getLyrics()).append("\n");
+                }
+                return sb.toString();
+            }else{
+                return content;
+            }
+        }
+
         public void setContent(String content) {
             this.content = content;
         }
@@ -75,6 +89,14 @@ public class FavoriteList {
 
         public void setSessionName(String sessionName) {
             this.sessionName = sessionName;
+        }
+
+        public List<Song> getSongs() {
+            return songs;
+        }
+
+        public void setSongs(List<Song> songs) {
+            this.songs = songs;
         }
     }
 }

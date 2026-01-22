@@ -11,6 +11,7 @@ public class MessageDetail {
     public static final int STATUS_CANCEL = 6;
     private String id;
     private int status;
+    private int action;
     private String summary;
     @SerializedName("session_id")
     private Long sessionId;
@@ -113,5 +114,13 @@ public class MessageDetail {
 
     public void setUpdatedTs(Long updatedTs) {
         this.updatedTs = updatedTs;
+    }
+
+    public int getAction() {
+        return action;
+    }
+
+    public void setAction(int action) {
+        this.action = action;
     }
 }

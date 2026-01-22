@@ -15,6 +15,7 @@ import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.model.FavoriteList
 import androidx.core.graphics.toColorInt
+import sdk.chat.demo.robot.ui.SongsContainerView
 
 class FavoriteAdapter(
     private val onItemClick: (FavoriteList.FavoriteItem) -> Unit,
@@ -26,7 +27,8 @@ class FavoriteAdapter(
     companion object {
         private const val TYPE_ITEM_USER = 0
         private const val TYPE_ITEM_AI = 1
-        private const val TYPE_FOOTER = 2
+        private const val TYPE_ITEM_SONG = 2
+        private const val TYPE_FOOTER = 3
         private val color_user = "#FFF8F7".toColorInt()
     }
 
@@ -49,6 +51,9 @@ class FavoriteAdapter(
         }
         var item = listData[position]
         if (item.contentType == GWApiManager.contentTypeAI) {
+            if(item.songs!=null&&!item.songs.isEmpty()){
+                return TYPE_ITEM_SONG
+            }
             return TYPE_ITEM_AI
         }
         return TYPE_ITEM_USER
@@ -67,6 +72,10 @@ class FavoriteAdapter(
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_favorite_ai, parent, false)
             return MyViewHolder(view)
+        } else if (viewType == TYPE_ITEM_SONG) {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_favorite_song, parent, false)
+            return SongHolder(view)
         } else {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_favorite_user, parent, false)
@@ -80,7 +89,61 @@ class FavoriteAdapter(
     ) {
         try {
             when (holder) {
-                is MyViewHolder -> {
+                is SongHolder -> {
+                    if (position < listData.size) {
+                        var context: Context = holder.textView.context
+                        val item = listData[position]
+
+                        Markwon.create(context)
+                            .setMarkdown(holder.textView, item.content)
+                        holder.tvTime.text = item.createdAt.replace("T", " ")
+                        holder.itemView.setOnClickListener { onItemClick(item) }
+                        holder.textView.setOnClickListener { onItemClick(item) }
+                        holder.itemView.setOnLongClickListener { v -> onLongClick(v, item) }
+                        holder.textView.setOnLongClickListener { v -> onLongClick(v, item) }
+                        holder.topic?.text = item.sessionName
+                        if(item.songs!=null&&!item.songs.isEmpty()){
+                            holder.expand.visibility = View.VISIBLE
+                        }
+                        holder.songsContainer?.setSongs(item.songs, false)
+
+                        if (item.isExpanded) {
+                            holder.songsContainer?.visibility = View.VISIBLE
+                            holder.expand.text = holder.expand.context.getString(R.string.fold)
+                            holder.expand.setCompoundDrawablesWithIntrinsicBounds(
+                                null, // left (设为null表示不修改)
+                                null, // top
+                                ContextCompat.getDrawable(
+                                    holder.expand.context,
+                                    R.mipmap.ic_fold
+                                ), // right
+                                null  // bottom
+                            )
+                        } else {
+                            holder.songsContainer?.visibility = View.GONE
+                            holder.expand.text =
+                                holder.expand.context.getString(R.string.unfold)
+                            holder.expand.setCompoundDrawablesWithIntrinsicBounds(
+                                null, // left (设为null表示不修改)
+                                null, // top
+                                ContextCompat.getDrawable(
+                                    holder.expand.context,
+                                    R.mipmap.ic_unfold
+                                ), // right
+                                null  // bottom
+                            )
+                        }
+
+                        holder.expand.setOnClickListener {
+                            item.isExpanded = !item.isExpanded
+                            notifyItemChanged(position) // 只刷新当前item
+                        }
+
+                    } else {
+                        holder.textView.text = "" // 处理异常情况
+                    }
+                }
+                is MyViewHolder-> {
                     if (position < listData.size) {
                         var context: Context = holder.textView.context
                         val item = listData[position]
@@ -141,14 +204,6 @@ class FavoriteAdapter(
                         holder.expand.setOnClickListener {
                             item.isExpanded = !item.isExpanded
                             notifyItemChanged(position) // 只刷新当前item
-//                        holder.textView.maxLines =
-//                            if (holder.textView.maxLines == 8) Integer.MAX_VALUE else 8
-//                        if (holder.textView.maxLines == 8) {
-//                            holder.expand.text = holder.textView.context.getString(R.string.unfold)
-//                        } else {
-//                            holder.textView.maxLines = 8
-//                            holder.expand.text = holder.textView.context.getString(R.string.fold)
-//                        }
                         }
 
                     } else {
@@ -214,5 +269,13 @@ class FavoriteAdapter(
         val tvTime: TextView = itemView.findViewById<TextView?>(R.id.tvTime)
         val expand: TextView = itemView.findViewById<TextView?>(R.id.expand)
         val topic: TextView? = itemView.findViewById<TextView?>(R.id.tvTopic)
+    }
+
+    private class SongHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textView: TextView = itemView.findViewById<TextView?>(R.id.tvContent)
+        val tvTime: TextView = itemView.findViewById<TextView?>(R.id.tvTime)
+        val expand: TextView = itemView.findViewById<TextView?>(R.id.expand)
+        val topic: TextView? = itemView.findViewById<TextView?>(R.id.tvTopic)
+        val songsContainer:SongsContainerView? = itemView.findViewById<SongsContainerView?>(R.id.songsContainer)
     }
 }

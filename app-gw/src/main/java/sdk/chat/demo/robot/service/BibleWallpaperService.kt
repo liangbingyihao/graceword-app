@@ -107,7 +107,7 @@ class BibleWallpaperService : WallpaperService() {
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             this.width = width
             this.height = height
-            this.isPortrait = this.height>this.width
+            this.isPortrait = this.height > this.width
 //            updateVerseRect()
             super.onSurfaceChanged(holder, format, width, height)
         }
@@ -212,12 +212,12 @@ class BibleWallpaperService : WallpaperService() {
          */
         private fun handleVerseClick() {
             try {
-                var reference= currentImageData?.reference ?: ""
+                var reference = currentImageData?.reference ?: ""
                 Log.e("bible_data", "handleVerseClick...$reference")
 //                BibleActivity.start(applicationContext, reference = "太1:2", fullscreen = false, newTask = true)
                 MainDrawerActivity.startBibleActivity(
                     applicationContext,
-                    reference = "太1:2",
+                    reference = reference,
                 )
             } catch (e: Exception) {
                 Log.e("bible_data", "handleVerseClick...$e")
@@ -266,9 +266,9 @@ class BibleWallpaperService : WallpaperService() {
 
         private fun drawWallpaper(canvas: Canvas) {
 //            checkAndChangeContent()
-            if(this.isPortrait){
+            if (this.isPortrait) {
                 drawBackgroundImage(canvas)
-            }else{
+            } else {
                 Logger.error { "$TAG, !isPortrait:${this.width},${this.height}" }
             }
 //            drawBibleVerse(canvas)
@@ -371,7 +371,14 @@ class BibleWallpaperService : WallpaperService() {
                     )
                     if (isClikable) {
                         val rect = CardGenerator.getCacheRect(cacheKey)
-                        verseRect = rect
+                        if (rect != null) {
+                            verseRect = RectF(
+                                rect.left - 10,
+                                rect.top + 5,
+                                rect.right + 10,
+                                rect.bottom + 5
+                            )
+                        }
 //                        Log.e(
 //                            TAG,
 //                            "generateBibleCard  from cache ,verseRect:${verseRect}"

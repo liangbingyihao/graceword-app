@@ -1,66 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/popupView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:background="#BF000000">
 
-    <LinearLayout
-        android:id="@+id/content"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:background="#FAFAFA"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <ImageView
-            android:id="@+id/photoView"
-            android:layout_width="match_parent"
-            android:layout_height="218dp"
-            android:scaleType="centerCrop" />
-
-        <TextView
-            android:id="@+id/bible"
+        <LinearLayout
+            android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="40dp"
-            android:lineSpacingExtra="16dp"
-            android:textColor="#333333"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/dashed_line" />
-
-        <FrameLayout
-            android:id="@+id/footer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FAFAFA">
+            android:orientation="vertical"
+            android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_gravity="center|left"
-                android:layout_margin="30dp"
-                android:src="@mipmap/ic_qr_verse" />
+                android:id="@+id/photoView"
+                android:layout_width="match_parent"
+                android:layout_height="218dp"
+                android:src="@mipmap/ic_intro_1_en"
+                android:scaleType="centerCrop" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/bible"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginLeft="110dp"
-                android:gravity="center_vertical"
-                android:text="@string/download_prompt"
-                android:textColor="#B1B1B1"
-                android:textSize="15sp" />
-        </FrameLayout>
-    </LinearLayout>
+                android:background="@color/gray_base"
+                android:paddingTop="40dp"
+                android:paddingLeft="40dp"
+                android:paddingRight="40dp"
+                android:paddingBottom="56dp"
+                android:lineSpacingExtra="16dp"
+                android:text="1\n2\n4\n2"
+                android:textColor="#333333"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gray_base"
+                android:foreground="@drawable/dashed_line" />
+
+            <FrameLayout
+                android:id="@+id/footer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/gray_base">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_gravity="center|left"
+                    android:layout_margin="30dp"
+                    android:src="@mipmap/ic_qr_verse" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="110dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/download_prompt"
+                    android:textColor="#B1B1B1"
+                    android:textSize="15sp" />
+            </FrameLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <ImageView
         android:id="@+id/fab"

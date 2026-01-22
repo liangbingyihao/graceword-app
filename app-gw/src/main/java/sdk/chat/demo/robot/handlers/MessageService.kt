@@ -9,6 +9,7 @@ import sdk.chat.core.dao.Message
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.core.types.MessageSendStatus
 import sdk.chat.core.types.MessageType
+import sdk.chat.demo.robot.adpter.data.AIExplore
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.model.MessageDetail
 import sdk.chat.demo.robot.api.model.MessageList
@@ -114,6 +115,10 @@ object MessageService {
                         message.text = item.content
                         message.setMetaValue(GWThreadHandler.KEY_AI_FEEDBACK, gson.toJson(item))
                         message.setMetaValue(Keys.KEY_VERSION, item.updatedTs)
+
+                        if (item.action > 0) {
+                            message.setMetaValue("action", item.action)
+                        }
                     } else {
                         if (sessionId == null) {
                             message.setMetaValue(GWThreadHandler.KEY_AI_FEEDBACK, gson.toJson(item))
