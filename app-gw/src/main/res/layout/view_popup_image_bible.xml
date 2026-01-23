@@ -22,7 +22,6 @@
                 android:id="@+id/photoView"
                 android:layout_width="match_parent"
                 android:layout_height="218dp"
-                android:src="@mipmap/ic_intro_1_en"
                 android:scaleType="centerCrop" />
 
             <TextView
@@ -35,7 +34,6 @@
                 android:paddingRight="40dp"
                 android:paddingBottom="56dp"
                 android:lineSpacingExtra="16dp"
-                android:text="1\n2\n4\n2"
                 android:textColor="#333333"
                 android:textSize="18sp"
                 android:textStyle="bold" />

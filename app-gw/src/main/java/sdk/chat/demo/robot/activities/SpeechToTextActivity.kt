@@ -1,8 +1,10 @@
 package sdk.chat.demo.robot.activities
 
+import android.app.WallpaperManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -19,26 +21,33 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleObserver
-import io.noties.markwon.Markwon
-import io.noties.markwon.html.HtmlPlugin
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
+import io.reactivex.schedulers.Schedulers
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
+import sdk.chat.core.utils.PermissionRequestHandler
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.MainDrawerActivity
+import sdk.chat.demo.robot.activities.EditCardActivity
+import sdk.chat.demo.robot.activities.SettingWallpaperActivity
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.audio.TTSHelper
+import sdk.chat.demo.robot.extensions.ImageSaveUtils
 import sdk.chat.demo.robot.extensions.LanguageUtils
+import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.DailyTaskHandler
 import sdk.chat.demo.robot.handlers.LimitCounter
+import sdk.chat.demo.robot.handlers.OffscreenScreenshotHelper
+import sdk.chat.demo.robot.handlers.OffscreenScreenshotHelper.ButtonConfig
 import sdk.chat.demo.robot.handlers.SpeechToTextHelper
 import sdk.chat.demo.robot.push.UpdateTokenWorker
-import sdk.chat.demo.robot.ui.RedUnderlineTagHandler
 import sdk.chat.demo.robot.utils.ToastHelper
-import sdk.chat.demo.robot.utils.WallpaperGuideUtil
+import sdk.chat.demo.robot.utils.WallpaperUtils
 import sdk.guru.common.DisposableMap
 import java.util.Locale
 
@@ -296,8 +305,8 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             R.id.billing -> {
 //                speechToTextHelper.stopListening()
 //                BillingActivity.start(this@SpeechToTextActivity,"test")
-
-                CampaignInfoActivity.start(this@SpeechToTextActivity, "mini")
+                captureScreenshotWithFooter()
+//                CampaignInfoActivity.start(this@SpeechToTextActivity, "mini")
 //                EditCardActivity.start(this@SpeechToTextActivity,directUrl="https://api-test.kolacdn.xyz/public/spring.html")
             }
 
@@ -354,4 +363,83 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
         }
     }
 
+    private fun captureScreenshotWithFooter() {
+        val disposable = PermissionRequestHandler
+            .requestWriteExternalStorage(this@SpeechToTextActivity)
+            .andThen<Bitmap?>( // After permission is granted, execute the following operations
+                Observable.create<Bitmap?>(ObservableOnSubscribe { emitter: ObservableEmitter<Bitmap?>? ->
+                    OffscreenScreenshotHelper.screenshot(
+                        this@SpeechToTextActivity,
+                        headerUrl = "https://cdn.grace-word.com/app/26newyear/c29e1c5c9b7d47e3a78aec1395cb520d.webp",
+//                        textContents = listOf(
+//                            "这是内容标题",
+//                            "1这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描述...这是详细的内容描述...这是详细的内容描述...述...",
+//                            "2这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描述...这是详细的内容描述...这是详细的内容描述...述...",
+//                            "3这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描述...这是详细的内容描述...这是详细的内容描述...述...",
+//                            "4这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描这是详细的内容描述\n...这是详细的内容描述...\n这是详细的内容描述...这是详细的内容描述...这是详细的内容描述...述...",
+//                            "更多内容信息"
+//                        ),
+                        buttonConfigs = listOf(
+                            ButtonConfig("1这是内容标题", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("1这是详细的内容描这是详细的内容描述\n\n...这是详细的内容描述", R.layout.screenshot_item_ai_msg),
+                            ButtonConfig("这是问题1", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("这是问题1", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("1这是详细的内容描这是详细的内容描述\n" +
+                                    "...这是详细的内容描述", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("这是内容标题", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("这是问题1", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("这是问题1", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("1这是详细的内容描这是详细的内容描述\n" +
+                                    "...这是详细的内容描述", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("2这是内容标题", R.layout.screenshot_item_user_msg),
+                            ButtonConfig("1这是内容标题", R.layout.screenshot_item_song),
+                        ),
+                        onSuccess = { result: Bitmap? ->
+                            Toast.makeText(this@SpeechToTextActivity, "截图成功", Toast.LENGTH_SHORT).show()
+                            emitter!!.onNext(result!!) // 发送成功结果
+                            emitter.onComplete() // 完成
+                            Unit
+                        }, onFailure = { err: Throwable? ->
+                            Toast.makeText(this@SpeechToTextActivity, "截图失败", Toast.LENGTH_SHORT).show()
+                            emitter!!.onError(err!!)
+                            Unit
+                        })
+                })
+                    .subscribeOn(Schedulers.io())
+            )
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                Consumer { bitmap: Bitmap? ->
+                    if (bitmap != null) {
+                        val bitmapURL = ImageSaveUtils.saveBitmapToGallery(
+                            this@SpeechToTextActivity,  // context
+                            bitmap,
+                            "img_" + System.currentTimeMillis(),
+                            Bitmap.CompressFormat.JPEG
+                        )
+                        if (bitmapURL != null) {
+                            ToastHelper.show(
+                                this@SpeechToTextActivity,
+                                getString(R.string.image_saved)
+                            )
+
+                        } else {
+                            ToastHelper.show(
+                                this@SpeechToTextActivity,
+                                getString(R.string.image_save_failed)
+                            )
+                        }
+                    } else {
+                        ToastHelper.show(
+                            this@SpeechToTextActivity,
+                            getString(R.string.image_save_failed)
+                        )
+                    }
+                    bitmap?.recycle()
+                }
+            )
+        dm.add(disposable)
+
+
+    }
 }

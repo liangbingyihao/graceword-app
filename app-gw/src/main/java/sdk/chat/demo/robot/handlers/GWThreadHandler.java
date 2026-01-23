@@ -70,6 +70,7 @@ import sdk.chat.demo.robot.holder.AIFeedbackType;
 import sdk.chat.demo.robot.holder.HolderProvider;
 import sdk.chat.demo.robot.holder.MessageHolder;
 import sdk.chat.demo.robot.holder.WelcomeHolder;
+import sdk.chat.demo.robot.utils.MarkdownPreprocessor;
 import sdk.guru.common.RX;
 
 public class GWThreadHandler extends AbstractThreadHandler {
@@ -1215,7 +1216,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
             if (aiFeedback == null) {
                 return;
             }
-            message.setMetaValue(KEY_AI_FEEDBACK, json.toString());
+            aiFeedback.setFeedbackText(MarkdownPreprocessor.preprocessMultipleBoldMarkers(aiFeedback.getFeedbackText()));
+            message.setMetaValue(KEY_AI_FEEDBACK, gson.toJson(aiFeedback));
 
             if (aiFeedback.getStatus() > MessageDetail.STATUS_PENDING) {
                 Log.d("sending", "aiFeedback.getStatus()=" + aiFeedback.getStatus());

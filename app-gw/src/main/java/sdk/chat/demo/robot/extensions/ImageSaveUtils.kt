@@ -4,13 +4,25 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
+fun Bitmap.compressToSafeSize(maxSizeKB: Int = 500): Bitmap {
+    if (this.allocationByteCount / 1024 <= maxSizeKB) return this
+    return try {
+        val outputStream = ByteArrayOutputStream()
+        compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+        BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
+    } catch (e: Exception) {
+        this
+    }
+}
 /**
  * 图片保存工具类（兼容 Android 10+ 和旧版本）
  */

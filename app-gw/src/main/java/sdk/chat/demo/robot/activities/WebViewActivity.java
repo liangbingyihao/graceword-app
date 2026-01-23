@@ -3,6 +3,7 @@ package sdk.chat.demo.robot.activities;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.api.model.ShareRequest;
 import sdk.chat.demo.robot.api.model.ShareRequestKt;
+import sdk.chat.demo.robot.extensions.ImageSaveUtils;
 import sdk.chat.demo.robot.handlers.SocialShareHandler;
 import sdk.chat.demo.robot.ops.AndroidJavaScriptInterface;
 import sdk.chat.demo.robot.utils.SocialShareUtils;
@@ -11,6 +12,7 @@ import sdk.chat.demo.robot.utils.ToastHelper;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -132,6 +134,7 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         if (vid == R.id.home) {
             finish();
         } else if (vid == R.id.share) {
+            captureLongScreenshot();
             dm.add(SocialShareHandler.batchShare(request)
                     .subscribe(
                             shareUrl -> {
@@ -275,5 +278,79 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         intent.putExtra(EXTRA_URL, url);
         intent.putExtra(EXTRA_TITLE, title);
         context.startActivity(intent);
+    }
+
+    private void captureLongScreenshot() {
+        // 通过JavaScript获取页面实际高度
+        webView.evaluateJavascript("(function() { " +
+                "return Math.max(document.body.scrollHeight, " +
+                "document.documentElement.scrollHeight, " +
+                "document.body.offsetHeight, " +
+                "document.documentElement.offsetHeight, " +
+                "document.body.clientHeight, " +
+                "document.documentElement.clientHeight); " +
+                "})();", value -> {
+            try {
+                // 解析JavaScript返回的高度值
+                int pageHeight = Integer.parseInt(value.replace("\"", ""));
+                captureWebViewContent(pageHeight);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "获取页面高度失败", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void captureWebViewContent(int pageHeight) {
+        // 获取WebView的宽度
+        int webViewWidth = webView.getWidth();
+
+        // 创建与页面等高的Bitmap（注意内存限制）
+        if (pageHeight <= 0 || webViewWidth <= 0) {
+            Toast.makeText(this, "页面尺寸无效", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 检查Bitmap大小是否超过限制（避免OOM）
+        long bitmapSize = (long) webViewWidth * pageHeight * 4; // 4 bytes per pixel (ARGB_8888)
+        if (bitmapSize > 1024 * 1024 * 100) { // 限制100MB
+            Toast.makeText(this, "页面过长，无法截图", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            Bitmap bitmap = Bitmap.createBitmap(webViewWidth, pageHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+
+            // 保存WebView当前滚动位置
+            int scrollX = webView.getScrollX();
+            int scrollY = webView.getScrollY();
+
+            // 临时禁用滚动条（可选，使截图更干净）
+            webView.setVerticalScrollBarEnabled(false);
+            webView.setHorizontalScrollBarEnabled(false);
+
+            // 将WebView内容绘制到Canvas
+            webView.draw(canvas);
+
+            // 恢复滚动条和位置
+            webView.setVerticalScrollBarEnabled(true);
+            webView.setHorizontalScrollBarEnabled(true);
+            webView.scrollTo(scrollX, scrollY);
+
+            // 保存截图
+            ImageSaveUtils.INSTANCE.saveBitmapToGallery(
+                    this, // context
+                    bitmap,
+                    "img_" + System.currentTimeMillis(),
+                    Bitmap.CompressFormat.JPEG
+            );
+
+            bitmap.recycle();
+
+        } catch (OutOfMemoryError e) {
+            e.printStackTrace();
+            Toast.makeText(this, "内存不足，截图失败", Toast.LENGTH_SHORT).show();
+        }
     }
 }

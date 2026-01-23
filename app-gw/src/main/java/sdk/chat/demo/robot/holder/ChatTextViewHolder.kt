@@ -35,6 +35,7 @@ import sdk.chat.demo.robot.extensions.StateStorage
 import sdk.chat.demo.robot.handlers.BillingManager
 import sdk.chat.demo.robot.handlers.GWThreadHandler
 import sdk.chat.demo.robot.ui.MarkdownRenderer
+import sdk.chat.demo.robot.utils.MarkdownPreprocessor
 import sdk.guru.common.DisposableMap
 import sdk.guru.common.RX
 import java.text.DateFormat
@@ -179,7 +180,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        t.message.metaValuesAsMap
         var feedbackText = aiFeedback?.feedbackText ?: ""
         cbAiText?.visibility = View.GONE
-
+        feedbackText = MarkdownPreprocessor.preprocessMultipleBoldMarkers(feedbackText)
         feedback?.let {
             if (!feedbackText.isEmpty() && isMultiSelectMode) {
                 cbAiText?.visibility = View.VISIBLE
