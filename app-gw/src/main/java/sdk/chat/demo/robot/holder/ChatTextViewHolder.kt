@@ -180,7 +180,6 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 //        t.message.metaValuesAsMap
         var feedbackText = aiFeedback?.feedbackText ?: ""
         cbAiText?.visibility = View.GONE
-        feedbackText = MarkdownPreprocessor.preprocessMultipleBoldMarkers(feedbackText)
         feedback?.let {
             if (!feedbackText.isEmpty() && isMultiSelectMode) {
                 cbAiText?.visibility = View.VISIBLE
@@ -192,9 +191,10 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
             MarkdownRenderer.markwon.setMarkdown(it, feedbackText);
         }
 
-        if(feedbackText.isEmpty()&& action != AIExplore.ExploreItem.action_local_bible_pic&&t.message.messageStatus == MessageSendStatus.Sent){
+        if (aiFeedback?.feedback == null && feedbackText.isEmpty() && action != AIExplore.ExploreItem.action_local_bible_pic && t.message.messageStatus == MessageSendStatus.Sent) {
             replyErrorHint?.visibility = View.VISIBLE
-            replyErrorHint?.text = bubble?.context?.getString(R.string.no_cached_data) ?: "Retrieve the response data..."
+            replyErrorHint?.text =
+                bubble?.context?.getString(R.string.no_cached_data) ?: "Retrieve the response data"
         }
 
 
@@ -333,7 +333,7 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
     open fun bindSendStatus(holder: T): Boolean {
         var aiFeedback: MessageDetail? = (holder as? TextHolder)?.getAiFeedback();
         var status = holder.message.messageStatus
-        Log.d("textviewholder", "bindSendStatus:" + status.name+","+holder.message.entityID)
+        Log.d("textviewholder", "bindSendStatus:" + status.name + "," + holder.message.entityID)
         if (status.ordinal < MessageSendStatus.Replying.ordinal) {
             feedbackMenu?.visibility = View.GONE
             feedback?.visibility = View.GONE
@@ -365,7 +365,8 @@ open class ChatTextViewHolder<T : MessageHolder>(itemView: View) :
 
             if (status == MessageSendStatus.Failed) {
                 replyErrorHint?.visibility = View.VISIBLE
-                replyErrorHint?.text = bubble?.context?.getString(R.string.ai_failed) ?: "Retrieve the response data..."
+                replyErrorHint?.text = bubble?.context?.getString(R.string.ai_failed)
+                    ?: "Retrieve the response data..."
             } else {
                 replyErrorHint?.visibility = View.GONE
             }

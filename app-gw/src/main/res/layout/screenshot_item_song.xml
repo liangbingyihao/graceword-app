@@ -29,65 +29,6 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <!-- 第2行：链接 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="8dp">
-
-            <TextView
-                android:id="@+id/tvListenLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingEnd="16dp"
-                android:text="@string/listen"
-                android:textColor="@color/item_text_menu"
-                android:textSize="17sp" />
-
-            <View
-                android:id="@+id/vDivider1"
-                android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="16dp"
-                android:background="@color/item_text_menu" />
-
-            <TextView
-                android:id="@+id/tvSheetMusicLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingEnd="16dp"
-                android:text="@string/sheet_music"
-                android:textColor="@color/item_text_menu"
-                android:textSize="17sp" />
-
-            <View
-                android:id="@+id/vDivider2"
-                android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="16dp"
-                android:background="@color/item_text_menu" />
-
-            <TextView
-                android:id="@+id/tvPPTLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/lyrics_ppt"
-                android:textColor="@color/item_text_menu"
-                android:textSize="17sp" />
-        </LinearLayout>
-
         <!-- 第4行：专辑 -->
         <TextView
             android:id="@+id/tvAlbum"
@@ -100,40 +41,21 @@
             android:textSize="15sp" />
 
         <!-- 第5行：歌词 -->
-        <RelativeLayout
+
+        <TextView
+            android:id="@+id/tvLyrics"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="8dp">
-
-            <TextView
-                android:id="@+id/tvLyrics"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:cursorVisible="false"
-                android:ellipsize="end"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:longClickable="true"
-                android:maxLines="7"
-                android:layout_marginRight="32dp"
-                android:textColor="#333333"
-                android:textIsSelectable="true"
-                android:textSize="17sp" />
-
-            <TextView
-                android:id="@+id/tvExpandLyrics"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentBottom="true"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="4dp"
-                android:text="@string/unfold"
-                android:textColor="@color/item_text_menu"
-                android:textSize="12sp" />
-        </RelativeLayout>
+            android:cursorVisible="false"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:longClickable="true"
+            android:layout_marginRight="32dp"
+            android:textColor="#333333"
+            android:textIsSelectable="true"
+            android:textSize="17sp"
+            android:paddingBottom="8dp" />
 
         <!-- 第6行：版权 -->
         <TextView

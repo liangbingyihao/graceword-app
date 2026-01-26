@@ -62,7 +62,7 @@ public class TextHolder extends MessageHolder implements MessageContentType, AIF
 
     public List<Song> getSongs() {
         MessageDetail messageDetail = getAiFeedback();
-        if (isSong && messageDetail != null) {
+        if (isSong && messageDetail != null && messageDetail.getFeedback() != null) {
             return messageDetail.getFeedback().getHymns();
         } else {
             return null;

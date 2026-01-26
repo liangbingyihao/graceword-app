@@ -64,7 +64,7 @@
     <string name="uploading">耐心是圣灵的果子，我们在努力上传中</string>
     <string name="sending">存在发送中的信息，请稍后</string>
     <string name="ai_failed">回复失败，请重试</string>
-    <string name="no_cached_data">重新获取回复数据</string>
+    <string name="no_cached_data">获取回复</string>
     <string name="msg_failed">发送失败，请重试</string>
     <string name="task_calendar">打卡日记</string>
     <string name="guide_drawer">侧边栏</string>
@@ -106,6 +106,7 @@
     <string name="hint_msg_welcome">请输入您的想法</string>
     <string name="share_preview">分享预览</string>
     <string name="share_confirm">直接分享</string>
+    <string name="share_pic">分享图片</string>
     <string name="share_total">已选%d条信息</string>
     <string name="query_hint">请选择以下任意条件或填入关键字，进行查询</string>
     <string name="read_bible">看圣经</string>

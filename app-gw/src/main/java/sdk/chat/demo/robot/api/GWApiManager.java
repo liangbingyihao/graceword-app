@@ -34,8 +34,6 @@ import sdk.chat.core.dao.Message;
 import sdk.chat.core.types.MessageSendStatus;
 import sdk.chat.demo.MainApp;
 import sdk.chat.demo.pre.BuildConfig;
-import sdk.chat.demo.robot.api.model.AIFeedback;
-import sdk.chat.demo.robot.api.model.AIFeedbackDeserializer;
 import sdk.chat.demo.robot.api.model.FavoriteItemDeserializer;
 import sdk.chat.demo.robot.api.model.FavoriteList;
 import sdk.chat.demo.robot.api.model.MessageList;

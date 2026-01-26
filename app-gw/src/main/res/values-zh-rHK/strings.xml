@@ -64,7 +64,7 @@
     <string name="uploading">耐心是聖靈的果子，我們在努力上傳中</string>
     <string name="sending">存在發送中的信息，請稍後</string>
     <string name="ai_failed">回覆失敗，請重試</string>
-    <string name="no_cached_data">重新獲取回覆數據</string>
+    <string name="no_cached_data">獲取回覆</string>
     <string name="msg_failed">發送失敗，請重試</string>
     <string name="task_calendar">打卡日記</string>
     <string name="guide_drawer">側邊欄</string>
@@ -108,6 +108,7 @@
     <string name="hint_msg_welcome">請輸入您的想法</string>
     <string name="share_preview">分享預覽</string>
     <string name="share_confirm">直接分享</string>
+    <string name="share_pic">分享圖片</string>
     <string name="share_total">已選%d條信息</string>
     <string name="query_hint">請選擇以下任意條件或填入關鍵字，進行查詢</string>
     <string name="read_bible">看聖經</string>

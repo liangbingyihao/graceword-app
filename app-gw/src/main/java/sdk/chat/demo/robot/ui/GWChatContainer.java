@@ -1,6 +1,12 @@
 package sdk.chat.demo.robot.ui;
 
+import static com.google.android.gms.common.util.CollectionUtils.listOf;
+
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,6 +14,9 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
+import sdk.chat.demo.robot.handlers.OffscreenScreenshotHelper;
+import sdk.chat.demo.robot.handlers.OffscreenScreenshotHelper.ButtonConfig;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -24,16 +33,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.SingleSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import kotlin.Unit;
 import sdk.chat.core.dao.Message;
 import sdk.chat.core.dao.Thread;
 import sdk.chat.core.events.EventType;
 import sdk.chat.core.events.NetworkEvent;
 import sdk.chat.core.session.ChatSDK;
+import sdk.chat.core.utils.PermissionRequestHandler;
 import sdk.chat.core.utils.TimeLog;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.WebViewActivity;
@@ -42,6 +56,8 @@ import sdk.chat.demo.robot.api.model.KeyValuePair;
 import sdk.chat.demo.robot.api.model.ShareRequest;
 import sdk.chat.demo.robot.api.model.ShareRequestKt;
 import sdk.chat.demo.robot.api.model.Song;
+import sdk.chat.demo.robot.extensions.ImageSaveUtils;
+import sdk.chat.demo.robot.handlers.CardGenerator;
 import sdk.chat.demo.robot.handlers.GWThreadHandler;
 import sdk.chat.demo.robot.handlers.LogUploader;
 import sdk.chat.demo.robot.handlers.SocialShareHandler;
@@ -118,7 +134,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                     messagesListAdapter.setMultiSelectMode(true);
 
                     LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
-                    if(layoutManager!=null){
+                    if (layoutManager != null) {
                         layoutManager.scrollToPositionWithOffset(holder.getPos(), 200);
                     }
 
@@ -131,7 +147,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                     messagesListAdapter.setMultiSelectMode(true);
 
                     LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
-                    if(layoutManager!=null){
+                    if (layoutManager != null) {
                         layoutManager.scrollToPositionWithOffset(holder.getPos(), 200);
                     }
 
@@ -217,6 +233,76 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             }
             messagesListAdapter.setMultiSelectMode(false);
             delegate.onSocialShare(false, 0);
+        } else if (vid == R.id.btSharePic) {
+            List<TextHolder> selectedItems = messagesListAdapter.getSelectedItems();
+            if (selectedItems.isEmpty()) {
+                ToastHelper.show(getContext(), "Nothing selected...");
+            } else {
+                ToastHelper.show(getContext(), "Share Pic...");
+                List<ButtonConfig> data = new ArrayList<>();
+                for (TextHolder holder : selectedItems) {
+                    if (holder.isUserSelected()) {
+                        data.add(new ButtonConfig(holder.message.getText(), R.layout.screenshot_item_user_msg, null));
+                    }
+                    if (holder.isAiSelected()) {
+                        data.add(new ButtonConfig(holder.getAiFeedback().getFeedbackText(), R.layout.screenshot_item_ai_msg, null));
+                    }
+                    List<Song> songs = holder.getSelectedSongs();
+                    if (songs != null && !songs.isEmpty()) {
+                        for (Song song : songs) {
+                            data.add(new ButtonConfig("", R.layout.screenshot_item_song, song));
+                        }
+                    }
+                }
+                Disposable disposable = PermissionRequestHandler
+                        .requestWriteExternalStorage((Activity) this.getContext())
+                        .andThen( // After permission is granted, execute the following operations
+                                Observable.<Bitmap>create(emitter -> {
+                                            OffscreenScreenshotHelper.INSTANCE.screenshot(
+                                                    this.getContext(),
+                                                    SocialShareHandler.getHeaderImage().getUrl(),
+                                                    null, null,
+                                                    data,
+                                                    result -> {
+                                                        emitter.onNext(result); // 发送成功结果
+                                                        emitter.onComplete(); // 完成
+                                                        return Unit.INSTANCE;
+
+                                                    }, err -> {
+                                                        emitter.onError(err);
+                                                        return Unit.INSTANCE;
+                                                    });
+
+                                        })
+                                        .subscribeOn(Schedulers.io())
+                        )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                bitmap -> {
+                                    Uri bitmapURL = ImageSaveUtils.INSTANCE.saveBitmapToGallery(
+                                            this.getContext(), // context
+                                            bitmap,
+                                            "img_" + System.currentTimeMillis(),
+                                            Bitmap.CompressFormat.JPEG
+                                    );
+                                    if (bitmapURL != null) {
+                                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                                        shareIntent.setType("image/*"); // 或具体类型如 "image/jpeg"
+                                        shareIntent.putExtra(Intent.EXTRA_STREAM, bitmapURL);
+                                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 临时权限
+
+                                        this.getContext().startActivity(Intent.createChooser(shareIntent, "分享图片"));
+                                    }
+                                    bitmap.recycle();
+                                },
+                                e -> {
+                                    ToastHelper.show(this.getContext(), e.getMessage());
+                                }
+                        );
+                dm.add(disposable);
+
+            }
+
         } else if (vid == R.id.btCancel) {
             messagesListAdapter.setMultiSelectMode(false);
 //            shareMenu.setVisibility(View.GONE);
@@ -257,7 +343,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                 ShareRequest request = ShareRequestKt.createShareRequest(selectedItems);
                 String summary = selectedItems.get(0).getShareSummary(getContext());
 
-                WebViewActivity.sharePreviewWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview),(new Gson()).toJson(request,ShareRequest.class),summary);
+                WebViewActivity.sharePreviewWithHtml(this.getContext(), htmlContent, getResources().getString(R.string.share_preview), (new Gson()).toJson(request, ShareRequest.class), summary);
                 LogUploader.reportEvent(
                         "mod_share", List.of(
                                 new KeyValuePair("share_msg_count", Integer.toString(selectedItems.size())),
@@ -397,7 +483,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
         } else {
             startId = 0L;
             String messageId = delegate.getMessageId();
-            Log.e("loadmsg","msgid:"+messageId);
+            Log.e("loadmsg", "msgid:" + messageId);
             if (messageId != null && !messageId.isEmpty()) {
                 Message msg = ChatSDK.db().fetchMessageWithEntityID(messageId);
                 if (msg != null) {
@@ -517,43 +603,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             }
         }
         messagesListAdapter.addNewMessage(toAdd, null);
-//        messagesListAdapter.addNewMessage(toAdd, () -> {
-////            messagesList.scrollToPosition(0);
-//            LinearLayoutManager layoutManager = (LinearLayoutManager) messagesList.getLayoutManager();
-////            int position = layoutManager.findLastVisibleItemPosition();
-//            assert layoutManager != null;
-////            layoutManager.scrollToPositionWithOffset(toAdd.size(), 600);
-//            layoutManager.scrollToPosition(toAdd.size());
-//            return Unit.INSTANCE;
-//        });
     }
-//    protected void updatePreviousMessage(MessageHolder holder) {
-//        if (holder != null) {
-//            MessageHolder previous = ChatSDKUI.provider().holderProvider().getMessageHolder(holder.previousMessage());
-//            if (previous != null) {
-//                previous.updateNextAndPreviousMessages();
-//                if (previous.isDirty()) {
-//                    previous.makeClean();
-//                    messagesListAdapter.update(previous);
-//                }
-//            }
-//        }
-//    }
-
-//    public void update(MessageHolder holder) {
-//        messagesListAdapter.update(holder);
-//    }
-
-//    protected void updateNextMessage(MessageHolder holder) {
-//        MessageHolder next = ChatSDKUI.provider().holderProvider().getMessageHolder(holder.nextMessage());
-//        if (next != null) {
-//            next.updateNextAndPreviousMessages();
-//            if (next.isDirty()) {
-//                next.makeClean();
-//                messagesListAdapter.update(next);
-//            }
-//        }
-//    }
 
     protected void removeMessage(Message message) {
         MessageHolder holder = HolderProvider.INSTANCE.getExitsMessageHolder(message);
@@ -595,7 +645,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             if (isInit) {
                 String messageId = delegate.getMessageId();
                 if (messageId != null && !messageId.isEmpty()) {
-                        Log.e("loadmsg", "pos:" + (toAdd.size() - 1) + ",messageId:" + latestMsgId);
+                    Log.e("loadmsg", "pos:" + (toAdd.size() - 1) + ",messageId:" + latestMsgId);
                     layoutManager.scrollToPositionWithOffset(toAdd.size() - 1, 300);
                 } else {
                     latestMsgId = toAdd.get(toAdd.size() - 1).message.getId();
@@ -677,29 +727,6 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             if (modifyList != null) {
                 modifyList.run();
             }
-//
-//            final List<MessageWrapper<?>> newHolders = new ArrayList<>(messagesListAdapter.getItems());
-//
-////            RX.single().scheduleDirect(() -> {
-//            if (sort) {
-//                sortMessageHolders();
-//            }
-//
-//            MessageHoldersDiffCallback callback = new MessageHoldersDiffCallback(newHolders, oldHolders);
-//            DiffUtil.DiffResult result = DiffUtil.calculateDiff(callback);
-//
-////                messagesList.post(() -> {
-//            Parcelable recyclerViewState = messagesList.getLayoutManager().onSaveInstanceState();
-//
-//            messagesListAdapter.getItems().clear();
-//            messagesListAdapter.getItems().addAll(newHolders);
-//
-//            result.dispatchUpdatesTo(messagesListAdapter);
-//
-//            messagesList.getLayoutManager().onRestoreInstanceState(recyclerViewState);
-////                });
-////            });
-
         }
 
         long end = System.currentTimeMillis();
@@ -756,37 +783,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
             messagesList.getLayoutManager().scrollToPosition(messagesListAdapter.getItemCount() - 1);
         }, 100);
     }
-//    public void copySelectedMessagesText(Context context, MessagesListAdapter.Formatter<MessageHolder> formatter, boolean reverse) {
-//        messagesListAdapter.copySelectedMessagesText(context, formatter, reverse);
-//    }
-//
-//    public void enableSelectionMode(MessagesListAdapter.SelectionListener selectionListener) {
-//        messagesListAdapter.enableSelectionMode(selectionListener);
-//    }
 
-//    public void filter(final String filter) {
-//        if (filter == null || filter.isEmpty()) {
-//            clearFilter();
-//        } else {
-//            final ArrayList<MessageHolder> filtered = new ArrayList<>();
-//            for (MessageHolder holder : messageHolders) {
-//                if (holder.getText().toLowerCase().contains(filter.trim().toLowerCase())) {
-//                    filtered.add(holder);
-//                }
-//            }
-//            synchronize(() -> {
-//                messagesListAdapter.getItems().clear();
-//                messagesListAdapter.addToEnd(filtered, false, false);
-//            });
-//        }
-//    }
-
-    //    public void clearFilter() {
-//        synchronize(() -> {
-//            messagesListAdapter.getItems().clear();
-//            messagesListAdapter.addToEnd(messageHolders, false, false);
-//        });
-//    }
     public ChatAdapter getMessagesListAdapter() {
         return messagesListAdapter;
     }

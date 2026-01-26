@@ -765,9 +765,9 @@ public class GWThreadHandler extends AbstractThreadHandler {
                             JsonObject data = gson.fromJson(message.stringForKey(KEY_AI_FEEDBACK), JsonObject.class);
                             if (data != null && data.has("feedback_text")) {
                                 data.addProperty("feedback_text", "");
-                                if (data.has("feedback")) {
-                                    data.remove("feedback");
-                                }
+//                                if (data.has("feedback")) {
+//                                    data.remove("feedback");
+//                                }
                                 message.setMetaValue(KEY_AI_FEEDBACK, data.toString());
 //                                ChatSDK.db().update(message, false);
                                 ChatSDK.events().source().accept(NetworkEvent.messageUpdated(message));
@@ -861,6 +861,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
         // 其他错误传递到UI层
         return GWApiManager.shared().renew(message.getEntityID(), prompt)
                 .subscribeOn(RX.io()).flatMap(data -> {
+                    message.setMessageStatus(MessageSendStatus.Replying, false);
                     startPolling(message.getId(), message.getEntityID(), 0);
                     return Single.just(data);
                 }).onErrorResumeNext(Single::error);

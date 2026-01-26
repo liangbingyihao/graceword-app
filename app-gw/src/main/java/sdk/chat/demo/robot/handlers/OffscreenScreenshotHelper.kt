@@ -15,10 +15,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.google.android.material.button.MaterialButton
+import sdk.chat.demo.robot.api.model.Song
 import kotlinx.coroutines.*
 import sdk.chat.demo.pre.R
 import sdk.chat.demo.robot.extensions.compressToSafeSize
+import sdk.chat.demo.robot.ui.MarkdownRenderer
 import java.io.IOException
 
 object OffscreenScreenshotHelper {
@@ -29,7 +30,6 @@ object OffscreenScreenshotHelper {
         headerUrl: String? = null,
         qrCodeUrl: String? = null,
         downloadPrompt: String? = null,
-        textContents: List<String>? = null,
         buttonConfigs: List<ButtonConfig>? = null,
         onSuccess: (Bitmap) -> Unit,
         onFailure: (Throwable) -> Unit
@@ -50,7 +50,6 @@ object OffscreenScreenshotHelper {
 
                             val bitmap = captureLayoutAsync(
                                 context,
-                                textContents,
                                 buttonConfigs,
                                 resource,
                             )
@@ -108,7 +107,6 @@ object OffscreenScreenshotHelper {
 
     suspend fun captureLayoutAsync(
         context: Context,
-        textContents: List<String>? = null,
         buttonConfigs: List<ButtonConfig>? = null,
         bitmaps: Bitmap,
     ): Bitmap? = withContext(Dispatchers.Main) {
@@ -125,8 +123,23 @@ object OffscreenScreenshotHelper {
         ivHeader.setImageBitmap(bitmaps)
         buttonConfigs?.forEach { config ->
             val itemView = LayoutInflater.from(llContent.context).inflate(config.resId, llContent, false)
-            if(R.layout.screenshot_item_song==config.resId){
-
+            if(R.layout.screenshot_item_song==config.resId) {
+                var song = config.song
+                if(song!=null){
+                    var tvSongTitle: TextView = itemView.findViewById(R.id.tvSongTitle)
+                    tvSongTitle.text = song.title
+                    var tvAlbum: TextView = itemView.findViewById(R.id.tvAlbum)
+                    tvAlbum.text =
+                        context.getString(R.string.album, song.composer, song.lyricist, song.album, song.artist)
+                    var tvLyrics: TextView = itemView.findViewById(R.id.tvLyrics)
+                    var tvCopyright: TextView = itemView.findViewById(R.id.tvCopyright)
+                    tvLyrics.text = song.lyrics
+                    tvCopyright.text = song.copyright
+                }else{
+                    itemView.visibility = View.GONE
+                }
+            }else if (R.layout.screenshot_item_ai_msg==config.resId){
+                MarkdownRenderer.markwon.setMarkdown((itemView as TextView), config.text)
             }else{
                 (itemView as TextView).text = config.text
             }
@@ -173,7 +186,8 @@ object OffscreenScreenshotHelper {
     data class ButtonConfig(
         val text: String,
         val resId: Int = 0,
-        @androidx.annotation.StyleRes val styleResId: Int = 0,
+        val song:Song? = null,
+//        @androidx.annotation.StyleRes val styleResId: Int = 0,
     )
 
     interface ScreenshotCallback {

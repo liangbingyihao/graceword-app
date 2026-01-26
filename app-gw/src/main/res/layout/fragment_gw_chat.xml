@@ -119,10 +119,23 @@
                 app:strokeWidth="1dp" />
 
             <TextView
-                android:id="@+id/btConfirm"
+                android:id="@+id/btSharePic"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_margin="16dp"
+                android:gravity="center_vertical"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/item_text_selected"
+                android:text="@string/share_pic" />
+
+            <TextView
+                android:id="@+id/btConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginBottom="32dp"
+                android:gravity="center_vertical"
                 android:textSize="14sp"
                 android:textAllCaps="false"
                 android:textStyle="bold"

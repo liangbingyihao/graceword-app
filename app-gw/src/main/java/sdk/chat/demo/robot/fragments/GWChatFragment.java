@@ -347,6 +347,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         rootView.findViewById(R.id.btCancel).setOnClickListener(this);
         rootView.findViewById(R.id.btConfirm).setOnClickListener(this);
         rootView.findViewById(R.id.btPreview).setOnClickListener(this);
+        rootView.findViewById(R.id.btSharePic).setOnClickListener(this);
 
         input.setInputListener(input -> {
             sendMessage(String.valueOf(input));

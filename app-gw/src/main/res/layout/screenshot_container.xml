@@ -22,10 +22,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
-        <com.google.android.material.button.MaterialButton
-            style="@style/ShareUserTextStyle"
-            android:text="13214354" />
     </LinearLayout>
 
     <FrameLayout
