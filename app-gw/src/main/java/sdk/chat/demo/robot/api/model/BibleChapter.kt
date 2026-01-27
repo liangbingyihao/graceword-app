@@ -862,7 +862,46 @@ object BibleData {
             it.key.contains(normalizedSearch) || normalizedSearch.contains(it.key)
         }
 
-        return matchedEntry?.value
+
+        return abbreviationToBookId.entries
+            // 计算每个key与搜索词的重叠度
+            .map { entry ->
+                val overlap = calculateSimpleOverlap(entry.key, normalizedSearch)
+                entry to overlap
+            }
+            // 过滤掉重叠度为0的项
+            .filter { (_, overlap) -> overlap > 0 }.maxByOrNull { (_, overlap) -> overlap }
+            ?.first
+            ?.value
+
+
+//        return matchedEntry?.value
+    }
+
+    private fun calculateSimpleOverlap(str1: String, str2: String): Int {
+        // 如果完全包含，给予最高权重
+        if (str1.contains(str2) || str2.contains(str1)) {
+            return 100 + maxOf(str1.length, str2.length)
+        }
+
+        // 计算共同字符数（考虑顺序）
+        var overlap = 0
+        var i = 0
+        var j = 0
+
+        while (i < str1.length && j < str2.length) {
+            if (str1[i] == str2[j]) {
+                overlap++
+                i++
+                j++
+            } else {
+                // 可以选择跳过不匹配的字符，或者只匹配连续序列
+                // 这里采用简单策略：继续比较下一个字符
+                j++
+            }
+        }
+
+        return overlap
     }
 
     // 分离书卷名和章节部分

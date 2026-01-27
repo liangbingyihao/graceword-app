@@ -43,7 +43,7 @@ object LanguageMapping {
         if (lang.contains("en")) {
             return "KJV.db"
         } else if (lang.contains("hant") or lang.contains("tw") or lang.contains("hk")) {
-            return "ChiUn_HK.db"
+            return "ChiUn_hk.db"
         } else {
             return "ChiUn.db"
         }

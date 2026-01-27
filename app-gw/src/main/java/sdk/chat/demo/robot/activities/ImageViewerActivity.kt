@@ -204,7 +204,7 @@ class ImageViewerActivity : BaseActivity(), View.OnClickListener {
         )
 
         dm.add(
-            DailyTaskHandler.getTaskProgress()
+            DailyTaskHandler.getTaskProgress(false)
                 .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(

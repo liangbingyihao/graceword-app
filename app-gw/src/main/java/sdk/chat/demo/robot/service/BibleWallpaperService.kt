@@ -32,10 +32,6 @@ import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
 import java.util.concurrent.Executors
-import android.view.Surface
-import android.hardware.display.DisplayManager
-import android.view.Display
-import sdk.chat.demo.robot.activities.BibleActivity
 import sdk.chat.demo.robot.activities.MainDrawerActivity
 
 class BibleWallpaperService : WallpaperService() {
@@ -135,9 +131,10 @@ class BibleWallpaperService : WallpaperService() {
                 }
             }
 
+            var isBlessData = CardApiService.FROM_CARD.equals(wallpaperConfig?.from)
             var today = formatDayAgo(0)
             var lastBless = blessData?.daily?.lastOrNull()
-            if (lastBless == null || today > lastBless.date) {
+            if (isBlessData && (lastBless == null || today > lastBless.date)) {
                 dm.add(
                     CardApiService.getBlessData().subscribe(
                         { bless ->
@@ -399,10 +396,9 @@ class BibleWallpaperService : WallpaperService() {
                     false,
                     isClikable,
                     { bitmap: Bitmap? ->
-                        Log.e(
-                            TAG,
-                            "generateBibleCard callback ${Thread.currentThread().name} ,${bitmap != null && !bitmap.isRecycled},$width,$height"
-                        )
+                        Logger.error {
+                            "generateBibleCard callback ${request.date},$width,$height"
+                        }
                         if (bitmap != null && !bitmap.isRecycled) {
                             handler.post(drawRunnable)
                         }

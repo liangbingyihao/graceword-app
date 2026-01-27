@@ -745,7 +745,7 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
 
     fun setTaskRedDotView() {
         dm.add(
-            DailyTaskHandler.getTaskProgress()
+            DailyTaskHandler.getTaskProgress(false)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(

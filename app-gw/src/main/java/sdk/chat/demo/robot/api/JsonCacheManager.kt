@@ -8,6 +8,14 @@ object  JsonCacheManager {
     // 内存缓存 (LRU)
     private val memoryCache = LruCache<String, String>(1024 * 1024) // 1MB
 
+    fun clear(context: Context, key: String) {
+        memoryCache.remove(key)
+        try {
+            File(context.filesDir, "$key.json").deleteOnExit()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
     // 磁盘缓存
     fun save(context: Context, key: String, json: String) {
         memoryCache.put(key, json)

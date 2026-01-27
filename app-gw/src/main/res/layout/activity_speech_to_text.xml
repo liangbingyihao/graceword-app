@@ -109,16 +109,14 @@
             android:id="@+id/taskIndex"
             android:layout_width="170dp"
             android:layout_height="80dp"
-            android:digits="0123456789"
-            android:hint="(0-7)"
-            android:inputType="number" />
+            android:hint="" />
 
         <Button
             android:id="@+id/setTask"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
-            android:text="已完成打卡次数(0-7)" />
+            android:text="" />
     </LinearLayout>
     <Button
         android:id="@+id/getLog"

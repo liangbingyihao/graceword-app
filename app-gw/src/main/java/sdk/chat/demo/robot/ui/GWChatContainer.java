@@ -294,13 +294,14 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
                                         this.getContext().startActivity(Intent.createChooser(shareIntent, "分享图片"));
                                     }
                                     bitmap.recycle();
+                                    messagesListAdapter.setMultiSelectMode(false);
+                                    delegate.onSocialShare(false, 0);
                                 },
                                 e -> {
                                     ToastHelper.show(this.getContext(), e.getMessage());
                                 }
                         );
                 dm.add(disposable);
-
             }
 
         } else if (vid == R.id.btCancel) {

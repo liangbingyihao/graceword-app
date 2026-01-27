@@ -229,7 +229,7 @@ class TaskActivity : BaseActivity(), View.OnClickListener {
 
     private fun loadData() {
         dm.add(
-            DailyTaskHandler.getTaskProgress()
+            DailyTaskHandler.getTaskProgress(true)
                 .subscribeOn(Schedulers.io()) // Specify database operations on IO thread
                 .observeOn(AndroidSchedulers.mainThread()) // Results return to main thread
                 .subscribe(

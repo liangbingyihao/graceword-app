@@ -30,7 +30,6 @@ import sdk.chat.core.types.MessageType
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
-import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.ActionLimitConfig.loadDefaultConfigs
 import sdk.chat.demo.robot.api.model.ApiTokenRequest
 import sdk.chat.demo.robot.api.model.ApiTokenResponse
@@ -44,6 +43,7 @@ import sdk.chat.demo.robot.handlers.LimitCounter.initialize
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import sdk.chat.demo.robot.activities.SplashScreenActivity
+import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.push.UpdateTokenWorker
 import sdk.guru.common.RX
 import java.io.IOException
@@ -169,6 +169,7 @@ object AuthService {
             //            accessToken = null;
             (ChatSDK.thread() as GWThreadHandler).clearThreadCache()
             clearAuthorInfo()
+            DailyTaskHandler.clearCacheData()
             (ChatSDK.auth() as GWAuthenticationHandler).clearCurrentUserEntityID()
             ChatSDK.shared().getKeyStorage().clear()
             ChatSDK.db().closeDatabase()

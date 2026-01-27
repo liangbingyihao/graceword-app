@@ -491,6 +491,7 @@ public class GWMsgInput extends RelativeLayout
     public void updateInputHeight() {
         //键盘变更时
         if (editMode == MODE_FULLSCREEN) {
+            Log.e("setEditMode","updateInputHeight...");
             setEditMode(MODE_FULLSCREEN, false);
         }
     }

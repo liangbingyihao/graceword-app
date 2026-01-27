@@ -64,10 +64,14 @@ public class DailyTaskHandler {
         JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_DETAIL, gson.toJson(item));
     }
 
-    public static void completeTaskByIndex(int index){
+    public static void completeTaskByIndex(int index) {
         TaskDetail taskDetail = getTaskToday();
         taskDetail.completeTaskByIndex(index);
         setTaskDetail(taskDetail);
+    }
+
+    public static void clearCacheData() {
+        JsonCacheManager.INSTANCE.clear(MainApp.getContext(), KEY_CACHE_TASK_PROCESS);
     }
 
     public static void setTaskDetail(TaskDetail detail) {
@@ -77,7 +81,7 @@ public class DailyTaskHandler {
         }
 
         JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_DETAIL, gson.toJson(detail));
-        if (!detail.isTaskCompleted(TaskDetail.UNLOCK_STORY_MASK)&&detail.isAllUserTaskCompleted()) {
+        if (!detail.isTaskCompleted(TaskDetail.UNLOCK_STORY_MASK) && detail.isAllUserTaskCompleted()) {
             unlockStory()
                     .subscribeOn(Schedulers.io()) // 在IO线程执行网络请求
                     .observeOn(AndroidSchedulers.mainThread()) // 在主线程处理结果
@@ -131,26 +135,26 @@ public class DailyTaskHandler {
         }
     }
 
-    public static boolean shouldNotify(){
+    public static boolean shouldNotify() {
         TaskDetail taskDetail = getTaskToday();
         boolean ret = taskDetail.isTaskCompleted(TaskDetail.UNLOCK_STORY_MASK) && !taskDetail.isTaskCompleted(TaskDetail.TASK_DONE);
-        if(ret){
+        if (ret) {
             taskDetail.setTaskCompleted(TaskDetail.TASK_DONE, true);
             JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_DETAIL, gson.toJson(taskDetail));
         }
         return ret;
     }
 
-    public static Single<TaskProgress> getTaskProgress() {
+    public static Single<TaskProgress> getTaskProgress(boolean refresh) {
         return Single.create(emitter -> {
             TaskDetail taskToday = getTaskToday();
-            Log.e("TaskHandler", "taskToday: "+Integer.toString(taskToday.getStatus(), 2));
             String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_TASK_PROCESS);
-            if (cachedData != null&&!cachedData.isEmpty()) {
+            //Log.e("TaskHandler", "taskToday " + taskToday.getTaskDate() + "," + Integer.toString(taskToday.getStatus(), 2) + "," + cachedData);
+            if (!refresh && cachedData != null && !cachedData.isEmpty()) {
                 TaskProgress progress = gson.fromJson(cachedData, TaskProgress.class);
-                if (progress!=null&&taskToday.getCntComplete() == progress.getUnlocked()
-                        &&!progress.getProgressImage().isEmpty()
-                        &&(progress.getUnlocked()==0||progress.getUnlocked()==progress.getChapters().size())) {
+                if (progress != null && taskToday.getCntComplete() == progress.getUnlocked()
+                        && !progress.getProgressImage().isEmpty()
+                        && (progress.getUnlocked() == 0 || progress.getUnlocked() == progress.getChapters().size())) {
                     progress.setTaskDetail(taskToday);
                     emitter.onSuccess(progress);
                     return;
@@ -171,6 +175,7 @@ public class DailyTaskHandler {
                 String responseBody = response.body() != null ? response.body().string() : "";
                 JsonObject data = gson.fromJson(responseBody, JsonObject.class).getAsJsonObject("data");
                 TaskProgress progress = gson.fromJson(data, TaskProgress.class);
+                Log.e("TaskHandler", "getTaskProgress: " + progress.getUnlocked());
                 if (progress != null) {
                     JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_PROCESS, data.toString());
                     taskToday.setIndexByCntComplete(progress.getUnlocked());
@@ -186,17 +191,17 @@ public class DailyTaskHandler {
 
     public static Single<TaskProgress> getStoryDetail(String storyId) {
         return Single.create(emitter -> {
-            String cachedKey = KEY_CACHE_TASK_PROCESS+"_"+storyId;
+            String cachedKey = KEY_CACHE_TASK_PROCESS + "_" + storyId;
             String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), cachedKey);
-            if (cachedData != null&&!cachedData.isEmpty()) {
+            if (cachedData != null && !cachedData.isEmpty()) {
                 TaskProgress progress = gson.fromJson(cachedData, TaskProgress.class);
                 int total = progress.getChapters().size();
                 progress.setTotal(total);
                 progress.setUnlocked(total);
-                progress.setTaskDetail(new TaskDetail(progress.getTotal()-1));
+                progress.setTaskDetail(new TaskDetail(progress.getTotal() - 1));
                 emitter.onSuccess(progress);
             }
-            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_STORY_DETAIL+storyId))
+            HttpUrl url = Objects.requireNonNull(HttpUrl.parse(URL_STORY_DETAIL + storyId))
                     .newBuilder()
                     .build();
 
@@ -215,7 +220,7 @@ public class DailyTaskHandler {
                     int total = progress.getChapters().size();
                     progress.setTotal(total);
                     progress.setUnlocked(total);
-                    progress.setTaskDetail(new TaskDetail(total-1));
+                    progress.setTaskDetail(new TaskDetail(total - 1));
                     JsonCacheManager.INSTANCE.save(MainApp.getContext(), cachedKey, data.toString());
 //                    taskToday.setIndexByCntComplete(progress.getUnlocked());
 //                    progress.setTaskDetail(taskToday);
@@ -226,6 +231,7 @@ public class DailyTaskHandler {
             }
         });
     }
+
     public static Single<Boolean> unlockStory() {
         return Single.create(emitter -> {
             Map<String, String> params = new HashMap<>();
@@ -248,7 +254,7 @@ public class DailyTaskHandler {
 //                            emitter.onError(new IOException("HTTP error: " + response.code()));
 //                            return;
 //                        }
-                        JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_HISTORY,"");
+                        JsonCacheManager.INSTANCE.save(MainApp.getContext(), KEY_CACHE_TASK_HISTORY, "");
                         String responseBody = response.body() != null ? response.body().string() : "";
                         String data = gson.fromJson(responseBody, JsonObject.class).getAsJsonPrimitive("code").getAsString();
                         emitter.onSuccess("OK".equals(data) || "DUPLICATE_OPERATION".equals(data)); // 请求成功
@@ -267,9 +273,9 @@ public class DailyTaskHandler {
         return Single.create(emitter -> {
             TaskDetail taskToday = getTaskToday();
             String cachedData = JsonCacheManager.INSTANCE.get(MainApp.getContext(), KEY_CACHE_TASK_HISTORY);
-            if (cachedData != null&&!cachedData.isEmpty()) {
+            if (cachedData != null && !cachedData.isEmpty()) {
                 TaskHistory progress = gson.fromJson(cachedData, TaskHistory.class);
-                if (progress!=null) {
+                if (progress != null) {
                     emitter.onSuccess(progress);
                 }
             }
