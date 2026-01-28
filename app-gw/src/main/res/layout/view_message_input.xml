@@ -8,7 +8,6 @@
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/titleText"
         android:fillViewport="true"
         android:scrollbars="none">
 
@@ -16,8 +15,8 @@
             android:id="@+id/menus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="26dp"
-            android:layout_marginRight="12dp"
+            android:paddingStart="26dp"
+            android:paddingEnd="70dp"
             android:orientation="horizontal">
             <!--            android:background="#FFEEEB"-->
 
@@ -88,20 +87,36 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="26dp" />
 
-            <FrameLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="vertical"
-                android:paddingTop="10dp"
-                android:paddingBottom="16dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="12dp">
+
 
                 <LinearLayout
                     android:id="@+id/inputContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/edittext_rounded_bg"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/buttonContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+
+                    <ImageView
+                        android:id="@+id/editMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:src="@mipmap/ic_expand"/>
+
+<!--                    app:layout_constraintStart_toStartOf="@+id/inputContainer"-->
+<!--                    app:layout_constraintTop_toTopOf="@+id/inputContainer"-->
 
                     <EditText
                         android:id="@+id/messagePrompt"
@@ -111,8 +126,8 @@
                         android:layout_marginEnd="8dp"
                         android:background="@color/transparent"
                         android:inputType="textAutoCorrect|textAutoComplete|textMultiLine|textCapSentences"
-                        android:paddingLeft="8dp"
                         android:paddingTop="8dp"
+                        android:paddingLeft="8dp"
                         android:paddingRight="8dp"
                         android:textColor="@color/text_prompt"
                         android:textSize="14sp"
@@ -130,7 +145,10 @@
                         android:inputType="textAutoCorrect|textAutoComplete|textMultiLine|textCapSentences"
                         android:maxLines="6"
                         android:minHeight="42dp"
-                        android:padding="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:paddingBottom="8dp"
                         android:textColorHint="@color/text_gray"
                         android:textSize="14sp" />
                 </LinearLayout>
@@ -140,7 +158,9 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|left"
                     android:layout_marginLeft="12dp"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
 
                     <sdk.chat.demo.robot.ui.CircleOverlayView
                         android:id="@+id/circleOverlay"
@@ -166,7 +186,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|right"
-                    android:layout_marginRight="20dp">
+                    android:layout_marginRight="12dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
 
                     <ImageView
                         android:id="@+id/messageStopButton"
@@ -186,18 +208,7 @@
                         android:textSize="14sp" />
                 </FrameLayout>
 
-                <ImageView
-                    android:id="@+id/editMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|left"
-                    android:layout_marginLeft="4dp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:paddingBottom="8dp"
-                    android:src="@mipmap/ic_expand" />
-
-            </FrameLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>

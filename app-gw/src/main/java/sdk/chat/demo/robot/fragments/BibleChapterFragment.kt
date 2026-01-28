@@ -123,7 +123,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
         // 设置左右滑动切换章节
 //        setupSwipeToChangeChapter()
-        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber");
+        Log.e("bible_data", "onViewCreated,${currentBookId} $currentChapterNumber,$reference");
         loadChapter(currentBookId, currentChapterNumber, reference)
 
     }
@@ -176,6 +176,7 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
         // 显示加载中
         showLoading()
 
+        Log.e("bible_data", "loadChapter,${bookId},${chapterNumber},$reference");
         BibleApiService.getChapterFromDB(
             dynamicBibleDao, bookId, chapterNumber, reference
         ) { chapter ->

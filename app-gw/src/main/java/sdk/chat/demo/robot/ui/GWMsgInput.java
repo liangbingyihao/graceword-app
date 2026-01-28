@@ -28,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -564,7 +566,7 @@ public class GWMsgInput extends RelativeLayout
 
     private void setEditMode() {
         // 获取并转换布局参数
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) inputContainer.getLayoutParams();
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) inputContainer.getLayoutParams();
 
         // 设置边距
         if (editMode != MODE_FULLSCREEN) {
@@ -573,7 +575,7 @@ public class GWMsgInput extends RelativeLayout
                 paramsContract.leftMargin = ActivityExtensionsKt.dpToPx(8, this.getContext());//58
                 paramsContract.rightMargin = (int) buttonContainer.getWidth() + ActivityExtensionsKt.dpToPx(20, this.getContext());
                 int m = ActivityExtensionsKt.dpToPx(4, this.getContext());
-                paramsContract.topMargin = m;
+                paramsContract.topMargin = m/2;
                 paramsContract.bottomMargin = m;
                 paramsContract.height = FrameLayout.LayoutParams.WRAP_CONTENT;
                 Log.e("setEditMode", String.format("paramsContract:%d,%d,%d,%d",
@@ -602,10 +604,10 @@ public class GWMsgInput extends RelativeLayout
         } else {
             editModeButton.setVisibility(VISIBLE);
             if (paramsExpand == null) {
-                int m = ActivityExtensionsKt.dpToPx(24, this.getContext());
+                int m = ActivityExtensionsKt.dpToPx(26, this.getContext());
                 paramsExpand = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                paramsExpand.leftMargin = m;
-                paramsExpand.rightMargin = m;
+                paramsExpand.leftMargin = paramsContract.leftMargin;
+                paramsExpand.rightMargin = (int) (m*1.2);
                 paramsExpand.topMargin = m;
                 paramsExpand.bottomMargin = m + messageInput.getHeight();
                 paramsExpand.height = getResources().getDisplayMetrics().heightPixels - m - paramsExpand.bottomMargin;
@@ -614,17 +616,18 @@ public class GWMsgInput extends RelativeLayout
             }
             Log.e("setEditMode", String.format("paramsExpand 1:%d,%d,%d,%d",
                     paramsExpand.leftMargin, paramsExpand.rightMargin, paramsExpand.topMargin, paramsExpand.bottomMargin));
-            int h = paramsExpand.height - typingListener.getKeyboardHeight()-editModeButton.getHeight()-editModeButton.getPaddingBottom();
-            if (h == params.height) {
-//                Log.e("setEditMode", "no change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight());
-                return;
-            }
+//            int h = paramsExpand.height - typingListener.getKeyboardHeight()-editModeButton.getHeight()-editModeButton.getPaddingBottom();
+//            if (h == params.height) {
+////                Log.e("setEditMode", "no change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight());
+////                return;
+//            }
 //            Log.e("setEditMode", "change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight() + ",h:" + h);
-            params.height = h-messageSendButton.getHeight();
+//            params.height = h-messageSendButton.getHeight();
+            params.height = FrameLayout.LayoutParams.WRAP_CONTENT;
             params.leftMargin = paramsExpand.leftMargin;
             params.rightMargin = paramsExpand.rightMargin;
             params.topMargin = paramsExpand.topMargin;
-            params.bottomMargin = messageSendButton.getHeight();
+            params.bottomMargin = paramsContract.bottomMargin;
             messageInput.setMaxLines(Integer.MAX_VALUE);
 //            messageInput.setHeight(h);
             editModeButton.setImageResource(R.mipmap.ic_contract);
