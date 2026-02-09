@@ -96,6 +96,9 @@
         <activity android:name="sdk.chat.demo.robot.activities.SpeechToTextActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.ChatActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.BibleActivity" />
+        <activity android:name="sdk.chat.demo.robot.activities.NoteEditActivity"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
         <activity android:name="sdk.chat.demo.robot.activities.LoginActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.AccountActivity" />
         <activity android:name="sdk.chat.demo.robot.activities.CampaignInfoActivity" />

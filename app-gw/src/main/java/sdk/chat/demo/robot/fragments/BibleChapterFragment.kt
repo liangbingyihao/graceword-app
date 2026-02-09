@@ -181,8 +181,6 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
             dynamicBibleDao, bookId, chapterNumber, reference
         ) { chapter ->
             if (chapter != null) {
-//                resetLoadState(chapter)
-//                updateChapterUI(chapter)
                 requireView().post {
                     updateChapterUI(chapter)
                 }
@@ -199,13 +197,13 @@ class BibleChapterFragment : Fragment(), View.OnClickListener {
 
     // 更新章节UI
     private fun updateChapterUI(chapter: BibleChapter, reference: String = "") {
-        Log.e("bible_data", "updateChapterUI,${chapter.bookId},${chapter.chapterNumber}");
         currentBookId = chapter.bookId
         currentChapterCount = chapter.chapterCount
         currentChapterNumber = chapter.chapterNumber
         if(adapter!=null){
             return
         }
+        Log.e("bible_data", "updateChapterUI,${chapter.bookId},${chapter.chapterNumber}");
 //        chapterProgress.text = ""
 //        // 更新标题和进度
 //        chapterTitle.text = "${chapter.bookName} ${chapter.chapterNumber}"

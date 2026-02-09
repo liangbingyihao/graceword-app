@@ -1,7 +1,5 @@
 package sdk.chat.demo.robot.fragments;
 
-import static sdk.chat.demo.robot.extensions.ActivityExtensionsKt.showMaterialConfirmationDialog;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
@@ -58,6 +56,7 @@ import sdk.chat.core.utils.PermissionRequestHandler;
 import sdk.chat.core.utils.StringChecker;
 import sdk.chat.demo.pre.R;
 import sdk.chat.demo.robot.activities.BaseActivity;
+import sdk.chat.demo.robot.activities.CampaignInfoActivity;
 import sdk.chat.demo.robot.activities.SplashScreenActivity;
 import sdk.chat.demo.robot.activities.TaskActivity;
 import sdk.chat.demo.robot.adpter.data.AIExplore;
@@ -308,7 +307,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         chatView = rootView.findViewById(R.id.chatView);
         replyText = rootView.findViewById(R.id.tvReply);
         input = rootView.findViewById(R.id.input);
-        listContainer = rootView.findViewById(R.id.listContainer);
+        root = rootView.findViewById(R.id.root);   listContainer = rootView.findViewById(R.id.listContainer);
         root = rootView.findViewById(R.id.root);
         messageInputLinearLayout = rootView.findViewById(R.id.messageInputLinearLayout);
         shareMenu1 = rootView.findViewById(R.id.shareMenu1);
@@ -345,7 +344,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         GWClickListener.registerListener((BaseActivity) getActivity(), chatView.getMessagesListAdapter());
 
         rootView.findViewById(R.id.btCancel).setOnClickListener(this);
-        rootView.findViewById(R.id.btConfirm).setOnClickListener(this);
+        rootView.findViewById(R.id.btShareLink).setOnClickListener(this);
         rootView.findViewById(R.id.btPreview).setOnClickListener(this);
         rootView.findViewById(R.id.btSharePic).setOnClickListener(this);
 
@@ -538,25 +537,25 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
                 .subscribe(networkEvent -> {
                     Log.e("TaskHandler", "TaskDone");
                     if (DailyTaskHandler.shouldNotify() && getActivity() != null) {
-                        showMaterialConfirmationDialog(
-                                getActivity(),
-                                getString(R.string.task_done), getString(R.string.task_unlock), getString(R.string.later),
-                                () -> {
-                                    // 这里是positiveAction的逻辑
-                                    Intent intent = new Intent(getActivity(), TaskActivity.class);
-                                    startActivity(intent);
-                                    return Unit.INSTANCE;
-                                },
-                                () -> {
-                                    return Unit.INSTANCE;
-                                });
+                        CampaignInfoActivity.Companion.start(getActivity(), CampaignInfoActivity.MODE_TASK);
+//                        showMaterialConfirmationDialog(
+//                                getActivity(),
+//                                getString(R.string.task_done), getString(R.string.task_unlock), getString(R.string.later),
+//                                () -> {
+//                                    // 这里是positiveAction的逻辑
+//                                    Intent intent = new Intent(getActivity(), TaskActivity.class);
+//                                    startActivity(intent);
+//                                    return Unit.INSTANCE;
+//                                },
+//                                () -> {
+//                                    return Unit.INSTANCE;
+//                                });
                     }
                 }));
         if (chatView != null) {
             chatView.addListeners();
 //            chatView.onLoadMore(0, 0);
         }
-
     }
 
 
@@ -678,17 +677,7 @@ public class GWChatFragment extends BaseFragment implements GWChatContainer.Dele
         showTextInput();
 
         if (DailyTaskHandler.shouldNotify() && getActivity() != null) {
-            showMaterialConfirmationDialog(
-                    getActivity(),
-                    getString(R.string.task_done), getString(R.string.task_unlock), getString(R.string.later),
-                    () -> {
-                        // 这里是positiveAction的逻辑
-                        Intent intent = new Intent(getActivity(), TaskActivity.class);
-                        startActivity(intent);
-                        return Unit.INSTANCE;
-                    }, () -> {
-                        return Unit.INSTANCE;
-                    });
+            CampaignInfoActivity.Companion.start(getActivity(), CampaignInfoActivity.MODE_TASK);
         }
 
     }

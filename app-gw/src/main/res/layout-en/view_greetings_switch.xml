@@ -15,7 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -41,16 +41,18 @@
     </LinearLayout>
 
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
         android:padding="8dp"
+        android:orientation="horizontal"
         android:background="@drawable/edittext_rounded_bg">
 
         <EditText
             android:id="@+id/messageInput1"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:background="@color/transparent"
             android:layout_margin="4dp"
@@ -66,6 +68,6 @@
             android:text="@string/confirm"
             android:textColor="@color/item_text_selected"
             android:textSize="14sp" />
-    </FrameLayout>
+    </LinearLayout>
 
 </LinearLayout>

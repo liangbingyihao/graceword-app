@@ -1,6 +1,7 @@
 package sdk.chat.demo.robot.service
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,8 +10,10 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.service.wallpaper.WallpaperService
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.WindowManager
 import com.google.gson.Gson
@@ -33,6 +36,7 @@ import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
 import java.util.concurrent.Executors
 import sdk.chat.demo.robot.activities.MainDrawerActivity
+import sdk.chat.demo.robot.utils.DisplayCompat
 
 class BibleWallpaperService : WallpaperService() {
     private val TAG = "BibleWallpaperEngine"
@@ -77,6 +81,7 @@ class BibleWallpaperService : WallpaperService() {
         private var isVerseAreaTouched = false
         private var lastDate: String = ""
         private var isPortrait = false
+        private val displayCompat = DisplayCompat
 
 //        // 绘图工具
 //        private val textPaint = Paint().apply {
@@ -93,6 +98,7 @@ class BibleWallpaperService : WallpaperService() {
 
             Log.e(TAG, " onVisibilityChanged:${visible}")
             if (visible) {
+                // 创建新截图
                 initializeData()
                 drawFrame()
             } else {
@@ -104,6 +110,8 @@ class BibleWallpaperService : WallpaperService() {
             this.width = width
             this.height = height
             this.isPortrait = this.height > this.width
+
+            Log.e(TAG, "onSurfaceChanged:${this.width},${this.height},${this.isPortrait}")
 //            updateVerseRect()
             super.onSurfaceChanged(holder, format, width, height)
         }
@@ -222,24 +230,17 @@ class BibleWallpaperService : WallpaperService() {
             }
         }
 
-        /**
-         * 更新经文区域
-         */
-        private fun updateVerseRect() {
-            val padding = 80f
-            val rectWidth = width - 2 * padding
-            val rectHeight = 200f
-
-//            verseRect = RectF(
-//                padding,
-//                height - rectHeight - padding - 200,
-//                padding + rectWidth,
-//                height - padding - 200
-//            )
-        }
-
         private fun drawFrame() {
+            handler.removeCallbacks(drawRunnable)
             if (!visible) return
+            // 根据旋转计算实际方向
+            this.isPortrait =
+                displayCompat.getScreenOrientation(this@BibleWallpaperService) == Configuration.ORIENTATION_PORTRAIT
+            if (!this.isPortrait) {
+                Log.e(TAG, " !isPortrait in drawFrame:${this.width},${this.height}")
+                handler.postDelayed(drawRunnable, 1000)
+                return
+            }
 
             val holder = surfaceHolder
             var canvas: Canvas? = null
@@ -255,7 +256,6 @@ class BibleWallpaperService : WallpaperService() {
                 }
             }
 
-            handler.removeCallbacks(drawRunnable)
             if (visible) {
                 handler.postDelayed(drawRunnable, 1200000)
             }
@@ -266,31 +266,10 @@ class BibleWallpaperService : WallpaperService() {
             if (this.isPortrait) {
                 drawBackgroundImage(canvas)
             } else {
-                Logger.error { "$TAG, !isPortrait:${this.width},${this.height}" }
+                Log.e(TAG, " !isPortrait:${this.width},${this.height},${visible}")
             }
-//            drawBibleVerse(canvas)
-//            drawInfoText(canvas)
-
-//            if (isVerseAreaTouched) {
-//                drawTouchFeedback(canvas)
-//            }
         }
 
-
-        //        /**
-//         * 随机选择经文
-//         */
-//        private fun selectRandomVerse() {
-//            if (bibleVerses.isNotEmpty()) {
-//                currentVerse = bibleVerses[Random.nextInt(bibleVerses.size)]
-//            } else {
-//                currentVerse = BibleVerse.getDefaultVerse()
-//            }
-//        }
-
-//        private fun List<ImageDaily>?.findByDate(date: String, today: String): ImageDaily? {
-//            return this?.firstOrNull { "${it.date}-${today}" == date } ?: this?.lastOrNull()
-//        }
 
         private fun nextImageData(): ImageDaily? {
 //            if (currentImageData != null && System.currentTimeMillis() - lastImageChangeTime <= 10000) {
@@ -389,6 +368,10 @@ class BibleWallpaperService : WallpaperService() {
                     return
                 }
 
+                Log.e(
+                    TAG,
+                    "generateBibleCard  new ,${request.date},$width,$height,$isPortrait"
+                )
                 CardGenerator.generateBibleCard(
                     applicationContext,
                     resId,
@@ -396,9 +379,10 @@ class BibleWallpaperService : WallpaperService() {
                     false,
                     isClikable,
                     { bitmap: Bitmap? ->
-                        Logger.error {
+                        Log.e(
+                            TAG,
                             "generateBibleCard callback ${request.date},$width,$height"
-                        }
+                        )
                         if (bitmap != null && !bitmap.isRecycled) {
                             handler.post(drawRunnable)
                         }

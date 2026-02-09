@@ -1,30 +1,31 @@
 package sdk.chat.demo.robot.activities
 
-import android.view.View
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import io.reactivex.functions.Consumer
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.handlers.CardApiService
-import com.bumptech.glide.request.RequestListener
 import sdk.chat.demo.robot.api.model.Campaign
-import sdk.chat.demo.robot.ui.MaxWidthWrapImageView
-import androidx.core.graphics.toColorInt
 import sdk.chat.demo.robot.api.model.KeyValuePair
+import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.LogUploader
 
 class CampaignInfoActivity : BaseActivity() {
     companion object {
         private const val ARG_MODE = "popup_mode"
+        const val MODE_TASK = "TASK"
+        const val MODE_MAIN = "main"
+        const val MODE_MINI = "mini"
 
         // 提供静态启动方法（推荐）
         fun start(
@@ -42,58 +43,65 @@ class CampaignInfoActivity : BaseActivity() {
         return 0;
     }
 
-    private var popupMode: String = "mini"
+    private var popupMode: String? = MODE_MINI
 //    private lateinit var bgMain: MaxWidthWrapImageView
 //    private lateinit var bgPos: MaxWidthWrapImageView
     private lateinit var bgMain: ImageView
-    private lateinit var bgPos: ImageView
+    private lateinit var bgPos: View
     private lateinit var txExit: View
     private var configData: Campaign? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         window.setBackgroundDrawableResource(android.R.color.transparent)
         super.onCreate(savedInstanceState)
-        var mode = intent.getStringExtra(ARG_MODE)
+        popupMode = intent.getStringExtra(ARG_MODE)
         var resId = R.layout.dialog_campaign_mini
-        if (!mode.isNullOrEmpty()) {
-            if (mode == "main") {
-                popupMode = mode
-                resId = R.layout.dialog_campaign_main
-            }
+        if(popupMode==MODE_TASK){
+            resId = R.layout.dialog_task_done
+        }else if(popupMode==MODE_MAIN){
+            resId = R.layout.dialog_campaign_main
         }
         setContentView(resId)
         bgMain = findViewById<ImageView>(R.id.bg_main)
-        bgPos = findViewById<ImageView>(R.id.positive)
+        bgPos = findViewById<View>(R.id.positive)
         txExit = findViewById<View>(R.id.exit)
         txExit.setOnClickListener {
-            LogUploader.reportEvent(
-                "mod_activity", listOf<KeyValuePair?>(
-                    KeyValuePair("activity_action", "10"),
-                    KeyValuePair("activity_page_type", "update"),
+            if(MODE_TASK != popupMode){
+                LogUploader.reportEvent(
+                    "mod_activity", listOf<KeyValuePair?>(
+                        KeyValuePair("activity_action", "10"),
+                        KeyValuePair("activity_page_type", "update"),
+                    )
                 )
-            )
+            }
             finish()
         }
         bgPos.setOnClickListener {
-            CardApiService.handleJoinCampaign(this@CampaignInfoActivity)
+            if(MODE_TASK == popupMode){
+                // 这里是positiveAction的逻辑
+                startActivity(Intent(this@CampaignInfoActivity, TaskActivity::class.java))
+            }else{
+                CardApiService.handleJoinCampaign(this@CampaignInfoActivity)
 
-            LogUploader.reportEvent(
-                "mod_activity", listOf<KeyValuePair?>(
-                    KeyValuePair("activity_action", "20"),
-                    KeyValuePair("activity_page_type", "update"),
+                LogUploader.reportEvent(
+                    "mod_activity", listOf<KeyValuePair?>(
+                        KeyValuePair("activity_action", "20"),
+                        KeyValuePair("activity_page_type", "update"),
+                    )
                 )
-            )
+            }
             finish()
         }
 
-        loadData()
-
-        LogUploader.reportEvent(
-            "mod_activity", listOf<KeyValuePair?>(
-                KeyValuePair("activity_action", "0"),
-                KeyValuePair("activity_page_type", "update"),
+        if(MODE_TASK != popupMode) {
+            LogUploader.reportEvent(
+                "mod_activity", listOf<KeyValuePair?>(
+                    KeyValuePair("activity_action", "0"),
+                    KeyValuePair("activity_page_type", "update"),
+                )
             )
-        )
+            loadData()
+        }
     }
 
     fun loadData() {
@@ -102,7 +110,7 @@ class CampaignInfoActivity : BaseActivity() {
                 { data ->
                     if (data != null) {
                         configData = data
-                        if(popupMode=="main"){
+                        if(popupMode==MODE_MAIN){
                             setMainView()
                         }else{
                             setMinView()
@@ -150,7 +158,7 @@ class CampaignInfoActivity : BaseActivity() {
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .error(R.mipmap.bg_campaign_main_y)
 //                                .override(maxWidth * 2 / 3)
-                .into(bgPos)
+                .into(bgPos as ImageView)
         }
     }
 
@@ -189,7 +197,7 @@ class CampaignInfoActivity : BaseActivity() {
                 .load(data.dailyPopupConfig.buttonUrl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .error(R.mipmap.bg_campaign_main_y)
-                .into(bgPos)
+                .into(bgPos as ImageView)
 
             with(txExit as TextView) {
                 setTextColor(data.dailyPopupConfig.dismissButtonTextColor.toColorInt())

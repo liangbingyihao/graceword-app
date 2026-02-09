@@ -19,9 +19,11 @@ import android.text.Layout;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -62,6 +64,7 @@ public class GWMsgInput extends RelativeLayout
 //    public Space sendButtonSpace, attachmentButtonSpace;
 
     private CharSequence input;
+    private Boolean isTextEmpty = null;
     private InputIntentView inputIntentView;
     private View inputIntentMenus;
     private TextView hintVip;
@@ -156,7 +159,7 @@ public class GWMsgInput extends RelativeLayout
         if (status <= 1) {
             messageSendButton.setVisibility(GONE);
             stopSendButton.setVisibility(VISIBLE);
-            if(status==0){
+            if (status == 0) {
                 inputIntentView.hideSongMenu();
             }
         } else {
@@ -258,7 +261,7 @@ public class GWMsgInput extends RelativeLayout
             if (typingListener != null) typingListener.onHeightChange();
 
         } else if (id == R.id.bible) {
-            BibleBooksActivity.Companion.start(this.getContext(),-1,-1);
+            BibleBooksActivity.Companion.start(this.getContext(), -1, -1);
         } else if (id == R.id.hint_vip_msg) {
             this.getContext().startActivity(
                     new Intent(this.getContext(),
@@ -275,15 +278,28 @@ public class GWMsgInput extends RelativeLayout
     @Override
     public void onTextChanged(CharSequence s, int start, int count, int after) {
         input = s;
+        boolean isEmpty = true;
 //        messageSendButton.setEnabled(!s.toString().trim().isEmpty());
 //        messageSendButton.setEnabled(isSendEnable());
         if (s.length() > 0) {
+            isEmpty = false;
             if (!isTyping) {
                 isTyping = true;
                 if (typingListener != null) typingListener.onStartTyping();
             }
             removeCallbacks(typingTimerRunnable);
             postDelayed(typingTimerRunnable, delayTypingStatusMillis);
+        }
+
+        if (isTextEmpty == null || isEmpty != isTextEmpty) {
+            isTextEmpty = isEmpty;
+
+            if (isEmpty && editMode != MODE_FULLSCREEN) {
+                messageInput.setGravity(Gravity.CENTER_VERTICAL);
+            } else {
+                // 有文本：左上对齐
+                messageInput.setGravity(Gravity.TOP | Gravity.START);
+            }
         }
     }
 
@@ -470,7 +486,6 @@ public class GWMsgInput extends RelativeLayout
             }
         });
 
-
         postDelayed(setEditModeRunnable, 10);
         inputIntentView.setMainMenuView(this);
 //        setEditMode(0);
@@ -483,6 +498,7 @@ public class GWMsgInput extends RelativeLayout
     private final static int MODE_SEARCH_HYMNS = 2;
     private boolean isSearchingHymns = false;
 
+
     private final Runnable setEditModeRunnable = new Runnable() {
         @Override
         public void run() {
@@ -493,7 +509,7 @@ public class GWMsgInput extends RelativeLayout
     public void updateInputHeight() {
         //键盘变更时
         if (editMode == MODE_FULLSCREEN) {
-            Log.e("setEditMode","updateInputHeight...");
+            Log.e("setEditMode", "updateInputHeight...");
             setEditMode(MODE_FULLSCREEN, false);
         }
     }
@@ -546,8 +562,8 @@ public class GWMsgInput extends RelativeLayout
         }
     }
 
-    public void setDefaultStr(String input){
-        if(input!=null&&!input.isEmpty()){
+    public void setDefaultStr(String input) {
+        if (input != null && !input.isEmpty()) {
             messageInput.setText(input);
             lastLength = messageInput.getLineCount();
             messageInput.setSelection(input.length());
@@ -575,7 +591,7 @@ public class GWMsgInput extends RelativeLayout
                 paramsContract.leftMargin = ActivityExtensionsKt.dpToPx(8, this.getContext());//58
                 paramsContract.rightMargin = (int) buttonContainer.getWidth() + ActivityExtensionsKt.dpToPx(20, this.getContext());
                 int m = ActivityExtensionsKt.dpToPx(4, this.getContext());
-                paramsContract.topMargin = m/2;
+                paramsContract.topMargin = m / 2;
                 paramsContract.bottomMargin = m;
                 paramsContract.height = FrameLayout.LayoutParams.WRAP_CONTENT;
                 Log.e("setEditMode", String.format("paramsContract:%d,%d,%d,%d",
@@ -588,6 +604,7 @@ public class GWMsgInput extends RelativeLayout
             params.topMargin = paramsContract.topMargin;
             params.bottomMargin = paramsContract.bottomMargin;
             params.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+            messageInput.setMinHeight(0);
             messageInput.setMaxLines(6);
             editModeButton.setImageResource(R.mipmap.ic_expand);
             if (messagePrompt.getVisibility() == VISIBLE) {
@@ -607,8 +624,8 @@ public class GWMsgInput extends RelativeLayout
                 int m = ActivityExtensionsKt.dpToPx(26, this.getContext());
                 paramsExpand = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 paramsExpand.leftMargin = paramsContract.leftMargin;
-                paramsExpand.rightMargin = (int) (m*1.2);
-                paramsExpand.topMargin = m;
+                paramsExpand.rightMargin = (int) (m * 1.2);
+                paramsExpand.topMargin = paramsContract.topMargin;
                 paramsExpand.bottomMargin = m + messageInput.getHeight();
                 paramsExpand.height = getResources().getDisplayMetrics().heightPixels - m - paramsExpand.bottomMargin;
                 Log.e("setEditMode", String.format("paramsExpand:%d,%d,%d,%d",
@@ -617,19 +634,21 @@ public class GWMsgInput extends RelativeLayout
             Log.e("setEditMode", String.format("paramsExpand 1:%d,%d,%d,%d",
                     paramsExpand.leftMargin, paramsExpand.rightMargin, paramsExpand.topMargin, paramsExpand.bottomMargin));
 //            int h = paramsExpand.height - typingListener.getKeyboardHeight()-editModeButton.getHeight()-editModeButton.getPaddingBottom();
+//            int h = paramsExpand.height - typingListener.getKeyboardHeight();
 //            if (h == params.height) {
 ////                Log.e("setEditMode", "no change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight());
-////                return;
+//                return;
 //            }
 //            Log.e("setEditMode", "change..heightPixels:" + getResources().getDisplayMetrics().heightPixels + ",getKeyboardHeight:" + typingListener.getKeyboardHeight() + ",h:" + h);
-//            params.height = h-messageSendButton.getHeight();
-            params.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+//            params.height = h;
+            params.height = FrameLayout.LayoutParams.MATCH_PARENT;
             params.leftMargin = paramsExpand.leftMargin;
             params.rightMargin = paramsExpand.rightMargin;
             params.topMargin = paramsExpand.topMargin;
             params.bottomMargin = paramsContract.bottomMargin;
             messageInput.setMaxLines(Integer.MAX_VALUE);
-//            messageInput.setHeight(h);
+            messageInput.setMinHeight(paramsExpand.height);
+            messageInput.setGravity(Gravity.TOP | Gravity.START);
             editModeButton.setImageResource(R.mipmap.ic_contract);
             inputContainer.setBackgroundResource(R.drawable.edittext_rounded_white_bg);
 //            inputContainer.setBackgroundColor(R.color.design_default_color_error);

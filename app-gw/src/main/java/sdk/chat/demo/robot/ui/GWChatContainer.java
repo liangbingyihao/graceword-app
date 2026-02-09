@@ -205,7 +205,7 @@ public class GWChatContainer extends FrameLayout implements MessagesListAdapter.
     }
 
     public void handleSocialShare(int vid) {
-        if (vid == R.id.btConfirm) {
+        if (vid == R.id.btShareLink) {
 //            Uri imageUri = SocialShareUtils.getDrawableUri(this.getContext(), R.mipmap.ic_launcher);
 //            SocialShareUtils.shareHtmlLinkWithPreview(this.getContext(),"testtitle","htmlContent","plainText",imageUri);
 

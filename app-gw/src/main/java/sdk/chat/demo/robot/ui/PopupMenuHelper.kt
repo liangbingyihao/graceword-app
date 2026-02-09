@@ -145,13 +145,13 @@ class PopupMenuHelper(
         anchorView.getLocationOnScreen(anchorLocation)
         val screenHeight = context.resources.displayMetrics.heightPixels
 
-        if (anchorLocation[1] + anchorView.height + 150 > screenHeight) {
+        if (anchorLocation[1] + anchorView.height + 350 > screenHeight) {
             setPopupWindow(1, menuResId)
             anchorView.post {
                 popupWindow.showAsDropDown(
                     anchorView,
                     0,
-                    -anchorView.height - 150,
+                    -anchorView.height - 250,
                     Gravity.END
                 )
             }

@@ -2,7 +2,10 @@ package sdk.chat.demo.robot.api.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
 import java.util.List;
+
+import sdk.chat.demo.robot.extensions.DateLocalizationUtil;
 
 
 public class FavoriteList {
@@ -23,10 +26,11 @@ public class FavoriteList {
         private Integer contentType;
         @SerializedName("session_name")
         private String sessionName;
-        @SerializedName("created_at")
-        private String createdAt;
+        @SerializedName("created_ts")
+        private Long createdTs;
         private String content;
         private List<Song> songs;
+        private String createAt;
 
         private boolean isExpanded;
 
@@ -47,26 +51,33 @@ public class FavoriteList {
         }
 
         public String getCreatedAt() {
-            return createdAt;
+            if (createdTs != null && (createAt == null || createAt.isEmpty())) {
+                createAt = DateLocalizationUtil.INSTANCE.dateStr(new Date(createdTs));
+            }
+            return createAt;
         }
 
-        public void setCreatedAt(String createdAt) {
-            this.createdAt = createdAt;
+        public Long getCreatedTs() {
+            return createdTs;
+        }
+
+        public void setCreatedTs(Long createdTs) {
+            this.createdTs = createdTs;
         }
 
         public String getContent() {
             return content;
         }
 
-        public String getText(){
-            if(songs!=null&&!songs.isEmpty()){
+        public String getText() {
+            if (songs != null && !songs.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
-                for(Song s : songs){
+                for (Song s : songs) {
                     sb.append(s.getTitle()).append("\n\n");
                     sb.append(s.getLyrics()).append("\n");
                 }
                 return sb.toString();
-            }else{
+            } else {
                 return content;
             }
         }

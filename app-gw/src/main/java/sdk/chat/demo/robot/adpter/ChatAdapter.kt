@@ -142,7 +142,7 @@ class ChatAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun getSelectedItems(): MutableList<TextHolder?> {
         val selectedItems: MutableList<TextHolder?> = ArrayList<TextHolder?>()
         for (item in items) {
-            (item as? TextHolder)?.takeIf { it.isAiSelected || it.isUserSelected || it.hasSelectedHymns() }
+            (item as? TextHolder)?.takeIf { (it.isAiSelected &&!it.isSong) || it.isUserSelected || (it.isSong&&it.hasSelectedHymns()) }
                 ?.run {
                     selectedItems.add(item)
                 }

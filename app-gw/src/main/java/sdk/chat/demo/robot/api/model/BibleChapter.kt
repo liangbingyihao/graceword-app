@@ -907,8 +907,16 @@ object BibleData {
     // 分离书卷名和章节部分
     private fun extractBookAndChapterParts(reference: String): Pair<String, String> {
         val patterns = listOf(
-            "(.*?)(\\d+.*)".toRegex(),  // 书卷名 + 数字开头
-            "(.*?)[:：](.*)".toRegex()  // 书卷名 + 冒号 + 章节
+            // 1. 先匹配中文（简体+繁体）后面跟着数字
+            "([\\u4e00-\\u9fff]+?)\\s*(\\d+.*)".toRegex(),
+            // 2. 数字开头的中文（简体+繁体）
+            "(\\d+[\\u4e00-\\u9fff]+?)\\s*(\\d+.*)".toRegex(),
+            // 3. 数字 + 空格 + 英文（处理 "1 Samuel 3:5"）
+            "(\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*?)\\s*(\\d+.*)".toRegex(),
+            // 4. 纯英文（处理 "Genesis 1:1"）
+            "([A-Za-z]+(?:\\s+[A-Za-z]+)*?)\\s*(\\d+.*)".toRegex(),
+            // 5. 分隔符格式
+            "(.*?)[:：]\\s*(.*)".toRegex()
         )
 
         for (pattern in patterns) {
@@ -916,14 +924,23 @@ object BibleData {
             if (match != null) {
                 val bookPart = match.groupValues[1].trim()
                 val chapterPart = match.groupValues[2].trim()
+
                 if (bookPart.isNotEmpty() && chapterPart.isNotEmpty()) {
                     return bookPart to chapterPart
                 }
             }
         }
 
-        // 如果没有匹配，尝试整个字符串作为书卷名
         return reference to ""
+    }
+
+    private fun cleanChapterPart(chapterPart: String, bookPart: String): String {
+        var result = chapterPart
+        // 如果章节部分以书卷名开头，移除它
+        if (result.startsWith(bookPart)) {
+            result = result.substring(bookPart.length).trim()
+        }
+        return result
     }
 
     // 解析章节和节信息

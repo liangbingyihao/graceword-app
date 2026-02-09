@@ -83,7 +83,7 @@
     <string name="guide_3">每日恩语</string>
     <string name="guide_desc_3">个性化经文+实践指南\n助你活出信仰力量</string>
     <string name="task_done">太棒了！你已完成今日的恩旅任务，请领取今日的圣经故事启发哦</string>
-    <string name="task_unlock">领取</string>
+    <string name="task_unlock">马上领取</string>
     <string name="later">稍后再看</string>
     <string name="search_record">会话</string>
     <string name="questions">信仰问答</string>
@@ -106,6 +106,7 @@
     <string name="hint_msg_welcome">请输入您的想法</string>
     <string name="share_preview">分享预览</string>
     <string name="share_confirm">直接分享</string>
+    <string name="share_link">分享链接</string>
     <string name="share_pic">分享图片</string>
     <string name="share_total">已选%d条信息</string>
     <string name="query_hint">请选择以下任意条件或填入关键字，进行查询</string>

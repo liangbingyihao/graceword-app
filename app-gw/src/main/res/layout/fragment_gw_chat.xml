@@ -73,10 +73,10 @@
             android:src="@mipmap/ic_load_bottom"
             android:visibility="gone" />
 
-<!--        <materialsearchview.MaterialSearchView-->
-<!--            android:id="@+id/searchView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content" />-->
+        <!--        <materialsearchview.MaterialSearchView-->
+        <!--            android:id="@+id/searchView"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content" />-->
 
 
         <TextView
@@ -89,60 +89,86 @@
             android:textColor="#CF4B40"
             android:textSize="12sp" />
 
-        <LinearLayout
+        <!--        <LinearLayout-->
+        <!--            android:id="@+id/shareMenu1"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:paddingTop="40dp"-->
+        <!--            android:layout_gravity="bottom"-->
+        <!--            android:background="@color/white"-->
+        <!--            android:gravity="center_horizontal"-->
+        <!--            android:orientation="vertical"-->
+        <!--            android:visibility="gone">-->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/shareMenu1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="40dp"
             android:layout_gravity="bottom"
+            android:paddingTop="46dp"
+            android:paddingBottom="65dp"
             android:background="@color/white"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
             android:visibility="gone">
 
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btPreview"
-                android:layout_width="316dp"
+                android:id="@+id/btSharePic"
+                android:layout_width="0dp"
                 android:layout_height="42dp"
-                android:layout_gravity="center"
-                android:backgroundTint="@color/white"
+                android:gravity="center"
                 android:stateListAnimator="@null"
-                android:text="@string/share_preview"
+                android:text="@string/share_pic"
+                android:textAllCaps="false"
                 android:textColor="@color/item_text_selected"
                 android:textSize="14sp"
-                android:textAllCaps="false"
-                app:cornerRadius="21dp"
                 android:textStyle="bold"
+                app:cornerRadius="21dp"
                 app:elevation="0dp"
+                app:layout_constraintEnd_toStartOf="@+id/btShareLink"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.4"
+                app:strokeColor="@color/item_text_selected"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btShareLink"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:stateListAnimator="@null"
+                android:text="@string/share_link"
+                android:textAllCaps="false"
+                android:textColor="@color/item_text_selected"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="21dp"
+                app:elevation="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/btSharePic"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.4"
                 app:strokeColor="@color/item_text_selected"
                 app:strokeWidth="1dp" />
 
             <TextView
-                android:id="@+id/btSharePic"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:layout_margin="16dp"
-                android:gravity="center_vertical"
-                android:textSize="14sp"
+                android:id="@+id/btPreview"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/share_preview"
                 android:textAllCaps="false"
-                android:textStyle="bold"
                 android:textColor="@color/item_text_selected"
-                android:text="@string/share_pic" />
-
-            <TextView
-                android:id="@+id/btConfirm"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:layout_marginBottom="32dp"
-                android:gravity="center_vertical"
+                android:padding="10dp"
                 android:textSize="14sp"
-                android:textAllCaps="false"
                 android:textStyle="bold"
-                android:textColor="@color/item_text_selected"
-                android:text="@string/share_confirm" />
+                android:layout_marginTop="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btSharePic"
+                app:layout_constraintWidth_percent="0.6" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </LinearLayout>
+        <!--        </LinearLayout>-->
 
 
     </sdk.chat.demo.robot.ui.KeyboardAwareFrameLayout>
@@ -161,20 +187,20 @@
             android:layout_height="wrap_content"
             android:layout_gravity="left|center_vertical"
             android:padding="16dp"
-            android:textSize="16sp"
+            android:text="@string/cancel"
             android:textAllCaps="false"
-            android:textStyle="bold"
             android:textColor="@color/item_text_selected"
-            android:text="@string/cancel" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvSelected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textSize="16sp"
+            android:text="@string/share_total"
             android:textColor="@color/item_text_normal"
-            android:textStyle="bold"
-            android:text="@string/share_total" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
     </FrameLayout>
 </FrameLayout>

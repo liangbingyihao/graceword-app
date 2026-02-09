@@ -42,7 +42,8 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private lateinit var versePic: View
 
     private lateinit var viewPager: ViewPager2
-//    private lateinit var adapter: ChapterPagerAdapter
+
+    //    private lateinit var adapter: ChapterPagerAdapter
     private lateinit var adapter: ExpandableFragmentStateAdapter
     private lateinit var helper: SmartViewPagerHelper
 
@@ -56,19 +57,19 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private var dm = DisposableMap();
 
     // 用于防止频繁滑动的变量
-    private var isLoading = false
+//    private var isLoading = false
     private var hasInited = false
     private var isMultiSelectMode: Boolean = false
-    private lateinit var dynamicBibleDao: DynamicBibleDao
+//    private lateinit var dynamicBibleDao: DynamicBibleDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        dynamicBibleDao = DynamicBibleDao(MainApp.getInstance().bibleDBManager)
+//        dynamicBibleDao = DynamicBibleDao(MainApp.getInstance().bibleDBManager)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        dynamicBibleDao.close()
+//        dynamicBibleDao.close()
     }
 
 
@@ -147,7 +148,10 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
 
                 if (state == ViewPager2.SCROLL_STATE_IDLE) {
                     // 滑动停止后，确保当前页面数据加载
-                    Log.e("bible_data1", "onPageScrollStateChanged,ViewPager2.SCROLL_STATE_IDLE,$currentPosition");
+                    Log.e(
+                        "bible_data1",
+                        "onPageScrollStateChanged,ViewPager2.SCROLL_STATE_IDLE,$currentPosition"
+                    );
                     triggerDataLoadForPosition(currentPosition)
                     if (hasInited) {
                         LogUploader.reportEvent(
@@ -210,14 +214,20 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private fun preloadAdjacentPages(currentPosition: Int) {
         // 预加载前一页
         if (currentPosition > 0) {
-            (adapter.getFragment(currentPosition - 1) as? BibleChapterFragment)?.resetLoadState(null, isMultiSelectMode)
+            (adapter.getFragment(currentPosition - 1) as? BibleChapterFragment)?.resetLoadState(
+                null,
+                isMultiSelectMode
+            )
 //            adapter.getFragment(currentPosition - 1)?.resetLoadState(null, isMultiSelectMode)
         }
 
         // 预加载后一页
         if (currentPosition < adapter.itemCount - 2) {
 //            adapter.getFragment(currentPosition + 1)?.resetLoadState(null, isMultiSelectMode)
-            (adapter.getFragment(currentPosition + 1) as? BibleChapterFragment)?.resetLoadState(null, isMultiSelectMode)
+            (adapter.getFragment(currentPosition + 1) as? BibleChapterFragment)?.resetLoadState(
+                null,
+                isMultiSelectMode
+            )
         }
     }
 
@@ -248,7 +258,12 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
     private fun initChapterAdapter() {
 
         // 设置初始数量
-        adapter = ExpandableFragmentStateAdapter(requireActivity(), chapters)
+        adapter = ExpandableFragmentStateAdapter(
+            requireActivity(),
+            chapters,
+            currentChapterNumber,
+            reference
+        )
 
         viewPager.adapter = adapter
         viewPager.offscreenPageLimit = 1
@@ -284,7 +299,7 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         Log.d("bible_data", "跳转到位置: $targetPosition")
 
         // 计算扩展范围
-        val buffer = 2
+        val buffer = 1
         val startPos = if (targetPosition - buffer < 0) 0 else targetPosition - buffer
         val endPos = if (targetPosition + buffer >= adapter.itemCount)
             adapter.itemCount - 1
@@ -299,83 +314,96 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
             maxPosition = endPos
         )
 
-        // 给Adapter时间创建Fragment
-        viewPager.postDelayed({
-            // 直接跳转到目标位置
-            Log.d("bible_data", "首次跳转完成")
-            viewPager.setCurrentItem(targetPosition, false)
+        viewPager.setCurrentItem(targetPosition, false)
 
-//            // 进一步扩展范围以获得更好的滑动体验
-//            viewPager.postDelayed({
-//                val extendedStart = if (targetPosition - 5 < 0) 0 else targetPosition - 5
-//                val extendedEnd = if (targetPosition + 5 >= adapter.itemCount)
-//                    adapter.itemCount - 1
-//                else
-//                    targetPosition + 5
-//
-//                adapter.expandRange(
-//                    minPosition = extendedStart,
-//                    maxPosition = extendedEnd
-//                )
-//                Log.d("bible_data", "最终扩展范围: $extendedStart 到 $extendedEnd")
-//            }, 100)
-        }, 50)
+//        // 给Adapter时间创建Fragment
+//        viewPager.postDelayed({
+//            // 直接跳转到目标位置
+//            Log.d("bible_data", "首次跳转完成")
+//            viewPager.setCurrentItem(targetPosition, false)
+//        }, 10)
     }
 
 
     // 加载经文章节
     private fun loadChapter(bookId: Int, chapterNumber: Int, reference: String) {
         // 设置加载状态为true
-        isLoading = true
+//        isLoading = true
         // 显示加载中
-        showLoading()
+//        showLoading()
         Log.e("bible_data", "loadChapter->getChapterFromDB,${bookId} $chapterNumber,$reference");
 
-        BibleApiService.getChapterFromDB(
-            dynamicBibleDao,
-            bookId,
-            chapterNumber,
-            reference
-        ) { chapter ->
-            if (chapter != null) {
-                // 更新当前章节信息
-                currentBookId = chapter.bookId
-                currentChapterNumber = chapter.chapterNumber
-                for (i in 1..chapter.chapterCount) {
-                    if (i == chapter.chapterNumber) {
-                        chapters.add(chapter)
-                    } else {
-                        chapters.add(
-                            chapter.copy(
-                                chapterNumber = i,
-                                verses = emptyList()
-                            )
-                        )
-                    }
-                }
+        var chapterInfo = BibleApiService.getChapterInfo(bookId, chapterNumber, reference)
+        if (chapterInfo != null) {
+            // 更新当前章节信息
+            currentBookId = chapterInfo.bookId
+            currentChapterNumber = chapterInfo.chapterNumber
+            for (i in 1..chapterInfo.chapterCount) {
+                chapters.add(
+                    chapterInfo.copy(
+                        chapterNumber = i,
+                        verses = emptyList()
+                    )
+                )
 
-                Log.e(
-                    "bible_data",
-                    "loadChapter->getChapterFromDB back,${bookId} $chapterNumber,$reference"
-                );
-                // 更新UI
-                requireView().post {
-                    updateChapterUI(chapter)
-                    initChapterAdapter()
-//                    Log.e(
-//                        "bible_data",
-//                        "loadChapter->getChapterFromDB  initChapterAdapter done,${bookId} $chapterNumber,$reference"
-//                    );
-                }
-            } else {
-                // 显示错误
-                showError()
             }
-
-            // 隐藏加载中
-            hideLoading()
-            isLoading = false
+            updateChapterUI(chapterInfo)
+            initChapterAdapter()
+            Log.e(
+                "bible_data",
+                "loadChapter->getChapterFromDB back,${bookId} $chapterNumber,$reference"
+            );
+        } else {
+            // 显示错误
+            showError()
         }
+
+//
+//        BibleApiService.getChapterFromDB(
+//            dynamicBibleDao,
+//            bookId,
+//            chapterNumber,
+//            reference
+//        ) { chapter ->
+//            if (chapter != null) {
+//                // 更新当前章节信息
+//                currentBookId = chapter.bookId
+//                currentChapterNumber = chapter.chapterNumber
+//                for (i in 1..chapter.chapterCount) {
+//                    if (i == chapter.chapterNumber) {
+//                        chapters.add(chapter)
+//                    } else {
+//                        chapters.add(
+//                            chapter.copy(
+//                                chapterNumber = i,
+//                                verses = emptyList()
+//                            )
+//                        )
+//                    }
+//                }
+//
+//                Log.e(
+//                    "bible_data",
+//                    "loadChapter->getChapterFromDB back,${bookId} $chapterNumber,$reference"
+//                );
+//                // 更新UI
+//                requireView().post {
+//                    updateChapterUI(chapter)
+//                    initChapterAdapter()
+////                    Log.e(
+////                        "bible_data",
+////                        "loadChapter->getChapterFromDB  initChapterAdapter done,${bookId} $chapterNumber,$reference"
+////                    );
+//                }
+//            } else {
+//                // 显示错误
+//                showError()
+//            }
+//
+//            // 隐藏加载中
+//            hideLoading()
+//            isLoading = false
+//        }
     }
 
     override fun onClick(p0: View?) {
@@ -492,7 +520,6 @@ class BiblePagerFragment : Fragment(), View.OnClickListener {
         private const val ARG_CHAPTER_NUMBER = "chapter_number"
         private const val ARG_REFERENCE = "reference"
         private const val ARG_FULLSCREEN = "fullscreen"
-        private val versePattern = """\d+:(\d+)""".toRegex()
 
         // 创建新实例，可传入初始章节参数
         fun newInstance(

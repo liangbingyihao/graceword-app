@@ -17,6 +17,7 @@ import sdk.chat.demo.MainApp
 import sdk.chat.demo.bible.DynamicBibleDao
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
+import sdk.chat.demo.robot.api.model.BibleBook
 import sdk.chat.demo.robot.api.model.BibleChapter
 import sdk.chat.demo.robot.api.model.BibleData
 import sdk.chat.demo.robot.api.model.BibleData.ScriptureReference
@@ -99,6 +100,30 @@ object BibleApiService {
         })
     }
 
+    fun getChapterInfo(
+        bookId: Int,
+        chapterNumber: Int,
+        reference: String
+    ): BibleChapter? {
+        var bookId2 = bookId
+        var chapterNumber2 = chapterNumber
+        var scriptureReference: ScriptureReference? = null
+        if (!reference.isEmpty() && bookId <= 0) {
+            try {
+                scriptureReference = BibleData.parseScriptureReference(reference)
+                bookId2 = scriptureReference.bookId
+                chapterNumber2 = scriptureReference.chapterStart
+            } catch (e: Exception) {
+                Log.e("bible_data", e.toString())
+            }
+        }
+        if (bookId2 > 0) {
+            var book = BibleData.getBookById(bookId2)
+            return BibleChapter(book.name, bookId2, chapterNumber2, book.chapterCount, emptyList())
+        }
+        return null
+    }
+
     fun getChapterFromDB(
         bibleDao: DynamicBibleDao,
         bookId: Int,
@@ -109,7 +134,7 @@ object BibleApiService {
         var bookId2 = bookId
         var chapterNumber2 = chapterNumber
         var scriptureReference: ScriptureReference? = null
-        if (!reference.isEmpty() && bookId <= 0) {
+        if (!reference.isEmpty()) {
             try {
                 scriptureReference = BibleData.parseScriptureReference(reference)
                 bookId2 = scriptureReference.bookId

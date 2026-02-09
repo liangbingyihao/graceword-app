@@ -1067,7 +1067,8 @@ public class GWThreadHandler extends AbstractThreadHandler {
                                         JsonObject session = i.getAsJsonObject();
                                         String sessionName = session.get("session_name").getAsString();
                                         String entityId = session.get("id").getAsString();
-                                        Date updateAt = DateLocalizationUtil.INSTANCE.toDate(session.get("updated_at").getAsString());
+//                                        Date updateAt = DateLocalizationUtil.INSTANCE.toDate(session.get("updated_ts").getAsString());
+                                        Date updateAt = new Date(session.get("updated_ts").getAsLong());
                                         if (updateThread(entityId, sessionName, updateAt)) {
                                             modified = true;
                                         }

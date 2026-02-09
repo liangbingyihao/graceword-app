@@ -81,6 +81,7 @@
     <string name="guide_desc_2">Quick access to Bible historical context, basic knowledge, classic interpretations, with one-stop collection of faith related Q&amp;A.</string>
     <string name="guide_3">Daily Grace Inspiration</string>
     <string name="guide_desc_3">Personalized scriptures and practical guidance to help you live out your faith power.</string>
+    <string name="task_done_title">签到成功</string>
     <string name="task_done">Awesome! You\'ve completed today\'s grace journey task. Please claim today\'s Bible story inspiration.</string>
     <string name="task_unlock">Claim</string>
     <string name="later">View Later</string>
@@ -112,6 +113,7 @@
     <string name="share_preview">Share Preview</string>
     <string name="share_confirm">Share Directly</string>
     <string name="share_pic">Share Picture</string>
+    <string name="share_link">Share Link</string>
     <string name="share_total">%d items selected</string>
     <string name="query_hint">Please select any of the following criteria or enter keywords to search</string>
     <string name="read_bible">Read Bible</string>
@@ -188,8 +190,8 @@
     <string name="wallpaper_description">My Custom Live Wallpaper</string>
 
     <string name="customize_blessings">Customize Blessings</string>
-    <string name="click">Switch greetings with a tap on </string>
-    <string name="switch_or_customize_blessings"> Or write your own.</string>
+    <string name="click">Click </string>
+    <string name="switch_or_customize_blessings">  to switch greetings.</string>
     <string name="other_apps">Other Apps</string>
     <string name="share_to">Share to</string>
     <string name="share_prefix">Share from Grace Word: </string>

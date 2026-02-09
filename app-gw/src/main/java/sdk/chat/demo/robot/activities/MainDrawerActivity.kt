@@ -12,7 +12,6 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.content.edit
 import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,7 +25,6 @@ import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
-import sdk.chat.demo.robot.activities.ArticleListActivity
 import sdk.chat.demo.robot.adpter.SessionAdapter
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.model.KeyValuePair
@@ -49,7 +47,6 @@ import sdk.chat.demo.robot.ui.CustomDivider
 import sdk.chat.demo.robot.ui.HighlightOverlayView
 import sdk.chat.demo.robot.ui.hasShownGuideOverlay
 import sdk.chat.demo.robot.ui.listener.GWClickListener
-import sdk.chat.demo.robot.utils.ToastHelper
 import sdk.chat.demo.robot.utils.WallpaperGuideUtil
 
 
@@ -289,7 +286,6 @@ class MainDrawerActivity : BaseActivity(), View.OnClickListener, GWClickListener
             null
         )
         loadCampaignData()
-
     }
 
     private fun loadCampaignData() {

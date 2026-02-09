@@ -22,7 +22,7 @@ object BibleSelectionManager {
         selectedVerses.forEachIndexed { index, verse ->
             if (index > 0) {
                 // 检查是否相邻
-                if (previousVerse != null && isConsecutive(previousVerse!!, verse)) {
+                if (previousVerse != null && isConsecutive(previousVerse, verse)) {
                     result.append(" ")  // 相邻经文用空格
                 } else {
                     result.append("... ")  // 不相邻经文用...

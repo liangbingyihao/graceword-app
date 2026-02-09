@@ -304,6 +304,7 @@ class SpeechToTextActivity : AppCompatActivity(), View.OnClickListener,
             }
 
             R.id.billing -> {
+                NoteEditActivity.start(this@SpeechToTextActivity)
 //                speechToTextHelper.stopListening()
 //                BillingActivity.start(this@SpeechToTextActivity,"test")
 //                captureScreenshotWithFooter()

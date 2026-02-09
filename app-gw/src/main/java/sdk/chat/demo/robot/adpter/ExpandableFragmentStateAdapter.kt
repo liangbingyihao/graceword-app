@@ -14,6 +14,8 @@ import kotlin.math.abs
 class ExpandableFragmentStateAdapter(
     fragmentActivity: FragmentActivity,
     private val chapters: List<BibleChapter>,
+    private val initChapterNumber: Int = 0,
+    private val initReference: String? = "",
     private val initialCapacity: Int = 3,
 ) : FragmentStateAdapter(fragmentActivity) {
 
@@ -35,7 +37,7 @@ class ExpandableFragmentStateAdapter(
                 var fragment = getFragment(i)
                 fragment?.let {
                     // 触发 Fragment 的懒加载机制
-                    Log.e("setMultiSelectMode","${it.isAdded},${it.isResumed}")
+                    Log.e("setMultiSelectMode", "${it.isAdded},${it.isResumed}")
                     (it as BibleChapterFragment).setMultiSelectMode(enabled)
                 }
 //                fragment?.setMultiSelectMode(enabled)
@@ -110,9 +112,14 @@ class ExpandableFragmentStateAdapter(
 
     private fun createNewFragment(position: Int): Fragment {
         val chapter = chapters[position]
+        var reference = ""
+        if (chapter.chapterNumber == initChapterNumber && initReference != null) {
+            reference = initReference
+        }
         return BibleChapterFragment.newInstance(
             bookId = chapter.bookId,
             chapterNumber = chapter.chapterNumber,
+            reference = reference,
             isMultiSelectMode = false
         )
     }

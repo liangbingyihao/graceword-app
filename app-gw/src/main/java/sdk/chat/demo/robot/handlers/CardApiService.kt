@@ -22,6 +22,7 @@ import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
 import sdk.chat.demo.MainApp
+import sdk.chat.demo.robot.activities.CampaignInfoActivity
 import sdk.chat.demo.robot.api.GWApiManager
 import sdk.chat.demo.robot.api.ImageApi
 import sdk.chat.demo.robot.api.JsonCacheManager.get
@@ -173,7 +174,7 @@ object CardApiService {
                 if (config.popupConfig?.enable == true && whenShow.isNullOrEmpty()) {
                     Log.e("LauncherStep", "whenShow:${whenShow},to launch main")
                     ChatSDK.events().source()
-                        .accept(NetworkEvent(EventType.ShowOAMain, "main"))
+                        .accept(NetworkEvent(EventType.ShowOAMain, CampaignInfoActivity.MODE_MAIN))
                 } else if (config.dailyPopupConfig?.enable == true && !whenShow.isNullOrEmpty()) {
                     val today: String = DateLocalizationUtil.formatDayAgo(0)
                     val toShow: Boolean = today >= whenShow
@@ -183,7 +184,7 @@ object CardApiService {
                     )
                     if (toShow) {
                         ChatSDK.events().source()
-                            .accept(NetworkEvent(EventType.ShowOAMain, "mini"))
+                            .accept(NetworkEvent(EventType.ShowOAMain, CampaignInfoActivity.MODE_MINI))
                     }
                 }
             }
