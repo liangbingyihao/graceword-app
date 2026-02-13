@@ -22,6 +22,7 @@ import io.reactivex.SingleSource
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
 import io.reactivex.functions.Function
+import org.tinylog.Logger
 import sdk.chat.core.dao.Message
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
@@ -286,6 +287,8 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     { articleSessions ->
 //                        menuPopup.updateMenuItems(articleSessions, 0)
                         initMenuPopup(articleSessions)
+                        swipeRefreshLayout.setLoadingMore(true)
+                        articleAdapter.isLoading = true
                         loadArticles()
                     },
                     { error -> // onError
@@ -303,10 +306,12 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
             articleAdapter.clearAll()
             swipeRefreshLayout.setCanLoadMore(true)
         }
+        Logger.error { "loadArticles:$sessionId,${tvTitle.text},${eldestMsg}" }
         dm.add(
             threadHandler.loadMessagesBySession(sessionId, eldestMsg)
                 .flatMap(Function { data: MessagePage ->
                     var messages = data.items
+                    Logger.error { "loadArticles $sessionId,${tvTitle.text},${eldestMsg} got:${messages.size}" }
 //                    var lastDay = articleAdapter.getLastArticle()?.day;
 
 //                    var firstDay =
@@ -361,6 +366,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                     { articleList ->
                         val (messages, isHasMore) = articleList
                         var isFirst = articleAdapter.itemCount == 1
+                        Logger.error { "loadArticles $sessionId,${tvTitle.text},${eldestMsg} got:${messages.size},isHasMore:${isHasMore}" }
                         articleAdapter.appendItems(messages, isHasMore) {
                             if (isFirst) {
                                 recyclerView.scrollToPosition(0);
@@ -377,11 +383,7 @@ class ArticleListActivity : BaseActivity(), View.OnClickListener {
                         }
                     },
                     { error -> // onError
-                        FirebaseReport.reportExportEvent(
-                            "load.err",
-                            error.message.toString(),
-                            error
-                        )
+                        Logger.error { "loadArticles $sessionId,${tvTitle.text},${eldestMsg} got:${error}" }
                         Toast.makeText(
                             this@ArticleListActivity,
                             error.message,

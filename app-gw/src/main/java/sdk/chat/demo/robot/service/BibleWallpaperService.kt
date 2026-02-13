@@ -1,21 +1,15 @@
 package sdk.chat.demo.robot.service
 
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.RectF
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.service.wallpaper.WallpaperService
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
-import android.view.Surface
 import android.view.SurfaceHolder
-import android.view.WindowManager
 import com.google.gson.Gson
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
@@ -24,19 +18,17 @@ import org.tinylog.Logger
 import sdk.chat.core.events.EventType
 import sdk.chat.core.events.NetworkEvent
 import sdk.chat.core.session.ChatSDK
-import sdk.chat.demo.MainApp
 import sdk.chat.demo.pre.R
+import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.api.ImageApi
-import sdk.chat.demo.robot.api.JsonCacheManager
 import sdk.chat.demo.robot.api.model.BlessData
 import sdk.chat.demo.robot.api.model.ImageDaily
 import sdk.chat.demo.robot.extensions.DateLocalizationUtil.formatDayAgo
 import sdk.chat.demo.robot.handlers.CardApiService
 import sdk.chat.demo.robot.handlers.CardGenerator
 import sdk.chat.demo.robot.handlers.WallpaperConfig
-import java.util.concurrent.Executors
-import sdk.chat.demo.robot.activities.MainDrawerActivity
 import sdk.chat.demo.robot.utils.DisplayCompat
+import java.util.concurrent.Executors
 
 class BibleWallpaperService : WallpaperService() {
     private val TAG = "BibleWallpaperEngine"

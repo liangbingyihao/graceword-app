@@ -45,6 +45,6 @@ chat-sdk-video-message
 ajcore.*
 
 doubao.json
+google-services-dev.json
 google-services.json
-google-services-rel.json
 *.jks

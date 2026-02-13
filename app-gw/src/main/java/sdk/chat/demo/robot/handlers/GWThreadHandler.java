@@ -81,7 +81,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     //    private Message playingMsg;
     private Boolean isCustomPrompt = null;
     private SystemConf serverPrompt = null;
-    private int batchSize = 40;
+    private final int batchSize = 40;
     private final static Gson gson = new Gson();
     public final static String KEY_AI_FEEDBACK = "ai_feedback";
     public final static String KEY_VERSION = "version";
@@ -161,48 +161,58 @@ public class GWThreadHandler extends AbstractThreadHandler {
             } else {
                 Log.e("MessageService", "start loadMessagesBySession: " + sessionId);
             }
-            DaoCore daoCore = ChatSDK.db().getDaoCore();
-            QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
 
-// 构建查询条件
-            List<WhereCondition> conditions = new ArrayList<>();
-
-// 条件1: 如果 lastMsg 不为 null，查询比它更早的消息
-            if (lastMsg != null) {
-                Long lastMsgId = lastMsg.getId();
-                if (lastMsgId != null) {
-                    conditions.add(MessageDao.Properties.Id.lt(lastMsgId));
-                }
-            }
-
-// 条件2: 如果 sessionId 不为 null，过滤指定会话
             Long threadId = null;
             if (sessionId != null) {
                 try {
                     threadId = Long.parseLong(sessionId);
-                    conditions.add(MessageDao.Properties.ThreadId.eq(threadId));
                 } catch (NumberFormatException e) {
-                    // 处理 sessionId 格式错误
-                    Log.e("MessageService", "Invalid sessionId format: " + sessionId, e);
                 }
             }
 
-// 应用所有条件
-            if (!conditions.isEmpty()) {
-                if (conditions.size() == 1) {
-                    qb.where(conditions.get(0));
-                } else {
-                    qb.where(qb.and(conditions.get(0), conditions.get(1)));
-                }
-            }
-
-            var bs = batchSize;
-            qb.orderDesc(MessageDao.Properties.Date).limit(bs);
-            List<Message> data = qb.list();
+//
+//            DaoCore daoCore = ChatSDK.db().getDaoCore();
+//            QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+//
+//// 构建查询条件
+//            List<WhereCondition> conditions = new ArrayList<>();
+//
+//// 条件1: 如果 lastMsg 不为 null，查询比它更早的消息
+//            if (lastMsg != null) {
+//                Long lastMsgId = lastMsg.getId();
+//                if (lastMsgId != null) {
+//                    conditions.add(MessageDao.Properties.Id.lt(lastMsgId));
+//                }
+//            }
+//
+//// 条件2: 如果 sessionId 不为 null，过滤指定会话
+//            Long threadId = null;
+//            if (sessionId != null) {
+//                try {
+//                    threadId = Long.parseLong(sessionId);
+//                    conditions.add(MessageDao.Properties.ThreadId.eq(threadId));
+//                } catch (NumberFormatException e) {
+//                    // 处理 sessionId 格式错误
+//                    Logger.error("loadArticles NumberFormatException " + threadId + "," + e.getMessage());
+//                }
+//            }
+//
+//// 应用所有条件
+//            if (!conditions.isEmpty()) {
+//                if (conditions.size() == 1) {
+//                    qb.where(conditions.get(0));
+//                } else {
+//                    qb.where(qb.and(conditions.get(0), conditions.get(1)));
+//                }
+//            }
+//
+//            var bs = batchSize;
+//            qb.orderDesc(MessageDao.Properties.Date).limit(bs);
+            List<Message> data = queryMessagesFromDB(threadId, batchSize, lastMsg);
 
             // 2. 如果需要，异步触发网络同步
             boolean hasMore = true;
-            if (data.size() < bs) {
+            if (data.size() < batchSize) {
                 hasMore = false;
                 Long olderThan = 0L;
                 if (!data.isEmpty()) {
@@ -215,17 +225,73 @@ public class GWThreadHandler extends AbstractThreadHandler {
                     var thread = ChatSDK.db().fetchThreadWithEntityID(sessionId);
                     if (thread != null) {
                         var lastUpdateTs = thread.metaValueForKey(Keys.KEY_VERSION);
-                        if(lastUpdateTs==null||lastUpdateTs.getLongValue()>olderThan){
-                            hasMore = true;
-                            triggerNetworkSyncAsync(threadId, olderThan);
+                        if (lastUpdateTs == null || lastUpdateTs.getLongValue() > olderThan) {
+//                            triggerNetworkSyncAsync(threadId, olderThan);
+//                            hasMore = true;
+                            // 调用网络同步API，成功后重新查询数据库
+                            Long finalThreadId = threadId;
+                            return MessageService.INSTANCE.loadSessionMessagesAndSaveToLocal(
+                                            threadId,
+                                            olderThan,
+                                            1,
+                                            500
+                                    )
+                                    .andThen(Single.defer(() -> {
+                                        // 网络同步成功后，重新查询数据库
+                                        var freshData = queryMessagesFromDB(finalThreadId, batchSize, lastMsg);
+                                        return Single.just(new MessagePage(freshData, freshData.size() < batchSize));
+                                    }))
+                                    .onErrorReturn(throwable -> {
+                                        // 如果网络同步失败，返回原始数据
+                                        Logger.error("Network sync failed", throwable);
+                                        return new MessagePage(data, false);
+                                    });
                         }
                     }
                 }
             }
-            Log.d("MessageService", threadId + " has more:" + hasMore);
+            Logger.error("loadArticles db back " + threadId + "," + hasMore);
             MessagePage ret = new MessagePage(data, hasMore);
             return Single.just(ret);
         }).subscribeOn(RX.db());
+    }
+
+    private List<Message> queryMessagesFromDB(Long threadId, int limit, Message lastMsg) {
+        DaoCore daoCore = ChatSDK.db().getDaoCore();
+        QueryBuilder<Message> qb = daoCore.getDaoSession().queryBuilder(Message.class);
+
+// 构建查询条件
+        List<WhereCondition> conditions = new ArrayList<>();
+
+// 条件1: 如果 lastMsg 不为 null，查询比它更早的消息
+        if (lastMsg != null) {
+            Long lastMsgId = lastMsg.getId();
+            if (lastMsgId != null) {
+                conditions.add(MessageDao.Properties.Id.lt(lastMsgId));
+            }
+        }
+
+// 条件2: 如果 sessionId 不为 null，过滤指定会话
+        if (threadId != null) {
+            try {
+                conditions.add(MessageDao.Properties.ThreadId.eq(threadId));
+            } catch (NumberFormatException e) {
+                // 处理 sessionId 格式错误
+                Logger.error("loadArticles NumberFormatException " + threadId + "," + e.getMessage());
+            }
+        }
+
+// 应用所有条件
+        if (!conditions.isEmpty()) {
+            if (conditions.size() == 1) {
+                qb.where(conditions.get(0));
+            } else {
+                qb.where(qb.and(conditions.get(0), conditions.get(1)));
+            }
+        }
+
+        qb.orderDesc(MessageDao.Properties.Date).limit(limit);
+        return qb.list();
     }
 
 
@@ -1162,7 +1228,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
     public boolean updateThread(String threadId, String sessionName, Date updateAt) {
         Thread entity = ChatSDK.db().fetchOrCreateThreadWithEntityID(threadId);
         boolean modified = false;
-        Logger.info("updateThread:" + threadId + "," + sessionName);
+//        Logger.info("updateThread:" + threadId + "," + sessionName);
         if (sessionName != null && !sessionName.isEmpty() && !sessionName.equals(entity.getName())) {
             entity.setName(sessionName);
 //            entity.setType(ThreadType.None);
@@ -1254,7 +1320,7 @@ public class GWThreadHandler extends AbstractThreadHandler {
                                     new KeyValuePair("chat_action", "34")
                             )
                     );
-                    
+
                 } else if (aiFeedback.getStatus() == MessageDetail.STATUS_CANCEL || (fb != null && fb.getView() != null && !fb.getView().isEmpty())) {
                     message.setMessageStatus(MessageSendStatus.Sent, false);
                 } else {
