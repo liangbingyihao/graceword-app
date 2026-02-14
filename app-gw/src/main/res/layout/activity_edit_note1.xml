@@ -47,9 +47,8 @@
                 android:id="@+id/chapter_info_bar"
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
-                android:background="@color/white"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                android:background="#ff0000"
+                android:orientation="horizontal">
 
 
                 <TextView
@@ -77,20 +76,28 @@
                 android:layout_height="1dp"
                 android:background="@color/gray_base" />
 
-            <TextView
-                android:id="@+id/chapter_progress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="34354354"
-                android:textColor="@color/item_text_normal"
-                android:textSize="14sp" />
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:maxHeight="200dp">
+
+                <TextView
+                    android:id="@+id/scripture"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="34354354"
+                    android:textColor="@color/item_text_normal"
+                    android:textSize="14sp" />
+            </androidx.core.widget.NestedScrollView>
 
             <EditText
                 android:id="@+id/edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_weight="3"
                 android:gravity="top|left"
                 android:hint="请输入内容"
                 android:minHeight="48dp"
